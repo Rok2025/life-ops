@@ -12,9 +12,10 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         if (!loading) {
-            if (!user && pathname !== '/login') {
+            const isLoginPage = pathname === '/login' || pathname === '/login/';
+            if (!user && !isLoginPage) {
                 router.push('/login');
-            } else if (user && pathname === '/login') {
+            } else if (user && isLoginPage) {
                 router.push('/');
             }
         }
@@ -28,8 +29,10 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         );
     }
 
+    const isLoginPage = pathname === '/login' || pathname === '/login/';
+
     // 如果未登录且不是登录页，先返回空以防闪烁（useEffect 会处理跳转）
-    if (!user && pathname !== '/login') {
+    if (!user && !isLoginPage) {
         return null;
     }
 

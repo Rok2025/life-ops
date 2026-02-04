@@ -33,7 +33,7 @@ export default function LoginPage() {
                     email,
                     password,
                     options: {
-                        emailRedirectTo: `${window.location.origin}/auth/callback`,
+                        emailRedirectTo: `${window.location.origin}${process.env.NODE_ENV === 'production' ? '/life-ops' : ''}/auth/callback`,
                     }
                 });
 
