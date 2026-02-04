@@ -269,7 +269,7 @@ export default async function FitnessPage() {
 
                                             {/* 查看详情链接 */}
                                             <Link
-                                                href={`/fitness/workout/${session.id}?edit=true`}
+                                                href={`/fitness/workout/detail?id=${session.id}&edit=true`}
                                                 className="inline-flex items-center gap-1 text-sm text-accent hover:underline"
                                             >
                                                 编辑此记录

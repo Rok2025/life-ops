@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Plus, Trash2, Edit2, Save, X } from 'lucide-react';
 import Link from 'next/link';
@@ -51,10 +51,10 @@ type AggregatedExercise = {
     reps: number;
 };
 
-export default function WorkoutDetailPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = use(params);
+export default function WorkoutDetailPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const id = searchParams.get('id') || '';
     const autoEdit = searchParams.get('edit') === 'true';
 
     const [session, setSession] = useState<WorkoutSession | null>(null);
