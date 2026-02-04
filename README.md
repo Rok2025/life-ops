@@ -2,6 +2,8 @@
 
 > 个人控制台 - 行动与节奏
 
+**[在线演示 🌐](https://rok2025.github.io/life-ops/)**
+
 **Life OPS**（Life Operating System）是一个个人控制台网站，帮助你一眼扫完、立即行动。
 
 ![Life OPS Screenshot](docs/screenshot.png)
