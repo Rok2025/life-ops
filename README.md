@@ -57,6 +57,11 @@ pnpm dev
 ```
 
 访问 http://localhost:9999
+### 部署
+项目支持静态导出并托管于 GitHub Pages：
+1. **GitHub Actions**：代码推送至 `main` 分支后自动触发构建。
+2. **Supabase 配置**：需要在 GitHub Repo Settings -> Secrets -> Actions 中配置 `NEXT_PUBLIC_SUPABASE_URL` 和 `NEXT_PUBLIC_SUPABASE_ANON_KEY`。
+3. **输出模式**：使用 `next build` 导出静态资源至 `apps/web/out`。
 
 ## 📁 项目结构
 

@@ -216,6 +216,14 @@ daily_til (id, til_date, content, category, created_at, updated_at)
   - `/growth/english`、`/growth/reading`、`/growth/ai`
   - `/output`、`/family`、`/finance`
 
+### v0.2.3 (2026-02-05) - GitHub Pages 部署
+- **静态导出优化**：配置 Next.js 为 `output: export` 模式，支持静态托管。
+- **CI/CD 自动化**：集成 GitHub Actions，实现代码推送自动构建并同步至 `gh-pages` 分支。
+- **路由兼容性修复**：
+  - 将动态路由 `[id]` 转换为 `detail?id=xxx` 模式，解决静态导出限制。
+  - 修正了 `AuthGuard` 对 GitHub Pages 子路径及末尾斜杠（trailingSlash）的路径识别。
+- **在线演示上线**：官方 Demo 地址正式发布。
+
 ---
 
 ## 六、待实现功能
