@@ -2,12 +2,21 @@ import { Dumbbell } from 'lucide-react';
 import Link from 'next/link';
 import DailyFrogs from '@/components/DailyFrogs';
 import DailyTIL from '@/components/DailyTIL';
+import QuickNotes from '@/components/QuickNotes';
 import WelcomeHeader from '@/components/WelcomeHeader';
 import { supabase } from '@/lib/supabase';
 
+// 获取本地日期字符串 (YYYY-MM-DD)，避免 toISOString 的 UTC 时区问题
+function getLocalDateStr(date: Date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 // 获取今日青蛙完成情况
 async function getTodayFrogsStats() {
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalDateStr();
 
   const { data, error } = await supabase
     .from('daily_frogs')
@@ -26,7 +35,7 @@ async function getTodayFrogsStats() {
 
 // 获取今日 TIL 数量
 async function getTodayTilCount() {
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalDateStr();
 
   const { count, error } = await supabase
     .from('daily_til')
@@ -35,6 +44,23 @@ async function getTodayTilCount() {
 
   if (error) {
     console.error('获取今日 TIL 失败:', error);
+    return 0;
+  }
+
+  return count || 0;
+}
+
+// 获取今日随手记数量
+async function getTodayNotesCount() {
+  const today = getLocalDateStr();
+
+  const { count, error } = await supabase
+    .from('quick_notes')
+    .select('*', { count: 'exact', head: true })
+    .eq('note_date', today);
+
+  if (error) {
+    console.error('获取今日随手记失败:', error);
     return 0;
   }
 
@@ -51,7 +77,7 @@ async function getWeeklyWorkoutDays() {
   const { data, error } = await supabase
     .from('workout_sessions')
     .select('workout_date')
-    .gte('workout_date', startOfWeek.toISOString().split('T')[0]);
+    .gte('workout_date', getLocalDateStr(startOfWeek));
 
   if (error) {
     console.error('获取本周训练次数失败:', error);
@@ -114,10 +140,11 @@ function AreaCard({
 
 export default async function HomePage() {
   // 并行获取所有数据
-  const [weeklyWorkoutDays, frogsStats, tilCount] = await Promise.all([
+  const [weeklyWorkoutDays, frogsStats, tilCount, notesCount] = await Promise.all([
     getWeeklyWorkoutDays(),
     getTodayFrogsStats(),
     getTodayTilCount(),
+    getTodayNotesCount(),
   ]);
 
   return (
@@ -128,6 +155,7 @@ export default async function HomePage() {
         frogsCompleted={frogsStats.completed}
         frogsTotal={frogsStats.total}
         tilCount={tilCount}
+        notesCount={notesCount}
         workoutDays={weeklyWorkoutDays}
         workoutTarget={3}
       />
@@ -136,6 +164,11 @@ export default async function HomePage() {
       <section className="mb-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
         <DailyFrogs />
         <DailyTIL />
+      </section>
+
+      {/* 随手记 - 全宽 */}
+      <section className="mb-8">
+        <QuickNotes />
       </section>
 
       {/* Area Cards Grid */}

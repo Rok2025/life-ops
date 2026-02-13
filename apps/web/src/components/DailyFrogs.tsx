@@ -12,9 +12,17 @@ type Frog = {
     frog_date: string;
 };
 
+// 获取本地日期字符串 (YYYY-MM-DD)，避免 toISOString 的 UTC 时区问题
+const getLocalDateStr = (date: Date = new Date()) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
 export default function DailyFrogs() {
     const [selectedDate, setSelectedDate] = useState(() =>
-        new Date().toISOString().split('T')[0]
+        getLocalDateStr()
     );
     const [frogs, setFrogs] = useState<Frog[]>([]);
     const [loading, setLoading] = useState(true);
@@ -33,8 +41,8 @@ export default function DailyFrogs() {
         const yesterday = new Date(today);
         yesterday.setDate(yesterday.getDate() - 1);
 
-        const todayStr = today.toISOString().split('T')[0];
-        const yesterdayStr = yesterday.toISOString().split('T')[0];
+        const todayStr = getLocalDateStr(today);
+        const yesterdayStr = getLocalDateStr(yesterday);
 
         if (dateStr === todayStr) return '今天';
         if (dateStr === yesterdayStr) return '昨天';
@@ -173,7 +181,7 @@ export default function DailyFrogs() {
 
     // 计算完成情况
     const completedCount = frogs.filter(f => f.is_completed).length;
-    const isToday = selectedDate === new Date().toISOString().split('T')[0];
+    const isToday = selectedDate === getLocalDateStr();
 
     return (
         <div className="card p-6">
@@ -204,7 +212,7 @@ export default function DailyFrogs() {
                                 id="frog-date-input"
                                 type="date"
                                 value={selectedDate}
-                                max={new Date().toISOString().split('T')[0]}
+                                max={getLocalDateStr()}
                                 onChange={(e) => e.target.value && setSelectedDate(e.target.value)}
                                 className="absolute top-0 left-0 w-0 h-0 opacity-0"
                                 style={{ fontSize: '16px' }}
@@ -306,7 +314,7 @@ export default function DailyFrogs() {
                                     type="date"
                                     value={formDate}
                                     onChange={(e) => setFormDate(e.target.value)}
-                                    max={new Date().toISOString().split('T')[0]}
+                                    max={getLocalDateStr()}
                                     className="w-full px-3 py-2 rounded-lg bg-bg-tertiary border border-border text-text-primary"
                                 />
                             </div>

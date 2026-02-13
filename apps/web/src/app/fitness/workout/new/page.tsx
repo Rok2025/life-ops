@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { ArrowLeft, Plus, Trash2, Copy } from 'lucide-react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 
@@ -35,11 +35,21 @@ type ExerciseSet = {
 
 export default function NewWorkoutPage() {
     const router = useRouter();
-    const today = new Date().toISOString().split('T')[0];
+    const searchParams = useSearchParams();
+    const copyFromId = searchParams.get('copy');
+    
+    const today = (() => {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    })();
     const [date, setDate] = useState(today);
     const [exerciseSets, setExerciseSets] = useState<ExerciseSet[]>([]);
     const [notes, setNotes] = useState('');
     const [saving, setSaving] = useState(false);
+    const [isCopied, setIsCopied] = useState(false);
 
     // 从数据库加载的动作类型
     const [exerciseTypes, setExerciseTypes] = useState<ExerciseType[]>([]);
@@ -70,6 +80,63 @@ export default function NewWorkoutPage() {
 
         loadExerciseTypes();
     }, []);
+
+    // 复制训练数据
+    useEffect(() => {
+        if (!copyFromId || exerciseTypes.length === 0 || isCopied) return;
+
+        async function loadWorkoutToCopy() {
+            // 获取要复制的训练会话
+            const { data: session } = await supabase
+                .from('workout_sessions')
+                .select('notes')
+                .eq('id', copyFromId)
+                .single();
+
+            if (session?.notes) {
+                setNotes(session.notes);
+            }
+
+            // 获取训练组数据
+            const { data: sets } = await supabase
+                .from('workout_sets')
+                .select('weight, reps, exercise_types(id, name, category)')
+                .eq('session_id', copyFromId)
+                .order('set_order');
+
+            if (sets && sets.length > 0) {
+                // 聚合相同动作的组
+                const exerciseMap = new Map<string, ExerciseSet>();
+
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                sets.forEach((set: any) => {
+                    if (!set.exercise_types) return;
+                    const key = set.exercise_types.id;
+
+                    if (!exerciseMap.has(key)) {
+                        exerciseMap.set(key, {
+                            id: Date.now() + Math.random() * 1000,
+                            exerciseTypeId: set.exercise_types.id,
+                            exercise: set.exercise_types.name,
+                            category: set.exercise_types.category,
+                            weight: set.weight || 0,
+                            sets: 0,
+                            reps: set.reps || 0
+                        });
+                    }
+
+                    const exercise = exerciseMap.get(key)!;
+                    exercise.sets += 1;
+                });
+
+                setExerciseSets(Array.from(exerciseMap.values()));
+            }
+
+            setIsCopied(true);
+        }
+
+        loadWorkoutToCopy();
+    }, [copyFromId, exerciseTypes, isCopied]);
 
     // 根据类别获取动作列表
     const getExercisesByCategory = (category: string) => {
@@ -204,7 +271,17 @@ export default function NewWorkoutPage() {
                     返回健身领域
                 </Link>
                 <div className="flex items-center justify-between">
-                    <h1 className="text-3xl font-bold text-text-primary">添加训练记录</h1>
+                    <div>
+                        <h1 className="text-3xl font-bold text-text-primary">
+                            {copyFromId ? '复制训练记录' : '添加训练记录'}
+                        </h1>
+                        {copyFromId && (
+                            <p className="text-sm text-purple-400 flex items-center gap-1 mt-1">
+                                <Copy size={14} />
+                                已复制上次训练内容，可直接修改
+                            </p>
+                        )}
+                    </div>
                     <Link
                         href="/fitness/exercises"
                         className="text-sm text-accent hover:underline"

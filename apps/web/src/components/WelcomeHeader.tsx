@@ -7,6 +7,7 @@ interface WelcomeHeaderProps {
     frogsCompleted: number;
     frogsTotal: number;
     tilCount: number;
+    notesCount: number;
     workoutDays: number;
     workoutTarget: number;
 }
@@ -29,6 +30,7 @@ export default function WelcomeHeader({
     frogsCompleted,
     frogsTotal,
     tilCount,
+    notesCount,
     workoutDays,
     workoutTarget,
 }: WelcomeHeaderProps) {
@@ -101,7 +103,13 @@ export default function WelcomeHeader({
                 </span>
                 <span className="text-text-tertiary">·</span>
                 <span className="flex items-center gap-1.5">
-                    <span>💪</span>
+                    <span>�</span>
+                    <span className="text-text-primary font-medium">{notesCount}</span>
+                    <span>条随手记</span>
+                </span>
+                <span className="text-text-tertiary">·</span>
+                <span className="flex items-center gap-1.5">
+                    <span>�💪</span>
                     <span className="text-text-primary font-medium">{workoutDays}/{workoutTarget}</span>
                     <span>天训练</span>
                 </span>
