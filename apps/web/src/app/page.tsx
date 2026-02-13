@@ -1,4 +1,5 @@
 import { Dumbbell } from 'lucide-react';
+import Link from 'next/link';
 import DailyFrogs from '@/components/DailyFrogs';
 import DailyTIL from '@/components/DailyTIL';
 import WelcomeHeader from '@/components/WelcomeHeader';
@@ -82,7 +83,7 @@ function AreaCard({
   const statusLabel = progress >= 100 ? 'OK' : progress >= 50 ? '进行中' : '需关注';
 
   return (
-    <a href={href} className="card p-6 block hover:shadow-lg transition-shadow">
+    <Link href={href} className="card p-6 block hover:shadow-lg transition-shadow">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-bg-tertiary flex items-center justify-center">
@@ -107,7 +108,7 @@ function AreaCard({
           />
         </div>
       </div>
-    </a>
+    </Link>
   );
 }
 
