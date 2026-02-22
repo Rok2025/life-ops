@@ -1,108 +1,23 @@
 import { Dumbbell } from 'lucide-react';
 import Link from 'next/link';
-import DailyFrogs from '@/components/DailyFrogs';
-import DailyTIL from '@/components/DailyTIL';
-import QuickNotes from '@/components/QuickNotes';
+import { FrogsWidget } from '@/features/daily-frogs';
+import { frogsApi } from '@/features/daily-frogs';
+import { TilWidget } from '@/features/daily-til';
+import { tilApi } from '@/features/daily-til';
+import { NotesWidget } from '@/features/quick-notes';
+import { notesApi } from '@/features/quick-notes';
+import { fitnessApi } from '@/features/fitness';
 import WelcomeHeader from '@/components/WelcomeHeader';
-import { supabase } from '@/lib/supabase';
+import { getLocalDateStr } from '@/lib/utils/date';
 
-// 获取本地日期字符串 (YYYY-MM-DD)，避免 toISOString 的 UTC 时区问题
-function getLocalDateStr(date: Date = new Date()) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
 
-// 获取今日青蛙完成情况
-async function getTodayFrogsStats() {
-  const today = getLocalDateStr();
+// --- AreaCard 组件（后续将提取到 features/dashboard/components/） ---
 
-  const { data, error } = await supabase
-    .from('daily_frogs')
-    .select('is_completed')
-    .eq('frog_date', today);
-
-  if (error) {
-    console.error('获取今日青蛙失败:', error);
-    return { completed: 0, total: 0 };
-  }
-
-  const total = data?.length || 0;
-  const completed = data?.filter(f => f.is_completed).length || 0;
-  return { completed, total };
-}
-
-// 获取今日 TIL 数量
-async function getTodayTilCount() {
-  const today = getLocalDateStr();
-
-  const { count, error } = await supabase
-    .from('daily_til')
-    .select('*', { count: 'exact', head: true })
-    .eq('til_date', today);
-
-  if (error) {
-    console.error('获取今日 TIL 失败:', error);
-    return 0;
-  }
-
-  return count || 0;
-}
-
-// 获取今日随手记数量
-async function getTodayNotesCount() {
-  const today = getLocalDateStr();
-
-  const { count, error } = await supabase
-    .from('quick_notes')
-    .select('*', { count: 'exact', head: true })
-    .eq('note_date', today);
-
-  if (error) {
-    console.error('获取今日随手记失败:', error);
-    return 0;
-  }
-
-  return count || 0;
-}
-
-// 获取本周训练天数
-async function getWeeklyWorkoutDays() {
-  const now = new Date();
-  const startOfWeek = new Date(now);
-  startOfWeek.setDate(now.getDate() - now.getDay());
-  startOfWeek.setHours(0, 0, 0, 0);
-
-  const { data, error } = await supabase
-    .from('workout_sessions')
-    .select('workout_date')
-    .gte('workout_date', getLocalDateStr(startOfWeek));
-
-  if (error) {
-    console.error('获取本周训练次数失败:', error);
-    return 0;
-  }
-
-  const uniqueDates = new Set(data?.map(s => s.workout_date) || []);
-  return uniqueDates.size;
-}
-
-// Area 状态卡片组件
 function AreaCard({
-  name,
-  icon: Icon,
-  href,
-  current,
-  target,
-  unit
+  name, icon: Icon, href, current, target, unit,
 }: {
-  name: string;
-  icon: React.ElementType;
-  href: string;
-  current: number;
-  target: number;
-  unit: string;
+  name: string; icon: React.ElementType; href: string;
+  current: number; target: number; unit: string;
 }) {
   const progress = Math.round((current / target) * 100);
   const status = progress >= 100 ? 'success' : progress >= 50 ? 'warning' : 'danger';
@@ -119,7 +34,6 @@ function AreaCard({
         </div>
         <span className={`pill pill-${status}`}>{statusLabel}</span>
       </div>
-
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
           <span className="text-text-secondary">本周进度</span>
@@ -127,8 +41,7 @@ function AreaCard({
         </div>
         <div className="h-2 bg-bg-tertiary rounded-full overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all ${status === 'success' ? 'bg-success' :
-              status === 'warning' ? 'bg-warning' : 'bg-danger'
+            className={`h-full rounded-full transition-all ${status === 'success' ? 'bg-success' : status === 'warning' ? 'bg-warning' : 'bg-danger'
               }`}
             style={{ width: `${Math.min(progress, 100)}%` }}
           />
@@ -138,18 +51,23 @@ function AreaCard({
   );
 }
 
+// --- Page ---
+
 export default async function HomePage() {
-  // 并行获取所有数据
-  const [weeklyWorkoutDays, frogsStats, tilCount, notesCount] = await Promise.all([
-    getWeeklyWorkoutDays(),
-    getTodayFrogsStats(),
-    getTodayTilCount(),
-    getTodayNotesCount(),
+  const today = getLocalDateStr();
+
+  const [weeklyWorkoutDays, frogsStats, tilCount, notesCount, initialFrogs, initialTils, initialNotes] = await Promise.all([
+    fitnessApi.getWeeklyWorkoutDays(),
+    frogsApi.getStats(today),
+    tilApi.getCount(today),
+    notesApi.getCount(today),
+    frogsApi.getByDate(today),
+    tilApi.getByDate(today),
+    notesApi.getByDate(today),
   ]);
 
   return (
     <div>
-      {/* WelcomeHeader - 动态时间 + 问候语 + 数据汇总 */}
       <WelcomeHeader
         userName="Rok"
         frogsCompleted={frogsStats.completed}
@@ -160,18 +78,18 @@ export default async function HomePage() {
         workoutTarget={3}
       />
 
-      {/* 三只青蛙 + TIL 并排显示 */}
+      {/* 三只青蛙 + TIL */}
       <section className="mb-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <DailyFrogs />
-        <DailyTIL />
+        <FrogsWidget initialFrogs={initialFrogs} initialDate={today} />
+        <TilWidget initialTils={initialTils} initialDate={today} />
       </section>
 
-      {/* 随手记 - 全宽 */}
+      {/* 随手记 */}
       <section className="mb-8">
-        <QuickNotes />
+        <NotesWidget initialNotes={initialNotes} initialDate={today} />
       </section>
 
-      {/* Area Cards Grid */}
+      {/* 领域卡片 */}
       <section>
         <h2 className="text-sm font-medium text-text-secondary uppercase tracking-wide mb-4">
           人生领域
@@ -185,7 +103,6 @@ export default async function HomePage() {
             target={3}
             unit="天"
           />
-          {/* 其他领域卡片将在后续添加 */}
         </div>
       </section>
     </div>
