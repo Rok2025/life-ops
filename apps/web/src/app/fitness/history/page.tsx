@@ -155,6 +155,8 @@ function formatVolume(volume: number): string {
     return `${volume}kg`;
 }
 
+export const dynamic = 'force-dynamic';
+
 export default async function HistoryPage() {
     const [workoutsByMonth, stats] = await Promise.all([
         getAllWorkouts(),
@@ -248,8 +250,8 @@ export default async function HistoryPage() {
                                                 {session.exercises.map((exercise, idx) => {
                                                     const config = categoryConfig[exercise.category] || { label: exercise.category, color: 'text-gray-400', bg: 'bg-gray-500/20' };
                                                     return (
-                                                        <div 
-                                                            key={idx} 
+                                                        <div
+                                                            key={idx}
                                                             className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg ${config.bg}`}
                                                         >
                                                             <span className={`text-sm font-medium ${config.color}`}>

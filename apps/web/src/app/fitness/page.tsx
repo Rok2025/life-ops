@@ -5,6 +5,8 @@ import { WeeklyStatsCards } from '@/features/fitness';
 import { WorkoutList } from '@/features/fitness';
 import { WEEKLY_GOAL } from '@/features/fitness';
 
+export const dynamic = 'force-dynamic';
+
 export default async function FitnessPage() {
     const [workoutsByDate, stats] = await Promise.all([
         fitnessApi.getWorkouts(),
