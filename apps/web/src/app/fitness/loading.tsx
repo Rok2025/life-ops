@@ -1,6 +1,6 @@
 export default function FitnessLoading() {
     return (
-        <div className="animate-pulse space-y-6">
+        <div className="animate-pulse space-y-section">
             {/* Header */}
             <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-full bg-bg-tertiary" />
@@ -12,8 +12,8 @@ export default function FitnessLoading() {
 
             {/* Quick actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="card p-6 h-24 bg-bg-tertiary rounded" />
-                <div className="card p-6 h-24 bg-bg-tertiary rounded" />
+                <div className="card p-card h-24 bg-bg-tertiary rounded" />
+                <div className="card p-card h-24 bg-bg-tertiary rounded" />
             </div>
 
             {/* Stats cards */}

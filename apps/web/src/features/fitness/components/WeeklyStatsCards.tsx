@@ -19,14 +19,14 @@ export function WeeklyStatsCards({ stats }: WeeklyStatsCardsProps) {
     return (
         <>
             {/* 本周统计卡片 */}
-            <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="card p-4">
-                    <div className="flex items-center gap-3 mb-3">
+            <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="card p-3">
+                    <div className="flex items-center gap-2 mb-2">
                         <Calendar size={18} className="text-accent" />
                         <span className="text-sm text-text-secondary">本周训练</span>
                     </div>
                     <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-bold text-text-primary">{stats.count}</span>
+                        <span className="text-2xl font-bold text-text-primary">{stats.count}</span>
                         <span className="text-text-secondary">/ {WEEKLY_GOAL} 天</span>
                     </div>
                     <div className="mt-2 h-2 bg-bg-tertiary rounded-full overflow-hidden">
@@ -37,34 +37,34 @@ export function WeeklyStatsCards({ stats }: WeeklyStatsCardsProps) {
                     </div>
                 </div>
 
-                <div className="card p-4">
-                    <div className="flex items-center gap-3 mb-3">
+                <div className="card p-3">
+                    <div className="flex items-center gap-2 mb-2">
                         <TrendingUp size={18} className="text-blue-400" />
                         <span className="text-sm text-text-secondary">总组数</span>
                     </div>
                     <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-bold text-text-primary">{stats.totalSets}</span>
+                        <span className="text-2xl font-bold text-text-primary">{stats.totalSets}</span>
                         <span className="text-text-secondary">组</span>
                     </div>
                 </div>
 
-                <div className="card p-4">
-                    <div className="flex items-center gap-3 mb-3">
+                <div className="card p-3">
+                    <div className="flex items-center gap-2 mb-2">
                         <Dumbbell size={18} className="text-orange-400" />
                         <span className="text-sm text-text-secondary">总负荷</span>
                     </div>
                     <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-bold text-text-primary">{formatVolume(stats.totalVolume)}</span>
+                        <span className="text-2xl font-bold text-text-primary">{formatVolume(stats.totalVolume)}</span>
                     </div>
                 </div>
 
-                <div className="card p-4">
-                    <div className="flex items-center gap-3 mb-3">
+                <div className="card p-3">
+                    <div className="flex items-center gap-2 mb-2">
                         <Flame size={18} className="text-red-400" />
                         <span className="text-sm text-text-secondary">连续训练</span>
                     </div>
                     <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-bold text-text-primary">{stats.streak}</span>
+                        <span className="text-2xl font-bold text-text-primary">{stats.streak}</span>
                         <span className="text-text-secondary">天</span>
                     </div>
                 </div>
@@ -72,9 +72,9 @@ export function WeeklyStatsCards({ stats }: WeeklyStatsCardsProps) {
 
             {/* 肌群分布 */}
             {Object.keys(stats.categoryBreakdown).length > 0 && (
-                <section className="card p-4">
-                    <h3 className="text-sm font-medium text-text-secondary mb-4">本周肌群训练分布</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <section className="card p-3">
+                    <h3 className="text-sm font-medium text-text-secondary mb-widget-header">本周肌群训练分布</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                         {Object.entries(stats.categoryBreakdown)
                             .sort((a, b) => b[1] - a[1])
                             .map(([category, count]) => {

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useState, useCallback, useRef } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Lightbulb } from 'lucide-react';
 import { getLocalDateStr, formatDisplayDate, offsetDate } from '@/lib/utils/date';
 import DataCalendar, { type DataCalendarHandle } from '@/components/DataCalendar';
@@ -9,50 +9,36 @@ import { tilApi } from '../api/tilApi';
 import { TilItem } from './TilItem';
 import { TilForm } from './TilForm';
 import { useConfigItems } from '@/features/system-config/hooks/useConfigItems';
+import { useTilsByDate } from '../hooks/useTilsByDate';
 import type { TIL } from '../types';
 
 interface TilWidgetProps {
-    initialTils: TIL[];
     initialDate?: string;
 }
 
-export default function TilWidget({ initialTils, initialDate }: TilWidgetProps) {
+export default function TilWidget({ initialDate }: TilWidgetProps) {
+    const queryClient = useQueryClient();
     const calendarRef = useRef<DataCalendarHandle>(null);
     const dateBtnRef = useRef<HTMLButtonElement>(null);
     const [selectedDate, setSelectedDate] = useState(() => initialDate ?? getLocalDateStr());
-    const [tils, setTils] = useState<TIL[]>(initialTils);
-    const [loading, setLoading] = useState(false);
     const [showAll, setShowAll] = useState(false);
     const [showForm, setShowForm] = useState(false);
     const [editingTil, setEditingTil] = useState<TIL | null>(null);
 
+    const { data: tils = [], isLoading: loading } = useTilsByDate(selectedDate);
     const isToday = selectedDate === getLocalDateStr();
     const { items: categoryItems } = useConfigItems('til_category');
     const categories = categoryItems.map(i => i.label);
 
-    const loadTils = useCallback(async (date: string) => {
-        setLoading(true);
-        try {
-            const data = await tilApi.getByDate(date);
-            setTils(data);
-        } catch (err) {
-            console.error('加载 TIL 失败:', err);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+    const refreshDateData = useCallback((date: string) => {
+        queryClient.invalidateQueries({ queryKey: ['tils', date] });
+        queryClient.invalidateQueries({ queryKey: ['til-count', date] });
+    }, [queryClient]);
 
     const changeDate = useCallback((days: number) => {
         const newDate = offsetDate(selectedDate, days);
         setSelectedDate(newDate);
-        loadTils(newDate);
-    }, [selectedDate, loadTils]);
-
-    // 初始客户端加载，以获取最实时数据并绕过静态编译的过期缓存
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => {
-        loadTils(selectedDate);
-    }, [selectedDate, loadTils]);
+    }, [selectedDate]);
 
     const saveMutation = useMutation({
         mutationFn: async ({ id, content, category, date }: { id?: string; content: string; category: string | null; date: string }) => {
@@ -65,18 +51,14 @@ export default function TilWidget({ initialTils, initialDate }: TilWidgetProps) 
         onSuccess: (_, variables) => {
             setShowForm(false);
             setEditingTil(null);
-            if (variables.date !== selectedDate) {
-                setSelectedDate(variables.date);
-                loadTils(variables.date);
-            } else {
-                loadTils(selectedDate);
-            }
+            setSelectedDate(variables.date);
+            refreshDateData(variables.date);
         },
     });
 
     const deleteMutation = useMutation({
         mutationFn: (id: string) => tilApi.delete(id),
-        onSuccess: () => loadTils(selectedDate),
+        onSuccess: () => refreshDateData(selectedDate),
     });
 
     const handleEdit = useCallback((til: TIL) => {
@@ -102,9 +84,8 @@ export default function TilWidget({ initialTils, initialDate }: TilWidgetProps) 
     const hasMore = tils.length > 3;
 
     return (
-        <div className="card p-6">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
+        <div className="card p-card">
+            <div className="flex items-center justify-between mb-widget-header">
                 <div className="flex items-center gap-3">
                     <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
                         <Lightbulb size={20} className="text-warning" />
@@ -145,12 +126,11 @@ export default function TilWidget({ initialTils, initialDate }: TilWidgetProps) 
                 </button>
             </div>
 
-            {/* TIL 列表 */}
             {loading ? (
                 <div className="text-center py-4 text-text-secondary">加载中...</div>
             ) : tils.length === 0 ? (
-                <div className="text-center py-6 text-text-secondary">
-                    <div className="text-3xl mb-2">💡</div>
+                <div className="text-center py-4 text-text-secondary">
+                    <div className="text-2xl mb-1">💡</div>
                     <p className="text-sm">{formatDisplayDate(selectedDate)}学到了什么？</p>
                     <button
                         onClick={() => { setEditingTil(null); setShowForm(true); }}
@@ -161,7 +141,7 @@ export default function TilWidget({ initialTils, initialDate }: TilWidgetProps) 
                 </div>
             ) : (
                 <>
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                         {displayTils.map((til) => (
                             <TilItem key={til.id} til={til} onEdit={handleEdit} onDelete={handleDelete} />
                         ))}
@@ -181,7 +161,6 @@ export default function TilWidget({ initialTils, initialDate }: TilWidgetProps) 
                 </>
             )}
 
-            {/* 表单弹窗 */}
             {showForm && (
                 <TilForm
                     editingTil={editingTil}

@@ -4,6 +4,7 @@ import { formatHorizons, getMonthProgress } from '@/lib/horizons';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePathname } from 'next/navigation';
 import { Hourglass } from 'lucide-react';
+import Link from 'next/link';
 
 export default function SummaryPanel() {
     const horizons = formatHorizons();
@@ -15,17 +16,17 @@ export default function SummaryPanel() {
     if (!user && !loading && pathname === '/login') return null;
 
     return (
-        <aside className="fixed right-0 top-0 h-screen w-[var(--summary-width)] bg-bg-secondary border-l border-border p-6 overflow-y-auto">
+        <aside className="fixed right-0 top-0 h-screen w-[var(--summary-width)] bg-bg-secondary border-l border-border p-4 overflow-y-auto">
             {/* Horizons */}
-            <section className="mb-8">
-                <h2 className="text-sm font-medium text-text-secondary uppercase tracking-wide mb-4">
+            <section className="mb-section">
+                <h2 className="text-sm font-medium text-text-secondary uppercase tracking-wide mb-widget-header">
                     时间节奏
                 </h2>
                 <div className="space-y-4">
                     {/* Week: Indicators */}
-                    <div className="card p-4">
-                        <div className="flex justify-between items-end mb-4">
-                            <div className="text-2xl font-bold text-text-primary">{horizons.week}</div>
+                    <div className="card p-3">
+                        <div className="flex justify-between items-end mb-3">
+                            <div className="text-xl font-bold text-text-primary">{horizons.week}</div>
                             <div className="text-xs text-text-secondary mb-1">{horizons.weekRemaining}</div>
                         </div>
                         <div className="flex justify-between px-1">
@@ -50,7 +51,7 @@ export default function SummaryPanel() {
                     </div>
 
                     {/* Month: Circular Ring */}
-                    <div className="card p-5 flex items-center gap-6">
+                    <div className="card p-4 flex items-center gap-4">
                         <div className="relative w-16 h-16 flex-shrink-0">
                             <svg className="w-full h-full transform -rotate-90">
                                 <circle
@@ -86,8 +87,8 @@ export default function SummaryPanel() {
                     </div>
 
                     {/* Year: Line */}
-                    <div className="card p-4">
-                        <div className="flex justify-between items-center mb-3">
+                    <div className="card p-3">
+                        <div className="flex justify-between items-center mb-2">
                             <span className="text-sm font-medium text-text-primary text-opacity-80">年度视野</span>
                             <span className="text-sm font-bold text-text-primary">{horizons.yearProgress}%</span>
                         </div>
@@ -114,16 +115,16 @@ export default function SummaryPanel() {
 
             {/* Quick Actions */}
             <section>
-                <h2 className="text-sm font-medium text-text-secondary uppercase tracking-wide mb-4">
+                <h2 className="text-sm font-medium text-text-secondary uppercase tracking-wide mb-widget-header">
                     快捷操作
                 </h2>
                 <div className="space-y-2">
-                    <a
+                    <Link
                         href="/fitness/workout/new"
                         className="btn-primary block text-center"
                     >
                         记录一次训练
-                    </a>
+                    </Link>
                 </div>
             </section>
         </aside>

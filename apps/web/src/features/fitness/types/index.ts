@@ -32,6 +32,37 @@ export type WorkoutsByDate = {
     sessions: WorkoutSession[];
 };
 
+/** 按月份分组的训练记录 */
+export type WorkoutsByMonth = {
+    month: string;
+    label: string;
+    sessions: WorkoutSession[];
+};
+
+/** 历史页统计 */
+export type HistoryStats = {
+    totalWorkouts: number;
+    totalSets: number;
+    totalVolume: number;
+};
+
+/** 训练动作类型 */
+export type ExerciseType = {
+    id: string;
+    name: string;
+    category: string;
+};
+
+/** 编辑态动作聚合数据 */
+export type AggregatedExercise = {
+    exerciseTypeId: string;
+    name: string;
+    category: string;
+    weight: number;
+    sets: number;
+    reps: number;
+};
+
 /** 本周统计数据 */
 export type WeeklyStats = {
     count: number;

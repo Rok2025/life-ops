@@ -1,7 +1,7 @@
 # Life OPS - 设计总览
 
 > **文档用途**：记录项目的设计理念、已实现功能和技术决策，供 AI 读取最新状态。
-> **最后更新**：2026-02-04 (v0.2.2)
+> **最后更新**：2026-02-28 (v0.3.0)
 
 ---
 
@@ -21,24 +21,42 @@
 
 | 层级 | 技术选型 |
 |------|----------|
-| 前端框架 | Next.js 15 (App Router) + TypeScript |
+| 前端框架 | Next.js 16 (App Router, Turbopack) + TypeScript |
 | 样式 | Tailwind CSS 4 + Apple 风格主题 |
-| 状态管理 | React 内置 hooks (暂无全局状态库) |
+| 状态管理 | TanStack React Query (CSR 数据获取) |
 | 数据库 | Supabase (PostgreSQL) |
-| 部署 | 待定 (Vercel / GitHub Pages) |
+| 部署 | GitHub Pages (静态导出 `output: 'export'`) |
 
 ### 项目结构
 
 ```
 life-ops/
-├── apps/web/                # Next.js 主应用
-│   ├── src/app/             # 页面路由
-│   ├── src/components/      # 组件库
-│   └── src/lib/             # 工具函数
-├── packages/                # 共享包（预留）
-├── supabase/                # 数据库迁移（预留本地管理）
-└── docs/                    # 文档
+├── apps/web/                     # Next.js 主应用
+│   ├── src/app/                   # 页面路由（薄壳模式）
+│   ├── src/features/              # 特性模块（核心业务逻辑）
+│   │   ├── auth/                  # 认证（API + LoginForm + AuthCallback）
+│   │   ├── daily-frogs/           # 三只青蛙（API + Hooks + Components）
+│   │   ├── daily-til/             # TIL 学习记录
+│   │   ├── dashboard/             # 首页仪表盘
+│   │   ├── fitness/               # 健身领域（完整 CRUD）
+│   │   ├── quick-notes/           # 快速笔记
+│   │   └── system-config/         # 系统配置
+│   ├── src/components/            # 共享 UI 组件
+│   ├── src/contexts/              # React Context（Auth）
+│   ├── src/lib/                   # 工具函数 + Supabase 客户端
+│   ├── src/providers/             # QueryProvider 等全局 Provider
+│   └── src/types/                 # 共享类型
+├── packages/                      # 共享包（预留）
+├── supabase/                      # 数据库迁移
+└── docs/                          # 文档
 ```
+
+### 架构规范
+
+- **薄壳页面**：`app/` 下的 `page.tsx` 仅做导入和渲染，不含业务逻辑
+- **Feature-based 模块**：每个 feature 遵循 `api/ → hooks/ → components/ → types/` 分层
+- **API 隔离**：所有 Supabase 调用封装在 `features/*/api/` 中，组件不直接导入 Supabase
+- **CSR-first**：使用 `useQuery` 做客户端数据获取，`useMutation` + `invalidateQueries` 做写操作
 
 ### Supabase 项目
 
@@ -215,6 +233,18 @@ daily_til (id, til_date, content, category, created_at, updated_at)
 - [x] **新建占位页面**：
   - `/growth/english`、`/growth/reading`、`/growth/ai`
   - `/output`、`/family`、`/finance`
+
+### v0.3.0 (2026-02-28) - 架构标准化 + Static Export
+- [x] **静态导出 (Static Export)**：Next.js `output: 'export'` + `basePath: '/life-ops'` 部署到 GitHub Pages
+- [x] **React Query 全面迁移**：所有数据获取从 `useState+useEffect` 迁移至 `useQuery`/`useMutation`
+- [x] **薄壳页面重构**：所有活跃页面提取为 feature 组件，`page.tsx` 仅做 1 行导入
+- [x] **Feature-based 架构**：7 个 feature 模块全部遵循 api/hooks/components/types 标准
+- [x] **Auth 模块化**：`features/auth/` 封装登录/注册/回调逻辑，页面不再直接调用 Supabase
+- [x] **Fitness API 层**：10+ API 方法封装，包括 CRUD、聚合、模板复制
+- [x] **Quick Notes 功能**：笔记 CRUD + 分类筛选
+- [x] **OAuth 回调路由**：`/auth/callback` 支持 Supabase Auth Code Exchange
+- [x] **basePath 兼容**：`SummaryPanel` 使用 `next/link`，全站路由静态导出兼容
+- [x] **SKILL.md 开发规范**：AI Agent 可读的 Next.js 静态导出开发指引
 
 ### v0.2.3 (2026-02-05) - GitHub Pages 部署
 - **静态导出优化**：配置 Next.js 为 `output: export` 模式，支持静态托管。

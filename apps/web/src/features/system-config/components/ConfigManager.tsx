@@ -10,7 +10,7 @@ interface ConfigManagerProps {
 
 export default function ConfigManager({ scopes, initialData }: ConfigManagerProps) {
     return (
-        <div className="space-y-6">
+        <div className="space-y-section">
             {scopes.map(meta => (
                 <ConfigScopeSection
                     key={meta.scope}

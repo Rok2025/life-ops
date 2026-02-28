@@ -1,18 +1,33 @@
-import { Calendar, Copy, Eye, Edit3 } from 'lucide-react';
+'use client';
+
+import { useState } from 'react';
+import { Copy, Eye, Edit3, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-import { formatDisplayDate } from '@/lib/utils/date';
 import type { WorkoutSession } from '../types';
 import { CATEGORY_CONFIG } from '../types';
 
 interface WorkoutCardProps {
     session: WorkoutSession;
+    onDelete?: (sessionId: string) => void;
+    onCopy?: (sessionId: string) => void;
+    deleting?: boolean;
 }
 
-export function WorkoutCard({ session }: WorkoutCardProps) {
+export function WorkoutCard({ session, onDelete, onCopy, deleting }: WorkoutCardProps) {
+    const [confirmDelete, setConfirmDelete] = useState(false);
+
+    const handleDelete = () => {
+        if (!confirmDelete) {
+            setConfirmDelete(true);
+            return;
+        }
+        onDelete?.(session.id);
+    };
+
     return (
-        <div className="p-4">
+        <div className="p-3">
             {/* 动作列表 */}
-            <div className="flex flex-wrap gap-2 mb-3">
+            <div className="flex flex-wrap gap-1.5 mb-2">
                 {session.exercises.map((exercise, idx) => {
                     const config = CATEGORY_CONFIG[exercise.category] || { label: exercise.category, color: 'text-gray-400', bg: 'bg-gray-500/20' };
                     return (
@@ -33,13 +48,13 @@ export function WorkoutCard({ session }: WorkoutCardProps) {
 
             {/* 备注 */}
             {session.notes && (
-                <p className="text-sm text-text-secondary mb-3 italic pl-1">
+                <p className="text-sm text-text-secondary mb-2 italic pl-1">
                     &quot;{session.notes}&quot;
                 </p>
             )}
 
             {/* 操作按钮 */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
                 <Link
                     href={`/fitness/workout/detail?id=${session.id}`}
                     className="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-accent transition-colors"
@@ -54,13 +69,28 @@ export function WorkoutCard({ session }: WorkoutCardProps) {
                     <Edit3 size={14} />
                     编辑
                 </Link>
-                <Link
-                    href={`/fitness/workout/new?copy=${session.id}`}
+                <button
+                    type="button"
+                    onClick={() => onCopy?.(session.id)}
                     className="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-purple-400 transition-colors"
                 >
                     <Copy size={14} />
                     复制
-                </Link>
+                </button>
+                <button
+                    type="button"
+                    onClick={handleDelete}
+                    onBlur={() => setConfirmDelete(false)}
+                    disabled={deleting}
+                    className={`inline-flex items-center gap-1.5 text-sm transition-colors ${
+                        confirmDelete
+                            ? 'text-danger font-medium'
+                            : 'text-text-secondary hover:text-danger'
+                    } disabled:opacity-50`}
+                >
+                    <Trash2 size={14} />
+                    {deleting ? '删除中...' : confirmDelete ? '确认删除' : '删除'}
+                </button>
             </div>
         </div>
     );

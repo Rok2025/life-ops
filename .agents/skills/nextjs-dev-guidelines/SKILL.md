@@ -12,7 +12,7 @@ description: "Next.js App Router 前端开发规范。涵盖 Server/Client Compo
 
 你的目标是构建**可扩展、可预测、可维护的 Next.js 应用**，使用：
 
-* Server Components 优先的数据获取
+* 部署场景感知的数据获取策略（Server-first 或 CSR-first）
 * Feature-based 代码组织
 * 严格的 TypeScript 纪律
 * 性能安全的默认配置
@@ -52,12 +52,13 @@ FFCI = (架构契合 + 可复用性 + 性能) − (复杂度 + 维护成本)
 
 ## 2. 核心架构原则（不可妥协）
 
-### 1. Server Components 优先
+### 1. 以部署形态决定数据获取
 
 * 默认所有组件都是 **Server Component**
 * 仅在需要交互（useState/useEffect/onClick 等）时才加 `'use client'`
-* 数据获取优先在 Server Component 中用 `async/await` 完成
-* Client Component 中的数据交互使用 React Query `useMutation`
+* **有服务器运行时（Node/Edge）**：优先在 Server Component 中 `async/await` 获取只读数据
+* **静态导出部署（如 GitHub Pages, `output: 'export'`）**：用户态/实时数据必须在 Client Component 运行时加载（推荐 `useQuery`）
+* Client Component 中的数据修改使用 React Query `useMutation`
 
 ### 2. Feature-Based 组织
 
@@ -109,6 +110,7 @@ FFCI = (架构契合 + 可复用性 + 性能) − (复杂度 + 维护成本)
 
 * [ ] 文件顶部 `'use client'` 声明
 * [ ] Props 接口显式定义
+* [ ] 读取类数据优先使用 `useQuery`
 * [ ] 数据修改使用 `useMutation`
 * [ ] Handler 使用 `useCallback` 包裹
 * [ ] 无组件内直接 Supabase 调用
@@ -189,13 +191,15 @@ src/
 
 ## 7. 数据获取策略
 
-### 决策树
+### 决策树（部署感知）
 
 ```
 需要数据？
-  ├─ 展示型/只读 → Server Component + async/await + API Layer
-  ├─ 需要交互/CRUD → Client Component + useMutation + API Layer
-  └─ 客户端实时状态 → Client Component + useState
+  ├─ 是否静态导出（output: 'export'）？
+  │   ├─ 是：用户态/实时数据 → Client Component + useQuery + API Layer
+  │   └─ 否：展示型/只读 → Server Component + async/await + API Layer
+  ├─ 需要交互/CRUD → Client Component + useMutation + invalidateQueries
+  └─ 客户端本地瞬时状态 → Client Component + useState
 ```
 
 ### Server Component 数据获取（默认方式）
@@ -230,9 +234,11 @@ import { frogsApi } from '../api/frogsApi';
 export const FrogItem: React.FC<FrogItemProps> = ({ frog }) => {
   const router = useRouter();
 
+  const queryClient = useQueryClient();
+
   const toggleMutation = useMutation({
     mutationFn: () => frogsApi.toggleComplete(frog.id, !frog.is_completed),
-    onSuccess: () => router.refresh(), // 刷新 Server Component 数据
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['frogs'] }),
   });
 
   return (/* ... */);
@@ -245,7 +251,7 @@ export const FrogItem: React.FC<FrogItemProps> = ({ frog }) => {
 // ❌ 组件内直接调用 Supabase
 const { data } = await supabase.from('frogs').select('*');
 
-// ❌ Client Component 中用 useEffect 加载初始数据（应在 Server Component 做）
+// ❌ 读取类请求散落在 useEffect + 手动 loading/setState 中（应使用 useQuery）
 useEffect(() => { loadData(); }, []);
 
 // ❌ API 逻辑散落在组件中
@@ -264,6 +270,8 @@ const handleSave = async () => {
 * 使用 `loading.tsx` 文件做路由级加载状态
 * 使用 `error.tsx` 文件做路由级错误边界
 * `layout.tsx` 仅管理布局结构，不做数据获取
+* 若配置了 `basePath`（如 GitHub Pages），导航必须使用 `next/link`，禁止硬编码裸 `<a href="/xxx">`
+* OAuth/邮箱确认流程必须有明确 callback 路由（如 `app/auth/callback/page.tsx`）
 
 ### 路由入口示例
 
@@ -485,6 +493,7 @@ export const frogsApi = {
 ### 规则
 
 * 禁止组件内直接 `supabase.from(...)` 调用
+* 禁止在 `app/**/page.tsx` 中直接写 Supabase 查询，页面层只做路由组装
 * API 函数必须有 JSDoc 注释
 * 返回类型必须显式声明
 * 错误统一 `throw`，由调用方处理
@@ -520,7 +529,7 @@ export function formatDisplayDate(dateStr: string): string {
 ## 16. 反模式（立即拒绝）
 
 ❌ Server Component 中使用 hooks（useState/useEffect）
-❌ Client Component 中用 useEffect 做初始数据加载
+❌ Client Component 读取接口时，继续手写 useEffect + setState + loading（应改为 useQuery）
 ❌ Feature 逻辑放在 `components/` 目录
 ❌ 组件内直接 Supabase 调用
 ❌ 未定义类型的 API 响应

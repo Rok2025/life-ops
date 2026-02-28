@@ -13,7 +13,7 @@ interface ConfigItemRowProps {
 export function ConfigItemRow({ item, onToggle, onDelete, deleting }: ConfigItemRowProps) {
     return (
         <div
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-colors ${
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
                 item.is_active
                     ? 'border-border bg-bg-tertiary'
                     : 'border-border/50 bg-bg-tertiary/50 opacity-60'

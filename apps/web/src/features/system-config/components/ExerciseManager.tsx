@@ -7,8 +7,8 @@ import {
     ChevronDown, ChevronUp,
     ToggleLeft, ToggleRight, Dumbbell,
 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
 import { configApi } from '../api/configApi';
+import { exerciseTypesApi } from '../api/exerciseTypesApi';
 import type { ConfigItem } from '../types';
 
 // ---------- Types ----------
@@ -132,66 +132,55 @@ export default function ExerciseManager({ initialCategories, initialExercises }:
     const effectiveNewCategory = newCategory || allCatValues[0] || '';
 
     const loadExercises = useCallback(async () => {
-        const { data, error } = await supabase
-            .from('exercise_types')
-            .select('*')
-            .order('category')
-            .order('name');
-        if (error) {
+        try {
+            const data = await exerciseTypesApi.getAll();
+            setExercises(data);
+        } catch (error) {
             console.error('加载训练动作失败:', error);
-            return;
         }
-        setExercises(data || []);
     }, []);
 
     const handleAddExercise = async () => {
         if (!newName.trim()) return;
         setSaving(true);
-        const { error } = await supabase
-            .from('exercise_types')
-            .insert({
+        try {
+            await exerciseTypesApi.create({
                 name: newName.trim(),
                 category: effectiveNewCategory,
                 tracking_mode: 'weight_reps',
                 default_unit: 'kg',
             });
-        if (error) {
-            console.error('添加动作失败:', error);
-            alert('添加失败: ' + error.message);
-        } else {
             setNewName('');
             setShowAddForm(false);
             await loadExercises();
+        } catch (error) {
+            console.error('添加动作失败:', error);
+            alert(`添加失败: ${error instanceof Error ? error.message : '未知错误'}`);
+        } finally {
+            setSaving(false);
         }
-        setSaving(false);
     };
 
     const handleUpdateExercise = useCallback(async (id: string) => {
         if (!editName.trim()) return;
-        const { error } = await supabase
-            .from('exercise_types')
-            .update({ name: editName.trim() })
-            .eq('id', id);
-        if (error) {
-            console.error('更新动作失败:', error);
-            alert('更新失败: ' + error.message);
-        } else {
+        try {
+            await exerciseTypesApi.updateName(id, editName.trim());
             setEditingId(null);
             await loadExercises();
+        } catch (error) {
+            console.error('更新动作失败:', error);
+            alert(`更新失败: ${error instanceof Error ? error.message : '未知错误'}`);
         }
     }, [editName, loadExercises]);
 
     const handleDeleteExercise = useCallback(async (id: string, name: string) => {
         if (!confirm(`确定要删除动作「${name}」吗？`)) return;
-        const { error } = await supabase
-            .from('exercise_types')
-            .delete()
-            .eq('id', id);
-        if (error) {
-            console.error('删除动作失败:', error);
-            alert('删除失败: ' + error.message);
-        } else {
+        try {
+            await exerciseTypesApi.delete(id);
             await loadExercises();
+        } catch (error) {
+            console.error('删除动作失败:', error);
+            alert(`删除失败: ${error instanceof Error ? error.message : '未知错误'}`);
         }
     }, [loadExercises]);
 

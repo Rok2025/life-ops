@@ -51,8 +51,8 @@ export default function WelcomeHeader({
     // SSR 时显示占位符
     if (!time) {
         return (
-            <header className="mb-8">
-                <div className="h-20" />
+            <header className="mb-header-bottom">
+                <div className="h-16" />
             </header>
         );
     }
@@ -72,21 +72,21 @@ export default function WelcomeHeader({
     const dateStr = `${time.getMonth() + 1}月${time.getDate()}日`;
 
     return (
-        <header className="mb-8">
+        <header className="mb-header-bottom">
             {/* 时间 + 日期行 */}
-            <div className="flex items-baseline gap-2 text-text-secondary text-sm mb-1">
+            <div className="flex items-baseline gap-2 text-text-secondary text-sm mb-0.5">
                 <span className="font-mono tabular-nums text-lg">{timeStr}</span>
                 <span>·</span>
                 <span>{dateStr} {weekday}</span>
             </div>
 
             {/* 问候语 */}
-            <h1 className="text-3xl font-bold text-text-primary mb-3">
+            <h1 className="text-2xl font-bold text-text-primary mb-2">
                 {greeting}，{userName}
             </h1>
 
             {/* 分隔线 */}
-            <div className="h-px bg-border mb-3" />
+            <div className="h-px bg-border mb-2" />
 
             {/* 数据汇总 */}
             <div className="flex items-center gap-4 text-sm text-text-secondary">

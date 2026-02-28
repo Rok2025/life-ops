@@ -36,6 +36,16 @@
   --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   --sidebar-width: 240px;
   --summary-width: 320px;
+
+  /* ── Compact Layout Tokens ── */
+  --space-page-y: 1.5rem;      /* main content top/bottom padding */
+  --space-page-x: 1rem;        /* main content left/right padding */
+  --space-section: 1rem;       /* gap between page sections (space-y) */
+  --space-card: 1rem;          /* card inner padding */
+  --space-card-lg: 1.25rem;    /* larger card inner padding */
+  --space-widget-header: 0.5rem; /* widget title → content gap */
+  --space-header-bottom: 1.25rem; /* page header bottom margin */
+  --space-items: 0.375rem;     /* gap between list items (space-y-1.5) */
 }
 
 .dark {
@@ -69,6 +79,16 @@
   --color-border: var(--border);
   --color-card-bg: var(--card-bg);
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+
+  /* Spacing tokens → Tailwind utilities */
+  --spacing-page-y: var(--space-page-y);
+  --spacing-page-x: var(--space-page-x);
+  --spacing-section: var(--space-section);
+  --spacing-card: var(--space-card);
+  --spacing-card-lg: var(--space-card-lg);
+  --spacing-widget-header: var(--space-widget-header);
+  --spacing-header-bottom: var(--space-header-bottom);
+  --spacing-items: var(--space-items);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -127,7 +147,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .btn-primary {
   background: var(--accent);
   color: white;
-  padding: 10px 20px;
+  padding: 8px 16px;
   border-radius: 8px;
   font-weight: 500;
   transition: background 0.2s;
@@ -164,4 +184,151 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 /* 隐藏 Next.js 开发指示器 ('N' 图标) */
 nextjs-portal {
   display: none !important;
+}
+
+/* ── Markdown Prose ─────────────────────── */
+.prose-custom {
+  color: var(--text-primary);
+  font-size: 0.9375rem;
+  line-height: 1.75;
+}
+
+.prose-custom h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.prose-custom h2 {
+  font-size: 1.375rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.prose-custom h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.prose-custom p {
+  margin-bottom: 0.75rem;
+}
+
+.prose-custom a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.prose-custom a:hover {
+  opacity: 0.8;
+}
+
+.prose-custom strong {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.prose-custom em {
+  font-style: italic;
+}
+
+.prose-custom blockquote {
+  border-left: 3px solid var(--accent);
+  padding-left: 1rem;
+  margin: 0.75rem 0;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.prose-custom ul,
+.prose-custom ol {
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.prose-custom ul {
+  list-style-type: disc;
+}
+
+.prose-custom ol {
+  list-style-type: decimal;
+}
+
+.prose-custom li {
+  margin-bottom: 0.25rem;
+}
+
+.prose-custom li > ul,
+.prose-custom li > ol {
+  margin-top: 0.25rem;
+  margin-bottom: 0;
+}
+
+.prose-custom code {
+  font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
+  font-size: 0.85em;
+  background: var(--bg-tertiary);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  color: var(--accent);
+}
+
+.prose-custom pre {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  overflow-x: auto;
+  margin: 0.75rem 0;
+}
+
+.prose-custom pre code {
+  background: none;
+  padding: 0;
+  color: var(--text-primary);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+
+.prose-custom hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.5rem 0;
+}
+
+.prose-custom table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.75rem 0;
+  font-size: 0.875rem;
+}
+
+.prose-custom th,
+.prose-custom td {
+  border: 1px solid var(--border);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.prose-custom th {
+  background: var(--bg-tertiary);
+  font-weight: 600;
+}
+
+.prose-custom img {
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 0.75rem 0;
+}
+
+.prose-custom input[type="checkbox"] {
+  margin-right: 0.5rem;
+  accent-color: var(--accent);
 }

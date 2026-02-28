@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useState, useCallback, useRef } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, StickyNote } from 'lucide-react';
 import { getLocalDateStr, formatDisplayDate, offsetDate } from '@/lib/utils/date';
 import DataCalendar, { type DataCalendarHandle } from '@/components/DataCalendar';
@@ -9,20 +9,19 @@ import { notesApi } from '../api/notesApi';
 import { NoteCard } from './NoteCard';
 import { NoteFilter } from './NoteFilter';
 import { NoteForm } from './NoteForm';
+import { useNotesByDate } from '../hooks/useNotesByDate';
 import type { QuickNote, NoteType, FilterType } from '../types';
 import { NOTE_TYPE_CONFIG, NOTE_TYPES } from '../types';
 
 interface NotesWidgetProps {
-    initialNotes: QuickNote[];
     initialDate?: string;
 }
 
-export default function NotesWidget({ initialNotes, initialDate }: NotesWidgetProps) {
+export default function NotesWidget({ initialDate }: NotesWidgetProps) {
+    const queryClient = useQueryClient();
     const calendarRef = useRef<DataCalendarHandle>(null);
     const dateBtnRef = useRef<HTMLButtonElement>(null);
     const [selectedDate, setSelectedDate] = useState(() => initialDate ?? getLocalDateStr());
-    const [notes, setNotes] = useState<QuickNote[]>(initialNotes);
-    const [loading, setLoading] = useState(false);
     const [showAll, setShowAll] = useState(false);
     const [filter, setFilter] = useState<FilterType>('all');
     const [expandedQA, setExpandedQA] = useState<Set<string>>(new Set());
@@ -30,32 +29,19 @@ export default function NotesWidget({ initialNotes, initialDate }: NotesWidgetPr
     const [editingNote, setEditingNote] = useState<QuickNote | null>(null);
     const [defaultFormType, setDefaultFormType] = useState<NoteType>('memo');
 
+    const { data: notes = [], isLoading: loading } = useNotesByDate(selectedDate);
     const isToday = selectedDate === getLocalDateStr();
 
-    const loadNotes = useCallback(async (date: string) => {
-        setLoading(true);
-        setShowAll(false);
-        try {
-            const data = await notesApi.getByDate(date);
-            setNotes(data);
-        } catch (err) {
-            console.error('加载随手记失败:', err);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+    const refreshDateData = useCallback((date: string) => {
+        queryClient.invalidateQueries({ queryKey: ['notes', date] });
+        queryClient.invalidateQueries({ queryKey: ['notes-count', date] });
+    }, [queryClient]);
 
     const changeDate = useCallback((days: number) => {
         const newDate = offsetDate(selectedDate, days);
         setSelectedDate(newDate);
-        loadNotes(newDate);
-    }, [selectedDate, loadNotes]);
-
-    // 初始客户端加载，以获取最实时数据并绕过静态编译的过期缓存
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => {
-        loadNotes(selectedDate);
-    }, [selectedDate, loadNotes]);
+        setShowAll(false);
+    }, [selectedDate]);
 
     const saveMutation = useMutation({
         mutationFn: async (data: { id?: string; type: NoteType; content: string; answer: string | null; date: string }) => {
@@ -75,18 +61,15 @@ export default function NotesWidget({ initialNotes, initialDate }: NotesWidgetPr
         onSuccess: (_, variables) => {
             setShowForm(false);
             setEditingNote(null);
-            if (variables.date !== selectedDate) {
-                setSelectedDate(variables.date);
-                loadNotes(variables.date);
-            } else {
-                loadNotes(selectedDate);
-            }
+            setSelectedDate(variables.date);
+            setShowAll(false);
+            refreshDateData(variables.date);
         },
     });
 
     const deleteMutation = useMutation({
         mutationFn: (id: string) => notesApi.delete(id),
-        onSuccess: () => loadNotes(selectedDate),
+        onSuccess: () => refreshDateData(selectedDate),
     });
 
     const handleEdit = useCallback((note: QuickNote) => {
@@ -135,9 +118,8 @@ export default function NotesWidget({ initialNotes, initialDate }: NotesWidgetPr
     };
 
     return (
-        <div className="card p-6">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
+        <div className="card p-card">
+            <div className="flex items-center justify-between mb-widget-header">
                 <div className="flex items-center gap-3">
                     <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
                         <StickyNote size={20} className="text-accent" />
@@ -172,16 +154,14 @@ export default function NotesWidget({ initialNotes, initialDate }: NotesWidgetPr
                 </button>
             </div>
 
-            {/* 筛选 */}
             {notes.length > 0 && <NoteFilter filter={filter} counts={counts} onFilterChange={setFilter} />}
 
-            {/* 列表 */}
             {loading ? (
                 <div className="text-center py-4 text-text-secondary">加载中...</div>
             ) : notes.length === 0 ? (
-                <div className="text-center py-6 text-text-secondary">
-                    <div className="text-3xl mb-2">📝</div>
-                    <p className="text-sm mb-3">随时记录你的想法、灵感和疑问</p>
+                <div className="text-center py-4 text-text-secondary">
+                    <div className="text-2xl mb-1">📝</div>
+                    <p className="text-sm mb-2">随时记录你的想法、灵感和疑问</p>
                     <div className="flex items-center justify-center gap-2">
                         {NOTE_TYPES.map(type => {
                             const config = NOTE_TYPE_CONFIG[type];
@@ -203,7 +183,7 @@ export default function NotesWidget({ initialNotes, initialDate }: NotesWidgetPr
                 </div>
             ) : (
                 <>
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                         {displayNotes.map(note => (
                             <NoteCard
                                 key={note.id}
@@ -230,7 +210,6 @@ export default function NotesWidget({ initialNotes, initialDate }: NotesWidgetPr
                 </>
             )}
 
-            {/* 表单弹窗 */}
             {showForm && (
                 <NoteForm
                     editingNote={editingNote}

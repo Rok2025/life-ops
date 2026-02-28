@@ -67,7 +67,7 @@ export default function Sidebar() {
     return (
         <aside className="fixed left-0 top-0 h-screen w-[var(--sidebar-width)] bg-bg-secondary border-r border-border flex flex-col">
             {/* Logo */}
-            <div className="p-6 border-b border-border">
+            <div className="p-4 border-b border-border">
                 <Link href="/" className="hover:opacity-80 transition-opacity">
                     <h1 className="text-xl font-semibold text-text-primary">Life OPS</h1>
                 </Link>
@@ -75,8 +75,8 @@ export default function Sidebar() {
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 p-4 overflow-y-auto">
-                <ul className="space-y-2">
+            <nav className="flex-1 p-3 overflow-y-auto">
+                <ul className="space-y-1.5">
                     {navItems.map((item) => {
                         if (item.children) {
                             const hasActiveChild = item.children.some(c => pathname.startsWith(c.href));
@@ -112,9 +112,9 @@ export default function Sidebar() {
             </nav>
 
             {/* Bottom Section */}
-            <div className="mt-auto p-4 border-t border-border bg-bg-secondary/40 backdrop-blur-md">
+            <div className="mt-auto p-3 border-t border-border bg-bg-secondary/40 backdrop-blur-md">
                 {user ? (
-                    <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-3">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3 overflow-hidden">
                                 <div className="w-10 h-10 rounded-full bg-accent text-white flex items-center justify-center flex-shrink-0 shadow-sm">

@@ -98,11 +98,11 @@ export function ConfigScopeSection({ meta, initialItems }: ConfigScopeSectionPro
             </button>
 
             {expanded && (
-                <div className="px-4 pb-4 space-y-3">
+                <div className="px-4 pb-3 space-y-2">
                     <p className="text-sm text-text-tertiary">{meta.description}</p>
 
                     {/* Items list */}
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                         {items.map(item => (
                             <ConfigItemRow
                                 key={item.id}

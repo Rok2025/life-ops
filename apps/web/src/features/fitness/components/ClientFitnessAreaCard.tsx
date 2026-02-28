@@ -2,7 +2,7 @@
 
 import { Dumbbell } from 'lucide-react';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { fitnessApi } from '@/features/fitness/api/fitnessApi';
 
 export function ClientFitnessAreaCard({
@@ -10,28 +10,23 @@ export function ClientFitnessAreaCard({
 }: {
     target: number; unit: string;
 }) {
-    const [current, setCurrent] = useState(0);
-
-    useEffect(() => {
-        async function loadStats() {
-            const days = await fitnessApi.getWeeklyWorkoutDays();
-            setCurrent(days);
-        }
-        loadStats();
-    }, []);
+    const { data: current = 0 } = useQuery({
+        queryKey: ['weekly-workout-days'],
+        queryFn: () => fitnessApi.getWeeklyWorkoutDays(),
+    });
 
     const progress = Math.round((current / target) * 100);
     const status = progress >= 100 ? 'success' : progress >= 50 ? 'warning' : 'danger';
     const statusLabel = progress >= 100 ? 'OK' : progress >= 50 ? '进行中' : '需关注';
 
     return (
-        <Link href="/fitness" className="card p-6 block hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-bg-tertiary flex items-center justify-center">
-                        <Dumbbell size={20} className="text-accent" />
+        <Link href="/fitness" className="card p-card block hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between mb-widget-header">
+                <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-bg-tertiary flex items-center justify-center">
+                        <Dumbbell size={16} className="text-accent" />
                     </div>
-                    <h3 className="text-lg font-semibold text-text-primary">健身</h3>
+                    <h3 className="text-base font-semibold text-text-primary">健身</h3>
                 </div>
                 <span className={`pill pill-${status}`}>{statusLabel}</span>
             </div>

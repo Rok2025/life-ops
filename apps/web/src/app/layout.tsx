@@ -32,7 +32,7 @@ export default function RootLayout({
               <div className="flex min-h-screen">
                 <Sidebar />
                 <main className="flex-1 ml-[var(--sidebar-width)] mr-[var(--summary-width)]">
-                  <div className="max-w-6xl mx-auto py-10 px-6">
+                  <div className="max-w-6xl mx-auto py-page-y px-page-x">
                     {children}
                   </div>
                 </main>

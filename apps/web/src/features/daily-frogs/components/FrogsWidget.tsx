@@ -1,75 +1,52 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { useMutation } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
+import { useState, useCallback, useRef } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getLocalDateStr, formatDisplayDate, offsetDate } from '@/lib/utils/date';
 import DataCalendar, { type DataCalendarHandle } from '@/components/DataCalendar';
 import { frogsApi } from '../api/frogsApi';
 import { FrogItem } from './FrogItem';
 import { FrogForm } from './FrogForm';
+import { useFrogsByDate } from '../hooks/useFrogsByDate';
 import type { Frog } from '../types';
 
 interface FrogsWidgetProps {
-    /** 初始日期的青蛙数据（由 Server Component 传入） */
-    initialFrogs: Frog[];
-    /** 初始日期 */
     initialDate?: string;
 }
 
-export default function FrogsWidget({ initialFrogs, initialDate }: FrogsWidgetProps) {
-    const router = useRouter();
+export default function FrogsWidget({ initialDate }: FrogsWidgetProps) {
+    const queryClient = useQueryClient();
     const calendarRef = useRef<DataCalendarHandle>(null);
     const dateBtnRef = useRef<HTMLButtonElement>(null);
     const [selectedDate, setSelectedDate] = useState(() => initialDate ?? getLocalDateStr());
-    const [frogs, setFrogs] = useState<Frog[]>(initialFrogs);
-    const [loading, setLoading] = useState(false);
     const [showForm, setShowForm] = useState(false);
     const [editingFrog, setEditingFrog] = useState<Frog | null>(null);
 
+    const { data: frogs = [], isLoading: loading } = useFrogsByDate(selectedDate);
     const isToday = selectedDate === getLocalDateStr();
 
-    // 加载指定日期的青蛙
-    const loadFrogs = useCallback(async (date: string) => {
-        setLoading(true);
-        try {
-            const data = await frogsApi.getByDate(date);
-            setFrogs(data);
-        } catch (err) {
-            console.error('加载青蛙失败:', err);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+    const refreshDateData = useCallback((date: string) => {
+        queryClient.invalidateQueries({ queryKey: ['frogs', date] });
+        queryClient.invalidateQueries({ queryKey: ['frogs-stats', date] });
+    }, [queryClient]);
 
-    // 切换日期
     const changeDate = useCallback((days: number) => {
         const newDate = offsetDate(selectedDate, days);
         setSelectedDate(newDate);
-        loadFrogs(newDate);
-    }, [selectedDate, loadFrogs]);
+    }, [selectedDate]);
 
-    // 初始客户端加载，以获取最实时数据并绕过静态编译的过期缓存
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => {
-        loadFrogs(selectedDate);
-    }, [selectedDate, loadFrogs]);
-
-    // 切换完成状态
     const toggleMutation = useMutation({
         mutationFn: ({ id, completed }: { id: string; completed: boolean }) =>
             frogsApi.toggleComplete(id, completed),
-        onSuccess: () => loadFrogs(selectedDate),
+        onSuccess: () => refreshDateData(selectedDate),
     });
 
-    // 删除
     const deleteMutation = useMutation({
         mutationFn: (id: string) => frogsApi.delete(id),
-        onSuccess: () => loadFrogs(selectedDate),
+        onSuccess: () => refreshDateData(selectedDate),
     });
 
-    // 保存（创建或更新）
     const saveMutation = useMutation({
         mutationFn: async ({ id, title, date }: { id?: string; title: string; date: string }) => {
             if (id) {
@@ -81,12 +58,8 @@ export default function FrogsWidget({ initialFrogs, initialDate }: FrogsWidgetPr
         onSuccess: (_, variables) => {
             setShowForm(false);
             setEditingFrog(null);
-            if (variables.date !== selectedDate) {
-                setSelectedDate(variables.date);
-                loadFrogs(variables.date);
-            } else {
-                loadFrogs(selectedDate);
-            }
+            setSelectedDate(variables.date);
+            refreshDateData(variables.date);
         },
     });
 
@@ -125,9 +98,8 @@ export default function FrogsWidget({ initialFrogs, initialDate }: FrogsWidgetPr
     const completedCount = frogs.filter(f => f.is_completed).length;
 
     return (
-        <div className="card p-6">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
+        <div className="card p-card">
+            <div className="flex items-center justify-between mb-widget-header">
                 <div className="flex items-center gap-3">
                     <h2 className="text-lg font-semibold text-text-primary">🐸 三只青蛙</h2>
                     <div className="flex items-center gap-1 bg-bg-tertiary rounded-lg px-1 py-1">
@@ -166,19 +138,18 @@ export default function FrogsWidget({ initialFrogs, initialDate }: FrogsWidgetPr
                 )}
             </div>
 
-            {/* 青蛙列表 */}
             {loading ? (
                 <div className="text-center py-4 text-text-secondary">加载中...</div>
             ) : frogs.length === 0 ? (
-                <div className="text-center py-6 text-text-secondary">
-                    <div className="text-3xl mb-2">🐸</div>
+                <div className="text-center py-4 text-text-secondary">
+                    <div className="text-2xl mb-1">🐸</div>
                     <p className="text-sm">{formatDisplayDate(selectedDate)}还没有青蛙</p>
                     <button onClick={handleAdd} className="mt-2 text-accent hover:underline text-sm">
                         添加青蛙 →
                     </button>
                 </div>
             ) : (
-                <div className="space-y-2">
+                <div className="space-y-1">
                     {frogs.map((frog, index) => (
                         <FrogItem
                             key={frog.id}
@@ -192,7 +163,6 @@ export default function FrogsWidget({ initialFrogs, initialDate }: FrogsWidgetPr
                 </div>
             )}
 
-            {/* 表单弹窗 */}
             {showForm && (
                 <FrogForm
                     editingFrog={editingFrog}
