@@ -58,4 +58,16 @@ export const tilApi = {
             .eq('id', id);
         if (error) throw error;
     },
+
+    /** 获取日期范围内有数据的日期列表 */
+    getDatesInRange: async (start: string, end: string): Promise<string[]> => {
+        const { data, error } = await supabase
+            .from('daily_til')
+            .select('til_date')
+            .gte('til_date', start)
+            .lte('til_date', end);
+        if (error) throw error;
+        const unique = [...new Set((data ?? []).map(d => d.til_date))];
+        return unique.sort();
+    },
 };

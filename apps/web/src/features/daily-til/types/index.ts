@@ -21,5 +21,5 @@ export type UpdateTilInput = {
     til_date?: string;
 };
 
-/** TIL 分类列表 */
+/** TIL 分类列表（已迁移至 system-config，此处保留作为静态回退） */
 export const TIL_CATEGORIES = ['技术', '生活', '读书', '工作', '其他'] as const;

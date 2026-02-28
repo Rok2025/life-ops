@@ -4,17 +4,17 @@ import { useState, useCallback } from 'react';
 import { X } from 'lucide-react';
 import { getLocalDateStr } from '@/lib/utils/date';
 import type { TIL } from '../types';
-import { TIL_CATEGORIES } from '../types';
 
 interface TilFormProps {
     editingTil: TIL | null;
     defaultDate: string;
     saving: boolean;
+    categories: string[];
     onSave: (content: string, category: string | null, date: string) => void;
     onCancel: () => void;
 }
 
-export function TilForm({ editingTil, defaultDate, saving, onSave, onCancel }: TilFormProps) {
+export function TilForm({ editingTil, defaultDate, saving, categories, onSave, onCancel }: TilFormProps) {
     const [content, setContent] = useState(editingTil?.content ?? '');
     const [category, setCategory] = useState(editingTil?.category ?? '');
     const [date, setDate] = useState(editingTil?.til_date ?? defaultDate);
@@ -43,16 +43,45 @@ export function TilForm({ editingTil, defaultDate, saving, onSave, onCancel }: T
                     </div>
                     <div>
                         <label className="block text-sm text-text-secondary mb-1">分类（可选）</label>
-                        <select
-                            value={category}
-                            onChange={(e) => setCategory(e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg bg-bg-tertiary border border-border text-text-primary"
-                        >
-                            <option value="">不分类</option>
-                            {TIL_CATEGORIES.map(cat => (
-                                <option key={cat} value={cat}>{cat}</option>
+                        <div className="flex flex-wrap gap-2">
+                            <label
+                                className={`inline-flex items-center px-3 py-1.5 rounded-lg border cursor-pointer transition-colors text-sm ${
+                                    category === ''
+                                        ? 'border-accent bg-accent/10 text-accent'
+                                        : 'border-border text-text-secondary hover:bg-bg-tertiary'
+                                }`}
+                            >
+                                <input
+                                    type="radio"
+                                    name="til-category"
+                                    value=""
+                                    checked={category === ''}
+                                    onChange={() => setCategory('')}
+                                    className="sr-only"
+                                />
+                                不分类
+                            </label>
+                            {categories.map(cat => (
+                                <label
+                                    key={cat}
+                                    className={`inline-flex items-center px-3 py-1.5 rounded-lg border cursor-pointer transition-colors text-sm ${
+                                        category === cat
+                                            ? 'border-accent bg-accent/10 text-accent'
+                                            : 'border-border text-text-secondary hover:bg-bg-tertiary'
+                                    }`}
+                                >
+                                    <input
+                                        type="radio"
+                                        name="til-category"
+                                        value={cat}
+                                        checked={category === cat}
+                                        onChange={() => setCategory(cat)}
+                                        className="sr-only"
+                                    />
+                                    {cat}
+                                </label>
                             ))}
-                        </select>
+                        </div>
                     </div>
                     <div>
                         <label className="block text-sm text-text-secondary mb-1">学到了什么</label>

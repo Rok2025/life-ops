@@ -3,17 +3,7 @@
 import { supabase } from '@/lib/supabase';
 import { Dumbbell, Calendar, ChevronRight, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-
-// 类别配置
-const categoryConfig: Record<string, { label: string; color: string; bg: string }> = {
-    chest: { label: '胸部', color: 'text-red-400', bg: 'bg-red-500/20' },
-    back: { label: '背部', color: 'text-blue-400', bg: 'bg-blue-500/20' },
-    legs: { label: '腿部', color: 'text-green-400', bg: 'bg-green-500/20' },
-    shoulders: { label: '肩部', color: 'text-yellow-400', bg: 'bg-yellow-500/20' },
-    arms: { label: '手臂', color: 'text-purple-400', bg: 'bg-purple-500/20' },
-    core: { label: '核心', color: 'text-orange-400', bg: 'bg-orange-500/20' },
-    cardio: { label: '有氧', color: 'text-cyan-400', bg: 'bg-cyan-500/20' },
-};
+import { CATEGORY_CONFIG } from '@/features/fitness/types';
 
 type WorkoutSession = {
     id: string;
@@ -277,7 +267,7 @@ export default function HistoryPage() {
                                         <div className="p-4">
                                             <div className="flex flex-wrap gap-2 mb-3">
                                                 {session.exercises.map((exercise, idx) => {
-                                                    const config = categoryConfig[exercise.category] || { label: exercise.category, color: 'text-gray-400', bg: 'bg-gray-500/20' };
+                                                    const config = CATEGORY_CONFIG[exercise.category] || { label: exercise.category, color: 'text-gray-400', bg: 'bg-gray-500/20' };
                                                     return (
                                                         <div
                                                             key={idx}

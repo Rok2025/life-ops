@@ -5,17 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Plus, Trash2, Copy } from 'lucide-react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
-
-// 类别中英文映射
-const categoryLabels: Record<string, string> = {
-    chest: '胸部',
-    back: '背部',
-    legs: '腿部',
-    shoulders: '肩部',
-    arms: '手臂',
-    core: '核心',
-    cardio: '有氧',
-};
+import { useExerciseCategories } from '@/features/fitness/hooks/useExerciseCategories';
 
 type ExerciseType = {
     id: string;
@@ -55,6 +45,9 @@ export default function NewWorkoutPage() {
     const [exerciseTypes, setExerciseTypes] = useState<ExerciseType[]>([]);
     const [categories, setCategories] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // 动态加载训练部位分类标签
+    const { categories: categoryLabels } = useExerciseCategories();
 
     // 加载动作类型
     useEffect(() => {
@@ -283,7 +276,7 @@ export default function NewWorkoutPage() {
                         )}
                     </div>
                     <Link
-                        href="/fitness/exercises"
+                        href="/settings"
                         className="text-sm text-accent hover:underline"
                     >
                         管理动作类型 →

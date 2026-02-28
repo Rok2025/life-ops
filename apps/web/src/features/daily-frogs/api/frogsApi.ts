@@ -68,4 +68,16 @@ export const frogsApi = {
             .eq('id', id);
         if (error) throw error;
     },
+
+    /** 获取日期范围内有数据的日期列表 */
+    getDatesInRange: async (start: string, end: string): Promise<string[]> => {
+        const { data, error } = await supabase
+            .from('daily_frogs')
+            .select('frog_date')
+            .gte('frog_date', start)
+            .lte('frog_date', end);
+        if (error) throw error;
+        const unique = [...new Set((data ?? []).map(d => d.frog_date))];
+        return unique.sort();
+    },
 };

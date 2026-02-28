@@ -26,8 +26,8 @@ export default function ThemeToggle() {
         <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2 text-text-secondary">
                 {isDarkMode ? <Moon size={14} className="text-accent" /> : <Sun size={14} className="text-warning" />}
-                <span className="text-[10px] font-bold uppercase tracking-tighter opacity-50">
-                    {isDarkMode ? 'Dark Mode' : 'Light Mode'}
+                <span className="text-[10px] font-bold tracking-tighter opacity-50">
+                    {isDarkMode ? '深色模式' : '浅色模式'}
                 </span>
             </div>
             <button

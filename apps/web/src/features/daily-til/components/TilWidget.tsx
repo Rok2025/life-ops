@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { Plus, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Lightbulb } from 'lucide-react';
 import { getLocalDateStr, formatDisplayDate, offsetDate } from '@/lib/utils/date';
+import DataCalendar, { type DataCalendarHandle } from '@/components/DataCalendar';
 import { tilApi } from '../api/tilApi';
 import { TilItem } from './TilItem';
 import { TilForm } from './TilForm';
+import { useConfigItems } from '@/features/system-config/hooks/useConfigItems';
 import type { TIL } from '../types';
 
 interface TilWidgetProps {
@@ -15,6 +17,8 @@ interface TilWidgetProps {
 }
 
 export default function TilWidget({ initialTils, initialDate }: TilWidgetProps) {
+    const calendarRef = useRef<DataCalendarHandle>(null);
+    const dateBtnRef = useRef<HTMLButtonElement>(null);
     const [selectedDate, setSelectedDate] = useState(() => initialDate ?? getLocalDateStr());
     const [tils, setTils] = useState<TIL[]>(initialTils);
     const [loading, setLoading] = useState(false);
@@ -23,6 +27,8 @@ export default function TilWidget({ initialTils, initialDate }: TilWidgetProps) 
     const [editingTil, setEditingTil] = useState<TIL | null>(null);
 
     const isToday = selectedDate === getLocalDateStr();
+    const { items: categoryItems } = useConfigItems('til_category');
+    const categories = categoryItems.map(i => i.label);
 
     const loadTils = useCallback(async (date: string) => {
         setLoading(true);
@@ -108,32 +114,14 @@ export default function TilWidget({ initialTils, initialDate }: TilWidgetProps) 
                         <button onClick={() => changeDate(-1)} className="p-1 hover:bg-bg-secondary rounded" title="前一天">
                             <ChevronLeft size={16} className="text-text-secondary" />
                         </button>
-                        <div className="relative">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    const input = document.getElementById('til-date-input') as HTMLInputElement;
-                                    input?.showPicker?.();
-                                }}
-                                className="text-sm font-medium text-text-primary min-w-[70px] text-center px-2 py-1 hover:bg-bg-secondary rounded cursor-pointer"
-                            >
-                                {formatDisplayDate(selectedDate)}
-                            </button>
-                            <input
-                                id="til-date-input"
-                                type="date"
-                                value={selectedDate}
-                                max={getLocalDateStr()}
-                                onChange={(e) => {
-                                    if (e.target.value) {
-                                        setSelectedDate(e.target.value);
-                                        loadTils(e.target.value);
-                                    }
-                                }}
-                                className="absolute top-0 left-0 w-0 h-0 opacity-0"
-                                style={{ fontSize: '16px' }}
-                            />
-                        </div>
+                        <button
+                            ref={dateBtnRef}
+                            type="button"
+                            onClick={() => calendarRef.current?.open()}
+                            className="text-sm font-medium text-text-primary min-w-[70px] text-center px-2 py-1 hover:bg-bg-secondary rounded cursor-pointer"
+                        >
+                            {formatDisplayDate(selectedDate)}
+                        </button>
                         <button
                             onClick={() => changeDate(1)}
                             className="p-1 hover:bg-bg-secondary rounded"
@@ -143,6 +131,7 @@ export default function TilWidget({ initialTils, initialDate }: TilWidgetProps) 
                             <ChevronRight size={16} className={isToday ? 'text-text-secondary/30' : 'text-text-secondary'} />
                         </button>
                     </div>
+                    <DataCalendar ref={calendarRef} scope="til" selectedDate={selectedDate} onSelectDate={setSelectedDate} hideTrigger externalTriggerRef={dateBtnRef} />
                     {tils.length > 0 && (
                         <span className="text-sm text-text-secondary">{tils.length} 条</span>
                     )}
@@ -198,6 +187,7 @@ export default function TilWidget({ initialTils, initialDate }: TilWidgetProps) 
                     editingTil={editingTil}
                     defaultDate={selectedDate}
                     saving={saveMutation.isPending}
+                    categories={categories}
                     onSave={handleSave}
                     onCancel={handleCancel}
                 />

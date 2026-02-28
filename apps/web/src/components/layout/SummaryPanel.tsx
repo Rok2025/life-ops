@@ -93,8 +93,8 @@ export default function SummaryPanel() {
                                 style={{ width: `${horizons.yearProgress}%` }}
                             />
                         </div>
-                        <div className="text-[10px] text-text-tertiary mt-2 uppercase tracking-tight">
-                            Remaining {horizons.yearRemaining}
+                        <div className="text-[10px] text-text-tertiary mt-2 tracking-tight">
+                            {horizons.yearRemaining}
                         </div>
                     </div>
                 </div>

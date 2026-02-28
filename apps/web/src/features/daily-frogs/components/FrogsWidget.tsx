@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getLocalDateStr, formatDisplayDate, offsetDate } from '@/lib/utils/date';
+import DataCalendar, { type DataCalendarHandle } from '@/components/DataCalendar';
 import { frogsApi } from '../api/frogsApi';
 import { FrogItem } from './FrogItem';
 import { FrogForm } from './FrogForm';
@@ -19,6 +20,8 @@ interface FrogsWidgetProps {
 
 export default function FrogsWidget({ initialFrogs, initialDate }: FrogsWidgetProps) {
     const router = useRouter();
+    const calendarRef = useRef<DataCalendarHandle>(null);
+    const dateBtnRef = useRef<HTMLButtonElement>(null);
     const [selectedDate, setSelectedDate] = useState(() => initialDate ?? getLocalDateStr());
     const [frogs, setFrogs] = useState<Frog[]>(initialFrogs);
     const [loading, setLoading] = useState(false);
@@ -131,32 +134,14 @@ export default function FrogsWidget({ initialFrogs, initialDate }: FrogsWidgetPr
                         <button onClick={() => changeDate(-1)} className="p-1 hover:bg-bg-secondary rounded" title="前一天">
                             <ChevronLeft size={16} className="text-text-secondary" />
                         </button>
-                        <div className="relative">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    const input = document.getElementById('frog-date-input') as HTMLInputElement;
-                                    input?.showPicker?.();
-                                }}
-                                className="text-sm font-medium text-text-primary min-w-[70px] text-center px-2 py-1 hover:bg-bg-secondary rounded cursor-pointer"
-                            >
-                                {formatDisplayDate(selectedDate)}
-                            </button>
-                            <input
-                                id="frog-date-input"
-                                type="date"
-                                value={selectedDate}
-                                max={getLocalDateStr()}
-                                onChange={(e) => {
-                                    if (e.target.value) {
-                                        setSelectedDate(e.target.value);
-                                        loadFrogs(e.target.value);
-                                    }
-                                }}
-                                className="absolute top-0 left-0 w-0 h-0 opacity-0"
-                                style={{ fontSize: '16px' }}
-                            />
-                        </div>
+                        <button
+                            ref={dateBtnRef}
+                            type="button"
+                            onClick={() => calendarRef.current?.open()}
+                            className="text-sm font-medium text-text-primary min-w-[70px] text-center px-2 py-1 hover:bg-bg-secondary rounded cursor-pointer"
+                        >
+                            {formatDisplayDate(selectedDate)}
+                        </button>
                         <button
                             onClick={() => changeDate(1)}
                             className="p-1 hover:bg-bg-secondary rounded"
@@ -166,6 +151,7 @@ export default function FrogsWidget({ initialFrogs, initialDate }: FrogsWidgetPr
                             <ChevronRight size={16} className={isToday ? 'text-text-secondary/30' : 'text-text-secondary'} />
                         </button>
                     </div>
+                    <DataCalendar ref={calendarRef} scope="frogs" selectedDate={selectedDate} onSelectDate={setSelectedDate} hideTrigger externalTriggerRef={dateBtnRef} />
                     {frogs.length > 0 && (
                         <span className="text-sm text-text-secondary">
                             {completedCount}/{frogs.length} 完成

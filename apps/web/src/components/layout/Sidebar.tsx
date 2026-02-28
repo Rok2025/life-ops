@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
     Home, Dumbbell, Sprout, Languages, BookOpen, Bot,
-    PenLine, Users, Wallet, LogOut,
+    PenLine, Users, Wallet, LogOut, Settings,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { formatHorizons } from '@/lib/horizons';
@@ -136,6 +136,13 @@ export default function Sidebar() {
                             >
                                 <LogOut size={18} />
                             </button>
+                            <Link
+                                href="/settings"
+                                className="p-2 text-text-tertiary hover:text-accent hover:bg-accent/10 rounded-xl transition-all"
+                                title="系统配置"
+                            >
+                                <Settings size={18} />
+                            </Link>
                         </div>
                         <ThemeToggle />
                     </div>
