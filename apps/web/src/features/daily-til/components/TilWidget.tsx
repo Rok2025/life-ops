@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { Plus, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Lightbulb } from 'lucide-react';
 import { getLocalDateStr, formatDisplayDate, offsetDate } from '@/lib/utils/date';
@@ -40,6 +40,12 @@ export default function TilWidget({ initialTils, initialDate }: TilWidgetProps) 
         const newDate = offsetDate(selectedDate, days);
         setSelectedDate(newDate);
         loadTils(newDate);
+    }, [selectedDate, loadTils]);
+
+    // 初始客户端加载，以获取最实时数据并绕过静态编译的过期缓存
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => {
+        loadTils(selectedDate);
     }, [selectedDate, loadTils]);
 
     const saveMutation = useMutation({

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -45,6 +45,12 @@ export default function FrogsWidget({ initialFrogs, initialDate }: FrogsWidgetPr
         const newDate = offsetDate(selectedDate, days);
         setSelectedDate(newDate);
         loadFrogs(newDate);
+    }, [selectedDate, loadFrogs]);
+
+    // 初始客户端加载，以获取最实时数据并绕过静态编译的过期缓存
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => {
+        loadFrogs(selectedDate);
     }, [selectedDate, loadFrogs]);
 
     // 切换完成状态
