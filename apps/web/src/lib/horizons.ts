@@ -91,9 +91,18 @@ export function formatHorizons() {
     const daysLeftInMonth = daysInMonth - now.getDate();
     const daysLeftInYear = daysInYear - dayOfYear;
 
+    // 本周每天的日期（几号）
+    const weekDates: number[] = [];
+    for (let i = 1; i <= 7; i++) {
+        const d = new Date(now);
+        d.setDate(now.getDate() - (adjustedDayOfWeek - i));
+        weekDates.push(d.getDate());
+    }
+
     return {
         week: `第 ${weekNum} 周`,
         dayOfWeek: adjustedDayOfWeek,
+        weekDates,
         weekRemaining: daysLeftInWeek === 0 ? '本周最后一天' : `本周还剩 ${daysLeftInWeek} 天`,
         monthRemaining: `本月还剩 ${daysLeftInMonth} 天`,
         yearRemaining: `今年还剩 ${daysLeftInYear} 天`,

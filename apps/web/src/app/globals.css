@@ -1,5 +1,24 @@
 @import "tailwindcss";
 
+@theme {
+  --animate-hourglass: hourglass 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+
+  @keyframes hourglass {
+    0%,
+    15% {
+      transform: rotate(0deg);
+    }
+    45%,
+    65% {
+      transform: rotate(180deg);
+    }
+    85%,
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+}
+
 :root {
   /* Apple Light Theme */
   --bg-primary: #ffffff;

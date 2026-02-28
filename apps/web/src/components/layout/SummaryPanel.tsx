@@ -3,6 +3,7 @@
 import { formatHorizons, getMonthProgress } from '@/lib/horizons';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePathname } from 'next/navigation';
+import { Hourglass } from 'lucide-react';
 
 export default function SummaryPanel() {
     const horizons = formatHorizons();
@@ -32,13 +33,16 @@ export default function SummaryPanel() {
                                 const isPast = i + 1 < horizons.dayOfWeek;
                                 const isToday = i + 1 === horizons.dayOfWeek;
                                 return (
-                                    <div key={day} className="flex flex-col items-center gap-2">
+                                    <div key={day} className="flex flex-col items-center gap-1.5">
                                         <span className={`text-[10px] ${isToday ? 'text-accent font-bold' : 'text-text-tertiary'}`}>
                                             {day}
                                         </span>
                                         <div className={`w-2 h-2 rounded-full ${isToday ? 'bg-accent ring-4 ring-accent/20' :
                                             isPast ? 'bg-text-tertiary/40' : 'bg-bg-tertiary'
                                             }`} />
+                                        <span className={`text-[9px] ${isToday ? 'text-accent font-bold' : 'text-text-tertiary/60'}`}>
+                                            {horizons.weekDates[i]}
+                                        </span>
                                     </div>
                                 );
                             })}
@@ -93,8 +97,16 @@ export default function SummaryPanel() {
                                 style={{ width: `${horizons.yearProgress}%` }}
                             />
                         </div>
-                        <div className="text-[10px] text-text-tertiary mt-2 tracking-tight">
-                            {horizons.yearRemaining}
+                        <div className="flex justify-between items-center mt-2">
+                            <div className="flex items-center gap-1.5 opacity-60">
+                                <Hourglass size={12} className="text-accent animate-hourglass" />
+                                <span className="text-[10px] text-text-tertiary tracking-tight">
+                                    时间正在流逝...
+                                </span>
+                            </div>
+                            <div className="text-[10px] text-text-tertiary tracking-tight">
+                                {horizons.yearRemaining}
+                            </div>
                         </div>
                     </div>
                 </div>
