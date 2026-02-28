@@ -51,15 +51,14 @@ function AreaCard({
   );
 }
 
-// --- Page ---
+import { ClientFitnessAreaCard } from '@/features/fitness/components/ClientFitnessAreaCard';
 
-export const dynamic = 'force-dynamic';
+// --- Page ---
 
 export default async function HomePage() {
   const today = getLocalDateStr();
 
-  const [weeklyWorkoutDays, frogsStats, tilCount, notesCount, initialFrogs, initialTils, initialNotes] = await Promise.all([
-    fitnessApi.getWeeklyWorkoutDays(),
+  const [frogsStats, tilCount, notesCount, initialFrogs, initialTils, initialNotes] = await Promise.all([
     frogsApi.getStats(today),
     tilApi.getCount(today),
     notesApi.getCount(today),
@@ -76,7 +75,7 @@ export default async function HomePage() {
         frogsTotal={frogsStats.total}
         tilCount={tilCount}
         notesCount={notesCount}
-        workoutDays={weeklyWorkoutDays}
+        workoutDays={0} // 将由客户端组件实际加载
         workoutTarget={3}
       />
 
@@ -97,14 +96,7 @@ export default async function HomePage() {
           人生领域
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <AreaCard
-            name="健身"
-            icon={Dumbbell}
-            href="/fitness"
-            current={weeklyWorkoutDays}
-            target={3}
-            unit="天"
-          />
+          <ClientFitnessAreaCard target={3} unit="天" />
         </div>
       </section>
     </div>

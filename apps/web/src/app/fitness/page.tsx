@@ -1,17 +1,46 @@
+'use client';
+
 import { Dumbbell } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { fitnessApi } from '@/features/fitness';
 import { QuickActions } from '@/features/fitness';
 import { WeeklyStatsCards } from '@/features/fitness';
 import { WorkoutList } from '@/features/fitness';
 import { WEEKLY_GOAL } from '@/features/fitness';
+import type { WorkoutsByDate, WeeklyStats } from '@/features/fitness/types';
 
-export const dynamic = 'force-dynamic';
+export default function FitnessPage() {
+    const [workoutsByDate, setWorkoutsByDate] = useState<WorkoutsByDate[]>([]);
+    const [stats, setStats] = useState<WeeklyStats | null>(null);
+    const [loading, setLoading] = useState(true);
 
-export default async function FitnessPage() {
-    const [workoutsByDate, stats] = await Promise.all([
-        fitnessApi.getWorkouts(),
-        fitnessApi.getWeeklyStats(),
-    ]);
+    useEffect(() => {
+        async function loadData() {
+            setLoading(true);
+            try {
+                const [workoutsData, statsData] = await Promise.all([
+                    fitnessApi.getWorkouts(),
+                    fitnessApi.getWeeklyStats(),
+                ]);
+                setWorkoutsByDate(workoutsData);
+                setStats(statsData);
+            } catch (error) {
+                console.error('Failed to load fitness data:', error);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        loadData();
+    }, []);
+
+    if (loading || !stats) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-text-secondary">加载中...</div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">

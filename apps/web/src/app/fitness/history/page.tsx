@@ -1,3 +1,5 @@
+'use client';
+
 import { supabase } from '@/lib/supabase';
 import { Dumbbell, Calendar, ChevronRight, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -155,13 +157,40 @@ function formatVolume(volume: number): string {
     return `${volume}kg`;
 }
 
-export const dynamic = 'force-dynamic';
+import { useState, useEffect } from 'react';
 
-export default async function HistoryPage() {
-    const [workoutsByMonth, stats] = await Promise.all([
-        getAllWorkouts(),
-        getStats()
-    ]);
+export default function HistoryPage() {
+    const [workoutsByMonth, setWorkoutsByMonth] = useState<WorkoutsByMonth[]>([]);
+    const [stats, setStats] = useState({ totalWorkouts: 0, totalSets: 0, totalVolume: 0 });
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        async function loadData() {
+            setLoading(true);
+            try {
+                const [workoutsData, statsData] = await Promise.all([
+                    getAllWorkouts(),
+                    getStats()
+                ]);
+                setWorkoutsByMonth(workoutsData);
+                setStats(statsData);
+            } catch (error) {
+                console.error('Failed to load history data:', error);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        loadData();
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-text-secondary">加载中...</div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
