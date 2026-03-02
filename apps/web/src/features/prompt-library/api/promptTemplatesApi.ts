@@ -7,7 +7,7 @@ import type {
 } from '../types';
 
 function sanitizeLikeTerm(term: string): string {
-    return term.replace(/[%_]/g, '').trim();
+    return term.replace(/[,%_()]/g, ' ').trim();
 }
 
 export const promptTemplatesApi = {

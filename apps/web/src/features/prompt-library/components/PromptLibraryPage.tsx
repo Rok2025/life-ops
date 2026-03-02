@@ -9,6 +9,30 @@ import PromptTemplateDetail from './PromptTemplateDetail';
 import PromptTemplateFormDialog from './PromptTemplateFormDialog';
 import type { PromptTemplate, PromptTemplateFormValues } from '../types';
 
+function resolveSubmitErrorMessage(error: unknown, fallback: string): string {
+    if (error instanceof Error && error.message) {
+        return error.message;
+    }
+
+    if (typeof error === 'object' && error !== null) {
+        const maybeMessage = Reflect.get(error, 'message');
+        const maybeCode = Reflect.get(error, 'code');
+        if (typeof maybeMessage === 'string' && maybeMessage.trim()) {
+            if (maybeMessage.includes('relation') && maybeMessage.includes('prompt_templates')) {
+                return '数据库缺少 prompt_templates 表，请先执行迁移：supabase/migrations/20260303_create_prompt_templates.sql';
+            }
+            if (maybeMessage.toLowerCase().includes('row-level security')) {
+                return '当前账号没有写入权限，请检查 Supabase RLS 策略（prompt_templates）。';
+            }
+            return typeof maybeCode === 'string'
+                ? `${maybeMessage} (code: ${maybeCode})`
+                : maybeMessage;
+        }
+    }
+
+    return fallback;
+}
+
 async function copyToClipboard(text: string): Promise<void> {
     if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(text);
@@ -40,6 +64,7 @@ export default function PromptLibraryPage() {
     const [copyingId, setCopyingId] = useState<string | null>(null);
     const [copyMessage, setCopyMessage] = useState<string | null>(null);
     const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [submitError, setSubmitError] = useState<string | null>(null);
 
     useEffect(() => {
         const timer = window.setTimeout(() => setSearch(searchInput.trim()), 250);
@@ -84,20 +109,24 @@ export default function PromptLibraryPage() {
 
     const handleCreate = useCallback(() => {
         setEditingTemplate(null);
+        setSubmitError(null);
         setFormOpen(true);
     }, []);
 
     const handleEdit = useCallback((template: PromptTemplate) => {
         setEditingTemplate(template);
+        setSubmitError(null);
         setFormOpen(true);
     }, []);
 
     const handleCloseDialog = useCallback(() => {
         setFormOpen(false);
         setEditingTemplate(null);
+        setSubmitError(null);
     }, []);
 
     const handleSubmit = useCallback((values: PromptTemplateFormValues) => {
+        setSubmitError(null);
         if (editingTemplate) {
             updateMutation.mutate(
                 {
@@ -110,7 +139,12 @@ export default function PromptLibraryPage() {
                         is_favorite: values.is_favorite,
                     },
                 },
-                { onSuccess: handleCloseDialog },
+                {
+                    onSuccess: handleCloseDialog,
+                    onError: (error) => {
+                        setSubmitError(resolveSubmitErrorMessage(error, '保存失败，请稍后重试'));
+                    },
+                },
             );
             return;
         }
@@ -123,7 +157,12 @@ export default function PromptLibraryPage() {
                 tags: values.tags,
                 is_favorite: values.is_favorite,
             },
-            { onSuccess: handleCloseDialog },
+            {
+                onSuccess: handleCloseDialog,
+                onError: (error) => {
+                    setSubmitError(resolveSubmitErrorMessage(error, '创建失败，请稍后重试'));
+                },
+            },
         );
     }, [createMutation, editingTemplate, handleCloseDialog, updateMutation]);
 
@@ -284,13 +323,16 @@ export default function PromptLibraryPage() {
                 </div>
             )}
 
-            <PromptTemplateFormDialog
-                open={formOpen}
-                editingTemplate={editingTemplate}
-                submitting={createMutation.isPending || updateMutation.isPending}
-                onClose={handleCloseDialog}
-                onSubmit={handleSubmit}
-            />
+            {formOpen && (
+                <PromptTemplateFormDialog
+                    key={editingTemplate?.id ?? 'new'}
+                    editingTemplate={editingTemplate}
+                    submitting={createMutation.isPending || updateMutation.isPending}
+                    submitError={submitError}
+                    onClose={handleCloseDialog}
+                    onSubmit={handleSubmit}
+                />
+            )}
         </div>
     );
 }

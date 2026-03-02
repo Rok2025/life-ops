@@ -1,6 +1,8 @@
 'use client';
 
 import { CalendarClock, Clipboard, Copy, Pencil } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import type { PromptTemplate } from '../types';
 
 interface PromptTemplateDetailProps {
@@ -85,9 +87,15 @@ export default function PromptTemplateDetail({
                 ))}
             </div>
 
-            <pre className="max-h-[60vh] overflow-auto rounded-xl border border-border bg-bg-secondary p-3 text-xs leading-relaxed text-text-primary whitespace-pre-wrap">
-                {template.content}
-            </pre>
+            <div className="max-h-[60vh] overflow-auto rounded-xl border border-border bg-bg-secondary p-4">
+                <div className="prose-custom">
+                    {template.content.trim() ? (
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{template.content}</ReactMarkdown>
+                    ) : (
+                        <p className="text-sm italic text-text-tertiary">暂无内容</p>
+                    )}
+                </div>
+            </div>
         </div>
     );
 }
