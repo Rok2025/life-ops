@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-    Home, Dumbbell, Sprout, Languages, BookOpen, Bot,
+    Home, Dumbbell, Sprout, Languages, BookOpen, Bot, Sparkles,
     PenLine, Users, Wallet, LogOut, Settings,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -38,6 +38,7 @@ const navItems: NavItem[] = [
             { href: '/growth/english', label: '英语', icon: Languages },
             { href: '/growth/reading', label: '阅读', icon: BookOpen },
             { href: '/growth/ai', label: 'AI', icon: Bot },
+            { href: '/growth/prompts', label: '提示词库', icon: Sparkles },
         ],
     },
     { href: '/output', label: '输出', icon: PenLine },
