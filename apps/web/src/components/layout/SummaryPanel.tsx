@@ -81,7 +81,7 @@ export default function SummaryPanel() {
                             </div>
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-sm font-medium text-text-primary">本月进度</span>
+                            <span className="text-sm font-medium text-text-primary">本月剩余</span>
                             <span className="text-xs text-text-secondary mt-1">{horizons.monthRemaining}</span>
                         </div>
                     </div>
@@ -89,7 +89,7 @@ export default function SummaryPanel() {
                     {/* Year: Line */}
                     <div className="card p-3">
                         <div className="flex justify-between items-center mb-2">
-                            <span className="text-sm font-medium text-text-primary text-opacity-80">年度视野</span>
+                            <span className="text-sm font-medium text-text-primary text-opacity-80">年度剩余</span>
                             <span className="text-sm font-bold text-text-primary">{horizons.yearProgress}%</span>
                         </div>
                         <div className="h-1 bg-bg-tertiary rounded-full overflow-hidden">

@@ -26,7 +26,7 @@ export function getCurrentWeek(date: Date = new Date()) {
 }
 
 /**
- * 获取本月剩余天数
+ * 获取本月剩余进度
  */
 export function getMonthProgress(date: Date = new Date()) {
     const year = date.getFullYear();
@@ -39,12 +39,12 @@ export function getMonthProgress(date: Date = new Date()) {
         currentDay,
         totalDays,
         remainingDays,
-        progress: Math.round((currentDay / totalDays) * 100),
+        progress: Math.round((remainingDays / totalDays) * 100),
     };
 }
 
 /**
- * 获取本年剩余天数
+ * 获取本年剩余进度
  */
 export function getYearProgress(date: Date = new Date()) {
     const year = date.getFullYear();
@@ -58,7 +58,7 @@ export function getYearProgress(date: Date = new Date()) {
         dayOfYear,
         totalDays,
         remainingDays,
-        progress: Math.round((dayOfYear / totalDays) * 100),
+        progress: Math.round((remainingDays / totalDays) * 100),
     };
 }
 
@@ -84,12 +84,11 @@ export function formatHorizons() {
     const startOfYear = new Date(now.getFullYear(), 0, 1);
     const diff = now.getTime() - startOfYear.getTime();
     const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
-    const yearProgress = (dayOfYear / daysInYear) * 100;
-
     const daysLeftInWeek = 7 - adjustedDayOfWeek;
     const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
     const daysLeftInMonth = daysInMonth - now.getDate();
     const daysLeftInYear = daysInYear - dayOfYear;
+    const yearRemainingProgress = (daysLeftInYear / daysInYear) * 100;
 
     // 本周每天的日期（几号）
     const weekDates: number[] = [];
@@ -106,7 +105,7 @@ export function formatHorizons() {
         weekRemaining: daysLeftInWeek === 0 ? '本周最后一天' : `本周还剩 ${daysLeftInWeek} 天`,
         monthRemaining: `本月还剩 ${daysLeftInMonth} 天`,
         yearRemaining: `今年还剩 ${daysLeftInYear} 天`,
-        yearProgress: yearProgress.toFixed(0),
-        yearProgressRaw: yearProgress
+        yearProgress: yearRemainingProgress.toFixed(0),
+        yearProgressRaw: yearRemainingProgress,
     };
 }

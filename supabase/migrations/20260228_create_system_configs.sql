@@ -10,35 +10,58 @@ CREATE TABLE IF NOT EXISTS system_configs (
 );
 
 -- 索引：按 scope 查询
-CREATE INDEX idx_system_configs_scope ON system_configs (scope);
+CREATE INDEX IF NOT EXISTS idx_system_configs_scope ON system_configs (scope);
 
 -- 唯一约束：同一 scope 下 value 不重复
-CREATE UNIQUE INDEX idx_system_configs_scope_value ON system_configs (scope, value);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_system_configs_scope_value ON system_configs (scope, value);
 
 -- 启用 RLS
 ALTER TABLE system_configs ENABLE ROW LEVEL SECURITY;
 
 -- RLS 策略：所有用户可读，已登录用户可写
-CREATE POLICY "Anyone can read system_configs"
-    ON system_configs FOR SELECT
-    TO anon, authenticated
-    USING (true);
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies
+        WHERE schemaname = 'public' AND tablename = 'system_configs' AND policyname = 'Anyone can read system_configs'
+    ) THEN
+        CREATE POLICY "Anyone can read system_configs"
+            ON system_configs FOR SELECT
+            TO anon, authenticated
+            USING (true);
+    END IF;
 
-CREATE POLICY "Authenticated users can insert system_configs"
-    ON system_configs FOR INSERT
-    TO authenticated
-    WITH CHECK (true);
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies
+        WHERE schemaname = 'public' AND tablename = 'system_configs' AND policyname = 'Authenticated users can insert system_configs'
+    ) THEN
+        CREATE POLICY "Authenticated users can insert system_configs"
+            ON system_configs FOR INSERT
+            TO authenticated
+            WITH CHECK (true);
+    END IF;
 
-CREATE POLICY "Authenticated users can update system_configs"
-    ON system_configs FOR UPDATE
-    TO authenticated
-    USING (true)
-    WITH CHECK (true);
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies
+        WHERE schemaname = 'public' AND tablename = 'system_configs' AND policyname = 'Authenticated users can update system_configs'
+    ) THEN
+        CREATE POLICY "Authenticated users can update system_configs"
+            ON system_configs FOR UPDATE
+            TO authenticated
+            USING (true)
+            WITH CHECK (true);
+    END IF;
 
-CREATE POLICY "Authenticated users can delete system_configs"
-    ON system_configs FOR DELETE
-    TO authenticated
-    USING (true);
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies
+        WHERE schemaname = 'public' AND tablename = 'system_configs' AND policyname = 'Authenticated users can delete system_configs'
+    ) THEN
+        CREATE POLICY "Authenticated users can delete system_configs"
+            ON system_configs FOR DELETE
+            TO authenticated
+            USING (true);
+    END IF;
+END $$;
 
 -- 初始化 TIL 分类数据
 INSERT INTO system_configs (scope, value, label, sort_order) VALUES

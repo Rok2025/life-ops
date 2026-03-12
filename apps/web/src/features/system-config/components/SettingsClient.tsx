@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Settings } from 'lucide-react';
 import ConfigManager from './ConfigManager';
 import ExerciseManager from './ExerciseManager';
+import { EnglishPromptManager } from '@/features/english-prompts';
 import { configApi } from '../api/configApi';
 import { exerciseTypesApi } from '../api/exerciseTypesApi';
 import { CONFIG_SCOPES } from '../types';
@@ -61,6 +62,7 @@ export default function SettingsClient() {
                     initialCategories={initialData['exercise_category'] ?? []}
                     initialExercises={initialExercises}
                 />
+                <EnglishPromptManager />
             </div>
         </div>
     );

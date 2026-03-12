@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, Trash2, Copy, CheckCircle2 } from 'lucide-react';
+import { Plus, Trash2, CheckCircle2 } from 'lucide-react';
 import { fitnessApi, useExerciseTypes, CATEGORY_CONFIG } from '@/features/fitness';
 import type { AggregatedExercise, WorkoutSession } from '@/features/fitness';
 import { useExerciseCategories } from '@/features/fitness/hooks/useExerciseCategories';
@@ -19,8 +19,6 @@ type ExerciseSet = {
 };
 
 export interface NewWorkoutFormProps {
-    /** 复制来源的 session ID */
-    copyFromId?: string | null;
     /** 保存成功后的回调 */
     onSaved?: () => void;
 }
@@ -50,7 +48,7 @@ function DailyWorkoutRecords({
 
     return (
         <div className="mt-3">
-            <p className="text-xs text-text-secondary mb-1.5">当天已有 {sessions.length} 条记录</p>
+            <p className="text-xs text-text-secondary mb-1.5">当天已有记录（新增动作将追加到该记录中）</p>
             <div className="space-y-1">
                 {sessions.map((session) => (
                     <div key={session.id} className="flex items-center gap-1.5 group">
@@ -106,13 +104,12 @@ function DailyWorkoutRecords({
     );
 }
 
-export default function NewWorkoutForm({ copyFromId, onSaved }: NewWorkoutFormProps) {
+export default function NewWorkoutForm({ onSaved }: NewWorkoutFormProps) {
     const queryClient = useQueryClient();
 
     const [date, setDate] = useState(getLocalDateStr());
     const [exerciseSets, setExerciseSets] = useState<ExerciseSet[]>([]);
     const [notes, setNotes] = useState('');
-    const [isCopied, setIsCopied] = useState(false);
 
     const { exerciseTypes, categories, loading } = useExerciseTypes();
     const { categories: categoryLabels } = useExerciseCategories();
@@ -123,40 +120,6 @@ export default function NewWorkoutForm({ copyFromId, onSaved }: NewWorkoutFormPr
         queryKey: ['fitness-daily-workouts', date],
         queryFn: () => fitnessApi.getWorkoutsByDate(date),
     });
-
-    const copyTemplateQuery = useQuery({
-        queryKey: ['workout-copy-template', copyFromId],
-        queryFn: () => fitnessApi.getWorkoutCopyTemplate(copyFromId ?? ''),
-        enabled: !!copyFromId,
-    });
-
-    useEffect(() => {
-        if (!copyFromId || isCopied || !copyTemplateQuery.data) return;
-
-        const timer = window.setTimeout(() => {
-            if (copyTemplateQuery.data?.notes) {
-                setNotes(copyTemplateQuery.data.notes);
-            }
-
-            if ((copyTemplateQuery.data?.exercises.length ?? 0) > 0) {
-                setExerciseSets(
-                    copyTemplateQuery.data!.exercises.map(ex => ({
-                        id: Date.now() + Math.random() * 1000,
-                        exerciseTypeId: ex.exerciseTypeId,
-                        exercise: ex.name,
-                        category: ex.category,
-                        weight: ex.weight,
-                        sets: ex.sets,
-                        reps: ex.reps,
-                    })),
-                );
-            }
-
-            setIsCopied(true);
-        }, 0);
-
-        return () => window.clearTimeout(timer);
-    }, [copyFromId, isCopied, copyTemplateQuery.data]);
 
     const getExercisesByCategory = (category: string) => {
         return exerciseTypes.filter(e => e.category === category);
@@ -265,7 +228,7 @@ export default function NewWorkoutForm({ copyFromId, onSaved }: NewWorkoutFormPr
         saveMutation.mutate();
     };
 
-    if (loading || copyTemplateQuery.isLoading) {
+    if (loading) {
         return (
             <div className="flex items-center justify-center py-12">
                 <div className="text-text-secondary text-sm">加载中...</div>
@@ -275,12 +238,6 @@ export default function NewWorkoutForm({ copyFromId, onSaved }: NewWorkoutFormPr
 
     return (
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            {copyFromId && (
-                <p className="text-xs text-purple-400 flex items-center gap-1">
-                    <Copy size={12} />
-                    已复制上次训练内容，可直接修改
-                </p>
-            )}
 
             {/* 日期 + 当天记录 */}
             <div>

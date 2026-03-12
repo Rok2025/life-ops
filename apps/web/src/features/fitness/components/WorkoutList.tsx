@@ -6,13 +6,12 @@ import { WorkoutCard } from './WorkoutCard';
 
 interface WorkoutListProps {
     workoutsByDate: WorkoutsByDate[];
-    onDelete?: (sessionId: string) => void;
-    deletingId?: string | null;
+    onView?: (sessionId: string) => void;
+    onEdit?: (sessionId: string) => void;
     onAddWorkout?: () => void;
-    onCopyWorkout?: (sessionId: string) => void;
 }
 
-export function WorkoutList({ workoutsByDate, onDelete, deletingId, onAddWorkout, onCopyWorkout }: WorkoutListProps) {
+export function WorkoutList({ workoutsByDate, onView, onEdit, onAddWorkout }: WorkoutListProps) {
     return (
         <section>
             <div className="flex items-center justify-between mb-widget-header">
@@ -74,9 +73,8 @@ export function WorkoutList({ workoutsByDate, onDelete, deletingId, onAddWorkout
                                     <WorkoutCard
                                         key={session.id}
                                         session={session}
-                                        onDelete={onDelete}
-                                        onCopy={onCopyWorkout}
-                                        deleting={deletingId === session.id}
+                                        onView={onView}
+                                        onEdit={onEdit}
                                     />
                                 ))}
                             </div>

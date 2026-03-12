@@ -1,20 +1,21 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Dumbbell } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { Dumbbell, Plus } from 'lucide-react';
 import { fitnessApi } from '@/features/fitness';
-import { QuickActions } from '@/features/fitness';
 import { WeeklyStatsCards } from '@/features/fitness';
 import { WorkoutList } from '@/features/fitness';
 import { WEEKLY_GOAL } from '@/features/fitness';
 import { NewWorkoutDialog } from './NewWorkoutDialog';
+import { WorkoutDetailDialog } from './WorkoutDetailDialog';
+import { FitnessCalendar } from './FitnessCalendar';
+import { TopExercises } from './TopExercises';
 
 export default function FitnessOverview() {
-    const queryClient = useQueryClient();
-    const [deletingId, setDeletingId] = useState<string | null>(null);
     const [dialogOpen, setDialogOpen] = useState(false);
-    const [copyFromId, setCopyFromId] = useState<string | null>(null);
+    const [detailSessionId, setDetailSessionId] = useState<string | null>(null);
+    const [detailEditMode, setDetailEditMode] = useState(false);
 
     const { data: workoutsByDate = [], isLoading: workoutsLoading } = useQuery({
         queryKey: ['fitness-workouts'],
@@ -26,30 +27,24 @@ export default function FitnessOverview() {
         queryFn: () => fitnessApi.getWeeklyStats(),
     });
 
-    const deleteMutation = useMutation({
-        mutationFn: (sessionId: string) => fitnessApi.deleteWorkoutSession(sessionId),
-        onMutate: (sessionId) => setDeletingId(sessionId),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['fitness-workouts'] });
-            queryClient.invalidateQueries({ queryKey: ['fitness-weekly-stats'] });
-        },
-        onSettled: () => setDeletingId(null),
-        onError: (error) => {
-            console.error('删除训练记录失败:', error);
-            alert(`删除失败: ${error instanceof Error ? error.message : '请重试'}`);
-        },
-    });
-
     const loading = workoutsLoading || statsLoading;
 
-    const openDialog = (copyId?: string | null) => {
-        setCopyFromId(copyId ?? null);
+    const openDialog = () => {
         setDialogOpen(true);
     };
 
     const closeDialog = () => {
         setDialogOpen(false);
-        setCopyFromId(null);
+    };
+
+    const openDetail = (sessionId: string, edit = false) => {
+        setDetailSessionId(sessionId);
+        setDetailEditMode(edit);
+    };
+
+    const closeDetail = () => {
+        setDetailSessionId(null);
+        setDetailEditMode(false);
     };
 
     if (loading || !stats) {
@@ -72,22 +67,45 @@ export default function FitnessOverview() {
                         <p className="text-sm text-text-secondary">每周目标：{WEEKLY_GOAL} 次训练</p>
                     </div>
                 </div>
+                <button
+                    type="button"
+                    onClick={() => openDialog()}
+                    className="btn-primary inline-flex items-center gap-1.5 text-sm"
+                >
+                    <Plus size={16} />
+                    添加记录
+                </button>
             </header>
 
-            <QuickActions stats={stats} onAddWorkout={() => openDialog()} />
             <WeeklyStatsCards stats={stats} />
+
+            {/* 日历 + 常练动作：桌面端并排，移动端堆叠 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FitnessCalendar onSelectDate={(date) => {
+                    const dayGroup = workoutsByDate.find(g => g.date === date);
+                    if (dayGroup?.sessions[0]) {
+                        openDetail(dayGroup.sessions[0].id);
+                    }
+                }} />
+                <TopExercises workoutsByDate={workoutsByDate} />
+            </div>
+
             <WorkoutList
                 workoutsByDate={workoutsByDate}
-                onDelete={(id) => deleteMutation.mutate(id)}
-                deletingId={deletingId}
+                onView={(id) => openDetail(id)}
+                onEdit={(id) => openDetail(id, true)}
                 onAddWorkout={() => openDialog()}
-                onCopyWorkout={(id) => openDialog(id)}
             />
 
             <NewWorkoutDialog
                 open={dialogOpen}
                 onClose={closeDialog}
-                copyFromId={copyFromId}
+            />
+
+            <WorkoutDetailDialog
+                sessionId={detailSessionId}
+                editMode={detailEditMode}
+                onClose={closeDetail}
             />
         </div>
     );

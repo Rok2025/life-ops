@@ -316,37 +316,6 @@ export const fitnessApi = {
         return (data ?? []) as unknown as SessionSetRow[];
     },
 
-    /** 获取用于复制训练的模板数据 */
-    getWorkoutCopyTemplate: async (sessionId: string): Promise<{ notes: string | null; exercises: AggregatedExercise[] }> => {
-        const session = await fitnessApi.getWorkoutSession(sessionId);
-        const sets = await fitnessApi.getWorkoutSets(sessionId);
-
-        const exerciseMap = new Map<string, AggregatedExercise>();
-        sets.forEach((set) => {
-            if (!set.exercise_types) return;
-            const key = set.exercise_types.id;
-
-            if (!exerciseMap.has(key)) {
-                exerciseMap.set(key, {
-                    exerciseTypeId: set.exercise_types.id,
-                    name: set.exercise_types.name,
-                    category: set.exercise_types.category,
-                    weight: set.weight || 0,
-                    sets: 0,
-                    reps: set.reps || 0,
-                });
-            }
-
-            const exercise = exerciseMap.get(key)!;
-            exercise.sets += 1;
-        });
-
-        return {
-            notes: session?.notes ?? null,
-            exercises: Array.from(exerciseMap.values()),
-        };
-    },
-
     /** 聚合训练组为动作 */
     aggregateExercises: (setsData: SessionSetRow[]): AggregatedExercise[] => {
         const exerciseMap = new Map<string, AggregatedExercise>();
@@ -373,41 +342,104 @@ export const fitnessApi = {
         return Array.from(exerciseMap.values());
     },
 
-    /** 创建训练记录 */
+    /** 创建训练记录（如果当天已有 session 则追加动作） */
     createWorkoutSessionWithSets: async (input: {
         date: string;
         notes: string | null;
         exercises: AggregatedExercise[];
     }): Promise<string> => {
-        const { data: session, error: sessionError } = await supabase
+        // Check if a session already exists for this date
+        const { data: existing } = await supabase
             .from('workout_sessions')
-            .insert({
-                workout_date: input.date,
-                notes: input.notes,
-            })
             .select('id')
+            .eq('workout_date', input.date)
+            .limit(1)
             .single();
 
-        if (sessionError) throw sessionError;
+        let sessionId: string;
 
-        const workoutSetsData = input.exercises.flatMap((exercise, exerciseIndex) => {
-            return Array.from({ length: exercise.sets }, (_, setIndex) => ({
-                session_id: session.id,
-                exercise_type_id: exercise.exerciseTypeId,
-                set_order: exerciseIndex * 100 + setIndex + 1,
-                weight: exercise.weight,
-                reps: exercise.reps,
-            }));
-        });
+        if (existing) {
+            // Reuse existing session
+            sessionId = existing.id;
 
-        if (workoutSetsData.length > 0) {
-            const { error: setsError } = await supabase
+            // Merge notes if needed
+            if (input.notes) {
+                const { data: currentSession } = await supabase
+                    .from('workout_sessions')
+                    .select('notes')
+                    .eq('id', sessionId)
+                    .single();
+
+                const mergedNotes = currentSession?.notes
+                    ? `${currentSession.notes}\n${input.notes}`
+                    : input.notes;
+
+                await supabase
+                    .from('workout_sessions')
+                    .update({ notes: mergedNotes })
+                    .eq('id', sessionId);
+            }
+
+            // Get current max set_order
+            const { data: maxOrderRow } = await supabase
                 .from('workout_sets')
-                .insert(workoutSetsData);
-            if (setsError) throw setsError;
+                .select('set_order')
+                .eq('session_id', sessionId)
+                .order('set_order', { ascending: false })
+                .limit(1)
+                .single();
+
+            const maxOrder = maxOrderRow?.set_order ?? 0;
+
+            const workoutSetsData = input.exercises.flatMap((exercise, exerciseIndex) => {
+                return Array.from({ length: exercise.sets }, (_, setIndex) => ({
+                    session_id: sessionId,
+                    exercise_type_id: exercise.exerciseTypeId,
+                    set_order: maxOrder + exerciseIndex * 100 + setIndex + 1,
+                    weight: exercise.weight,
+                    reps: exercise.reps,
+                }));
+            });
+
+            if (workoutSetsData.length > 0) {
+                const { error: setsError } = await supabase
+                    .from('workout_sets')
+                    .insert(workoutSetsData);
+                if (setsError) throw setsError;
+            }
+        } else {
+            // Create new session
+            const { data: session, error: sessionError } = await supabase
+                .from('workout_sessions')
+                .insert({
+                    workout_date: input.date,
+                    notes: input.notes,
+                })
+                .select('id')
+                .single();
+
+            if (sessionError) throw sessionError;
+            sessionId = session.id;
+
+            const workoutSetsData = input.exercises.flatMap((exercise, exerciseIndex) => {
+                return Array.from({ length: exercise.sets }, (_, setIndex) => ({
+                    session_id: sessionId,
+                    exercise_type_id: exercise.exerciseTypeId,
+                    set_order: exerciseIndex * 100 + setIndex + 1,
+                    weight: exercise.weight,
+                    reps: exercise.reps,
+                }));
+            });
+
+            if (workoutSetsData.length > 0) {
+                const { error: setsError } = await supabase
+                    .from('workout_sets')
+                    .insert(workoutSetsData);
+                if (setsError) throw setsError;
+            }
         }
 
-        return session.id;
+        return sessionId;
     },
 
     /** 更新训练记录 */
@@ -534,5 +566,20 @@ export const fitnessApi = {
         }
         const uniqueDates = new Set(data?.map(s => s.workout_date) || []);
         return uniqueDates.size;
+    },
+
+    /** 获取指定日期范围内有训练记录的日期列表 */
+    getWorkoutDatesInRange: async (start: string, end: string): Promise<string[]> => {
+        const { data, error } = await supabase
+            .from('workout_sessions')
+            .select('workout_date')
+            .gte('workout_date', start)
+            .lte('workout_date', end);
+
+        if (error) {
+            console.error('获取训练日期失败:', error);
+            return [];
+        }
+        return [...new Set(data?.map(s => s.workout_date) || [])];
     },
 };

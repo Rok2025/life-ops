@@ -1,29 +1,16 @@
 'use client';
 
-import { useState } from 'react';
-import { Copy, Eye, Edit3, Trash2 } from 'lucide-react';
-import Link from 'next/link';
+import { Eye, Edit3 } from 'lucide-react';
 import type { WorkoutSession } from '../types';
 import { CATEGORY_CONFIG } from '../types';
 
 interface WorkoutCardProps {
     session: WorkoutSession;
-    onDelete?: (sessionId: string) => void;
-    onCopy?: (sessionId: string) => void;
-    deleting?: boolean;
+    onView?: (sessionId: string) => void;
+    onEdit?: (sessionId: string) => void;
 }
 
-export function WorkoutCard({ session, onDelete, onCopy, deleting }: WorkoutCardProps) {
-    const [confirmDelete, setConfirmDelete] = useState(false);
-
-    const handleDelete = () => {
-        if (!confirmDelete) {
-            setConfirmDelete(true);
-            return;
-        }
-        onDelete?.(session.id);
-    };
-
+export function WorkoutCard({ session, onView, onEdit }: WorkoutCardProps) {
     return (
         <div className="p-3">
             {/* 动作列表 */}
@@ -55,41 +42,21 @@ export function WorkoutCard({ session, onDelete, onCopy, deleting }: WorkoutCard
 
             {/* 操作按钮 */}
             <div className="flex items-center gap-2">
-                <Link
-                    href={`/fitness/workout/detail?id=${session.id}`}
+                <button
+                    type="button"
+                    onClick={() => onView?.(session.id)}
                     className="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-accent transition-colors"
                 >
                     <Eye size={14} />
                     查看
-                </Link>
-                <Link
-                    href={`/fitness/workout/detail?id=${session.id}&edit=true`}
+                </button>
+                <button
+                    type="button"
+                    onClick={() => onEdit?.(session.id)}
                     className="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-accent transition-colors"
                 >
                     <Edit3 size={14} />
                     编辑
-                </Link>
-                <button
-                    type="button"
-                    onClick={() => onCopy?.(session.id)}
-                    className="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-purple-400 transition-colors"
-                >
-                    <Copy size={14} />
-                    复制
-                </button>
-                <button
-                    type="button"
-                    onClick={handleDelete}
-                    onBlur={() => setConfirmDelete(false)}
-                    disabled={deleting}
-                    className={`inline-flex items-center gap-1.5 text-sm transition-colors ${
-                        confirmDelete
-                            ? 'text-danger font-medium'
-                            : 'text-text-secondary hover:text-danger'
-                    } disabled:opacity-50`}
-                >
-                    <Trash2 size={14} />
-                    {deleting ? '删除中...' : confirmDelete ? '确认删除' : '删除'}
                 </button>
             </div>
         </div>

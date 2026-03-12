@@ -7,10 +7,9 @@ import NewWorkoutForm from './NewWorkoutForm';
 interface NewWorkoutDialogProps {
     open: boolean;
     onClose: () => void;
-    copyFromId?: string | null;
 }
 
-export function NewWorkoutDialog({ open, onClose, copyFromId }: NewWorkoutDialogProps) {
+export function NewWorkoutDialog({ open, onClose }: NewWorkoutDialogProps) {
     // ESC 关闭
     const handleKeyDown = useCallback(
         (e: KeyboardEvent) => {
@@ -44,7 +43,7 @@ export function NewWorkoutDialog({ open, onClose, copyFromId }: NewWorkoutDialog
                 {/* 顶栏 */}
                 <div className="flex items-center justify-between px-5 py-2.5 border-b border-border">
                     <h2 className="text-base font-bold text-text-primary">
-                        {copyFromId ? '复制训练记录' : '添加训练记录'}
+                        添加训练记录
                     </h2>
                     <button
                         type="button"
@@ -57,7 +56,7 @@ export function NewWorkoutDialog({ open, onClose, copyFromId }: NewWorkoutDialog
 
                 {/* 表单主体 */}
                 <div className="px-5 py-3">
-                    <NewWorkoutForm copyFromId={copyFromId} />
+                    <NewWorkoutForm onSaved={onClose} />
                 </div>
             </div>
         </div>

@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Plus, Trash2, Edit2, Save, X } from 'lucide-react';
 import Link from 'next/link';
-import { fitnessApi, useExerciseTypes, useWorkoutDetail } from '@/features/fitness';
+import { fitnessApi, useExerciseTypes, useWorkoutDetail, CATEGORY_CONFIG } from '@/features/fitness';
 import type { AggregatedExercise } from '@/features/fitness';
 import { useExerciseCategories } from '@/features/fitness/hooks/useExerciseCategories';
 
@@ -200,198 +200,199 @@ export default function WorkoutDetailView() {
                         {isEditing ? '编辑训练记录' : '训练详情'}
                     </h1>
                     {!isEditing && (
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={startEditing}
-                                className="btn-primary flex items-center gap-2"
-                            >
-                                <Edit2 size={18} />
-                                编辑
-                            </button>
-                            <button
-                                onClick={handleDelete}
-                                className="px-4 py-2 rounded-lg border border-danger text-danger hover:bg-danger/10"
-                            >
-                                <Trash2 size={18} />
-                            </button>
-                        </div>
+                        <button
+                            onClick={startEditing}
+                            className="btn-primary flex items-center gap-2"
+                        >
+                            <Edit2 size={18} />
+                            编辑
+                        </button>
                     )}
                 </div>
             </header>
 
             {isEditing ? (
-                <div>
-                    <div className="card p-card mb-section">
-                        <label className="block text-sm font-medium text-text-secondary mb-1">
-                            训练日期
-                        </label>
+                <div className="flex flex-col gap-4">
+                    {/* 日期 */}
+                    <div className="flex items-center gap-3">
+                        <label className="text-sm font-medium text-text-secondary shrink-0">日期</label>
                         <input
                             type="date"
                             value={editDate}
                             onChange={(e) => setEditDate(e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg bg-bg-tertiary border border-border text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
+                            className="flex-1 px-3 py-1.5 rounded-lg bg-bg-tertiary border border-border text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                         />
                     </div>
 
-                    <div className="card p-card mb-section">
-                        <div className="flex items-center justify-between mb-widget-header">
-                            <h2 className="text-base font-semibold text-text-primary">训练动作</h2>
+                    {/* 训练动作 */}
+                    <div>
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-sm font-medium text-text-secondary">训练动作</h3>
                             <button
                                 type="button"
                                 onClick={addEditExercise}
-                                className="btn-primary flex items-center gap-2 text-sm py-2"
+                                className="btn-primary flex items-center gap-1 text-xs px-3 py-1.5"
                             >
-                                <Plus size={16} />
-                                添加动作
+                                <Plus size={14} />
+                                添加
                             </button>
                         </div>
 
-                        <div className="space-y-3">
-                            {editExercises.map((exercise, index) => (
-                                <div key={index} className="p-3 bg-bg-tertiary rounded-lg">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <span className="text-sm font-medium text-text-secondary">
-                                            动作 #{index + 1}
-                                        </span>
+                        {editExercises.length === 0 ? (
+                            <p className="text-text-secondary text-center text-sm py-4">
+                                点击「添加」开始记录训练
+                            </p>
+                        ) : (
+                            <div className="space-y-2">
+                                {/* 列标题 */}
+                                <div className="grid grid-cols-[1fr_1fr_60px_50px_50px_32px] gap-2 px-3 text-[10px] text-text-secondary">
+                                    <span>类别</span>
+                                    <span>动作</span>
+                                    <span className="text-center">kg</span>
+                                    <span className="text-center">组</span>
+                                    <span className="text-center">次</span>
+                                    <span />
+                                </div>
+                                {editExercises.map((exercise, index) => (
+                                    <div
+                                        key={index}
+                                        className="grid grid-cols-[1fr_1fr_60px_50px_50px_32px] gap-2 items-center bg-bg-tertiary rounded-lg px-3 py-2"
+                                    >
+                                        <select
+                                            value={exercise.category}
+                                            onChange={(e) => updateEditExercise(index, 'category', e.target.value)}
+                                            className="px-2 py-1.5 rounded bg-card-bg border border-border text-text-primary text-xs truncate"
+                                        >
+                                            {categories.map((cat) => (
+                                                <option key={cat} value={cat}>
+                                                    {categoryLabels[cat] || cat}
+                                                </option>
+                                            ))}
+                                        </select>
+
+                                        <select
+                                            value={exercise.name}
+                                            onChange={(e) => updateEditExercise(index, 'name', e.target.value)}
+                                            className="px-2 py-1.5 rounded bg-card-bg border border-border text-text-primary text-xs truncate"
+                                        >
+                                            {getExercisesByCategory(exercise.category).map(ex => (
+                                                <option key={ex.id} value={ex.name}>{ex.name}</option>
+                                            ))}
+                                        </select>
+
+                                        <input
+                                            type="number"
+                                            value={exercise.weight}
+                                            onChange={(e) => updateEditExercise(index, 'weight', Number(e.target.value))}
+                                            className="px-1 py-1.5 rounded bg-card-bg border border-border text-text-primary text-xs text-center"
+                                        />
+
+                                        <input
+                                            type="number"
+                                            value={exercise.sets}
+                                            onChange={(e) => updateEditExercise(index, 'sets', Number(e.target.value))}
+                                            className="px-1 py-1.5 rounded bg-card-bg border border-border text-text-primary text-xs text-center"
+                                        />
+
+                                        <input
+                                            type="number"
+                                            value={exercise.reps}
+                                            onChange={(e) => updateEditExercise(index, 'reps', Number(e.target.value))}
+                                            className="px-1 py-1.5 rounded bg-card-bg border border-border text-text-primary text-xs text-center"
+                                        />
+
                                         <button
                                             type="button"
                                             onClick={() => removeEditExercise(index)}
-                                            className="text-danger hover:bg-danger/10 p-2 rounded-lg"
+                                            className="p-1 text-danger hover:bg-danger/10 rounded transition-colors"
                                         >
-                                            <Trash2 size={16} />
+                                            <Trash2 size={14} />
                                         </button>
                                     </div>
-
-                                    <div className="grid grid-cols-2 gap-3 mb-3">
-                                        <div>
-                                            <label className="block text-xs text-text-secondary mb-1">类别</label>
-                                            <select
-                                                value={exercise.category}
-                                                onChange={(e) => updateEditExercise(index, 'category', e.target.value)}
-                                                className="w-full px-3 py-2 rounded-lg bg-card-bg border border-border text-text-primary text-sm"
-                                            >
-                                                {categories.map((cat) => (
-                                                    <option key={cat} value={cat}>
-                                                        {categoryLabels[cat] || cat}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs text-text-secondary mb-1">动作</label>
-                                            <select
-                                                value={exercise.name}
-                                                onChange={(e) => updateEditExercise(index, 'name', e.target.value)}
-                                                className="w-full px-3 py-2 rounded-lg bg-card-bg border border-border text-text-primary text-sm"
-                                            >
-                                                {getExercisesByCategory(exercise.category).map(ex => (
-                                                    <option key={ex.id} value={ex.name}>{ex.name}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-3 gap-3">
-                                        <div>
-                                            <label className="block text-xs text-text-secondary mb-1">重量 (kg)</label>
-                                            <input
-                                                type="number"
-                                                value={exercise.weight}
-                                                onChange={(e) => updateEditExercise(index, 'weight', Number(e.target.value))}
-                                                className="w-full px-3 py-2 rounded-lg bg-card-bg border border-border text-text-primary text-sm text-center"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs text-text-secondary mb-1">组数</label>
-                                            <input
-                                                type="number"
-                                                value={exercise.sets}
-                                                onChange={(e) => updateEditExercise(index, 'sets', Number(e.target.value))}
-                                                className="w-full px-3 py-2 rounded-lg bg-card-bg border border-border text-text-primary text-sm text-center"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs text-text-secondary mb-1">次数</label>
-                                            <input
-                                                type="number"
-                                                value={exercise.reps}
-                                                onChange={(e) => updateEditExercise(index, 'reps', Number(e.target.value))}
-                                                className="w-full px-3 py-2 rounded-lg bg-card-bg border border-border text-text-primary text-sm text-center"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
-                    <div className="card p-card mb-section">
-                        <label className="block text-sm font-medium text-text-secondary mb-1">
-                            备注（可选）
-                        </label>
-                        <textarea
-                            value={editNotes}
-                            onChange={(e) => setEditNotes(e.target.value)}
-                            placeholder="添加训练心得..."
-                            rows={2}
-                            className="w-full px-3 py-2 rounded-lg bg-bg-tertiary border border-border text-text-primary focus:outline-none focus:ring-2 focus:ring-accent resize-none"
-                        />
-                    </div>
+                    {/* 备注 */}
+                    <input
+                        type="text"
+                        value={editNotes}
+                        onChange={(e) => setEditNotes(e.target.value)}
+                        placeholder="备注（可选）：训练心得、感受或特殊情况..."
+                        className="px-3 py-2 rounded-lg bg-bg-tertiary border border-border text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                    />
 
-                    <div className="flex gap-4">
+                    {/* 操作按钮 */}
+                    <div className="flex gap-3">
                         <button
                             onClick={cancelEditing}
-                            className="flex-1 py-4 rounded-lg border border-border text-text-secondary hover:bg-bg-tertiary flex items-center justify-center gap-2"
+                            className="flex-1 py-2.5 rounded-lg border border-border text-text-secondary text-sm hover:bg-bg-tertiary flex items-center justify-center gap-2"
                         >
-                            <X size={18} />
+                            <X size={16} />
                             取消
                         </button>
                         <button
                             onClick={handleSave}
                             disabled={saveMutation.isPending || editExercises.length === 0}
-                            className="flex-1 btn-primary py-4 flex items-center justify-center gap-2 disabled:opacity-50"
+                            className="flex-1 btn-primary py-2.5 text-sm flex items-center justify-center gap-2 disabled:opacity-50"
                         >
-                            <Save size={18} />
+                            <Save size={16} />
                             {saveMutation.isPending ? '保存中...' : '保存修改'}
                         </button>
                     </div>
                 </div>
             ) : (
-                <div>
-                    <div className="card p-card mb-section">
-                        <div className="text-xl font-bold text-text-primary mb-1">
-                            {session.workout_date}
-                        </div>
-                        <div className="text-text-secondary">
-                            共 {aggregatedExercises.length} 个动作，{sets.length} 组训练
-                        </div>
+                <div className="flex flex-col gap-4">
+                    {/* 日期 */}
+                    <div className="flex items-center gap-3">
+                        <span className="text-sm font-medium text-text-secondary shrink-0">日期</span>
+                        <span className="text-sm text-text-primary">{session.workout_date}</span>
+                        <span className="text-xs text-text-secondary ml-auto">
+                            共 {aggregatedExercises.length} 个动作，{sets.length} 组
+                        </span>
                     </div>
 
-                    <div className="card p-card mb-section">
-                        <h2 className="text-base font-semibold text-text-primary mb-widget-header">训练动作</h2>
+                    {/* 训练动作 */}
+                    <div>
+                        <h3 className="text-sm font-medium text-text-secondary mb-2">训练动作</h3>
                         <div className="space-y-2">
-                            {aggregatedExercises.map((exercise, index) => (
-                                <div key={index} className="flex items-center justify-between p-3 bg-bg-tertiary rounded-lg">
-                                    <div>
-                                        <div className="font-medium text-text-primary">{exercise.name}</div>
-                                        <div className="text-sm text-text-secondary">
+                            {/* 列标题 */}
+                            <div className="grid grid-cols-[1fr_1fr_60px_50px_50px] gap-2 px-3 text-[10px] text-text-secondary">
+                                <span>类别</span>
+                                <span>动作</span>
+                                <span className="text-center">kg</span>
+                                <span className="text-center">组</span>
+                                <span className="text-center">次</span>
+                            </div>
+                            {aggregatedExercises.map((exercise, index) => {
+                                const config = CATEGORY_CONFIG[exercise.category] || {
+                                    label: exercise.category,
+                                    color: 'text-gray-400',
+                                    bg: 'bg-gray-500/20',
+                                };
+                                return (
+                                    <div
+                                        key={index}
+                                        className="grid grid-cols-[1fr_1fr_60px_50px_50px] gap-2 items-center bg-bg-tertiary rounded-lg px-3 py-2"
+                                    >
+                                        <span className={`text-xs font-medium ${config.color}`}>
                                             {categoryLabels[exercise.category] || exercise.category}
-                                        </div>
+                                        </span>
+                                        <span className="text-xs text-text-primary truncate">{exercise.name}</span>
+                                        <span className="text-xs text-text-primary text-center">{exercise.weight}</span>
+                                        <span className="text-xs text-text-primary text-center">{exercise.sets}</span>
+                                        <span className="text-xs text-text-primary text-center">{exercise.reps}</span>
                                     </div>
-                                    <div className="text-right">
-                                        <div className="font-medium text-text-primary">
-                                            {exercise.weight}kg × {exercise.sets}组 × {exercise.reps}次
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
 
+                    {/* 备注 */}
                     {session.notes && (
-                        <div className="card p-card">
-                            <h2 className="text-base font-semibold text-text-primary mb-1">备注</h2>
-                            <p className="text-text-secondary">{session.notes}</p>
+                        <div className="px-3 py-2 rounded-lg bg-bg-tertiary border border-border text-text-primary text-sm">
+                            {session.notes}
                         </div>
                     )}
                 </div>

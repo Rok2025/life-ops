@@ -7,6 +7,8 @@ export { default as FitnessOverview } from './components/FitnessOverview';
 export { default as HistoryView } from './components/HistoryView';
 export { default as NewWorkoutForm } from './components/NewWorkoutForm';
 export { NewWorkoutDialog } from './components/NewWorkoutDialog';
+export { WorkoutDetailDialog } from './components/WorkoutDetailDialog';
+export { FitnessCalendar } from './components/FitnessCalendar';
 export { default as WorkoutDetailView } from './components/WorkoutDetailView';
 export type {
 	WorkoutSession,

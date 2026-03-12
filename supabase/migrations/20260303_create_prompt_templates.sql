@@ -26,26 +26,49 @@ CREATE INDEX IF NOT EXISTS idx_prompt_templates_tags
 
 ALTER TABLE prompt_templates ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Authenticated users can read prompt_templates"
-    ON prompt_templates FOR SELECT
-    TO authenticated
-    USING (true);
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies
+        WHERE schemaname = 'public' AND tablename = 'prompt_templates' AND policyname = 'Authenticated users can read prompt_templates'
+    ) THEN
+        CREATE POLICY "Authenticated users can read prompt_templates"
+            ON prompt_templates FOR SELECT
+            TO authenticated
+            USING (true);
+    END IF;
 
-CREATE POLICY "Authenticated users can insert prompt_templates"
-    ON prompt_templates FOR INSERT
-    TO authenticated
-    WITH CHECK (true);
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies
+        WHERE schemaname = 'public' AND tablename = 'prompt_templates' AND policyname = 'Authenticated users can insert prompt_templates'
+    ) THEN
+        CREATE POLICY "Authenticated users can insert prompt_templates"
+            ON prompt_templates FOR INSERT
+            TO authenticated
+            WITH CHECK (true);
+    END IF;
 
-CREATE POLICY "Authenticated users can update prompt_templates"
-    ON prompt_templates FOR UPDATE
-    TO authenticated
-    USING (true)
-    WITH CHECK (true);
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies
+        WHERE schemaname = 'public' AND tablename = 'prompt_templates' AND policyname = 'Authenticated users can update prompt_templates'
+    ) THEN
+        CREATE POLICY "Authenticated users can update prompt_templates"
+            ON prompt_templates FOR UPDATE
+            TO authenticated
+            USING (true)
+            WITH CHECK (true);
+    END IF;
 
-CREATE POLICY "Authenticated users can delete prompt_templates"
-    ON prompt_templates FOR DELETE
-    TO authenticated
-    USING (true);
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies
+        WHERE schemaname = 'public' AND tablename = 'prompt_templates' AND policyname = 'Authenticated users can delete prompt_templates'
+    ) THEN
+        CREATE POLICY "Authenticated users can delete prompt_templates"
+            ON prompt_templates FOR DELETE
+            TO authenticated
+            USING (true);
+    END IF;
+END $$;
 
 INSERT INTO prompt_templates (title, description, content, tags, is_favorite)
 SELECT

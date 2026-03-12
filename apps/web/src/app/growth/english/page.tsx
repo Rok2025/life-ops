@@ -1,7 +1,7 @@
 'use client';
 
-import { ProjectList } from '@/features/growth-projects';
+import { EnglishPage as EnglishPageContent } from '@/features/english-learning';
 
 export default function EnglishPage() {
-    return <ProjectList area="english" />;
+    return <EnglishPageContent />;
 }

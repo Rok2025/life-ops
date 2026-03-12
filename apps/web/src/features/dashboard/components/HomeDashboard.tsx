@@ -8,6 +8,7 @@ import { NotesWidget, notesApi } from '@/features/quick-notes';
 import { ClientFitnessAreaCard, fitnessApi } from '@/features/fitness';
 import { GrowthAreaCard } from '@/features/growth-projects';
 import { OutputAreaCard } from '@/features/output';
+import { EnglishDailyWidget } from '@/features/english-learning';
 import { getLocalDateStr } from '@/lib/utils/date';
 
 export default function HomeDashboard() {
@@ -52,6 +53,10 @@ export default function HomeDashboard() {
 
             <section className="mb-section">
                 <NotesWidget initialDate={today} />
+            </section>
+
+            <section className="mb-section">
+                <EnglishDailyWidget />
             </section>
 
             <section>
