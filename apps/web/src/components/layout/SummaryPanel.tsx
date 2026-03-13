@@ -3,8 +3,9 @@
 import { formatHorizons, getMonthProgress } from '@/lib/horizons';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePathname } from 'next/navigation';
-import { Hourglass } from 'lucide-react';
+import { BookOpen, Dumbbell, Hourglass, PenLine } from 'lucide-react';
 import Link from 'next/link';
+import { Card, SectionHeader, getButtonClassName } from '@/components/ui';
 
 export default function SummaryPanel() {
     const horizons = formatHorizons();
@@ -16,18 +17,16 @@ export default function SummaryPanel() {
     if (!user && !loading && pathname === '/login') return null;
 
     return (
-        <aside className="fixed right-0 top-0 h-screen w-[var(--summary-width)] bg-bg-secondary border-l border-border p-4 overflow-y-auto">
+        <aside className="fixed right-0 top-0 h-screen w-(--summary-width) overflow-y-auto border-l border-glass-border bg-sidebar-bg p-3 backdrop-blur-2xl">
             {/* Horizons */}
-            <section className="mb-section">
-                <h2 className="text-sm font-medium text-text-secondary uppercase tracking-wide mb-widget-header">
-                    时间节奏
-                </h2>
-                <div className="space-y-4">
+            <section className="mb-5">
+                <SectionHeader title="时间节奏" className="mb-3" />
+                <div className="space-y-3">
                     {/* Week: Indicators */}
-                    <div className="card p-3">
-                        <div className="flex justify-between items-end mb-3">
-                            <div className="text-xl font-bold text-text-primary">{horizons.week}</div>
-                            <div className="text-xs text-text-secondary mb-1">{horizons.weekRemaining}</div>
+                    <Card className="p-3">
+                        <div className="mb-3 flex items-end justify-between">
+                            <div className="text-h3 font-bold text-text-primary">{horizons.week}</div>
+                            <div className="mb-1 text-caption text-text-secondary">{horizons.weekRemaining}</div>
                         </div>
                         <div className="flex justify-between px-1">
                             {weekDays.map((day, i) => {
@@ -35,62 +34,62 @@ export default function SummaryPanel() {
                                 const isToday = i + 1 === horizons.dayOfWeek;
                                 return (
                                     <div key={day} className="flex flex-col items-center gap-1.5">
-                                        <span className={`text-[10px] ${isToday ? 'text-accent font-bold' : 'text-text-tertiary'}`}>
+                                        <span className={`text-caption ${isToday ? 'text-accent font-bold' : 'text-text-tertiary'}`}>
                                             {day}
                                         </span>
                                         <div className={`w-2 h-2 rounded-full ${isToday ? 'bg-accent ring-4 ring-accent/20' :
                                             isPast ? 'bg-text-tertiary/40' : 'bg-bg-tertiary'
                                             }`} />
-                                        <span className={`text-[9px] ${isToday ? 'text-accent font-bold' : 'text-text-tertiary/60'}`}>
+                                        <span className={`text-caption ${isToday ? 'text-accent font-bold' : 'text-text-tertiary/60'}`}>
                                             {horizons.weekDates[i]}
                                         </span>
                                     </div>
                                 );
                             })}
                         </div>
-                    </div>
+                    </Card>
 
                     {/* Month: Circular Ring */}
-                    <div className="card p-4 flex items-center gap-4">
-                        <div className="relative w-16 h-16 flex-shrink-0">
+                    <Card className="flex items-center gap-3 p-3">
+                        <div className="relative h-14 w-14 shrink-0">
                             <svg className="w-full h-full transform -rotate-90">
                                 <circle
-                                    cx="32"
-                                    cy="32"
-                                    r="28"
+                                    cx="28"
+                                    cy="28"
+                                    r="24"
                                     stroke="currentColor"
-                                    strokeWidth="5"
+                                    strokeWidth="4"
                                     fill="transparent"
                                     className="text-bg-tertiary"
                                 />
                                 <circle
-                                    cx="32"
-                                    cy="32"
-                                    r="28"
+                                    cx="28"
+                                    cy="28"
+                                    r="24"
                                     stroke="currentColor"
-                                    strokeWidth="5"
-                                    strokeDasharray={2 * Math.PI * 28}
-                                    strokeDashoffset={2 * Math.PI * 28 * (1 - monthProgress.progress / 100)}
+                                    strokeWidth="4"
+                                    strokeDasharray={2 * Math.PI * 24}
+                                    strokeDashoffset={2 * Math.PI * 24 * (1 - monthProgress.progress / 100)}
                                     strokeLinecap="round"
                                     fill="transparent"
                                     className="text-success transition-all duration-1000"
                                 />
                             </svg>
-                            <div className="absolute inset-0 flex items-center justify-center text-xs font-bold text-text-primary">
+                            <div className="absolute inset-0 flex items-center justify-center text-caption font-bold text-text-primary">
                                 {monthProgress.progress}%
                             </div>
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-sm font-medium text-text-primary">本月剩余</span>
-                            <span className="text-xs text-text-secondary mt-1">{horizons.monthRemaining}</span>
+                            <span className="text-body-sm font-medium text-text-primary">本月剩余</span>
+                            <span className="text-caption text-text-secondary mt-1">{horizons.monthRemaining}</span>
                         </div>
-                    </div>
+                    </Card>
 
                     {/* Year: Line */}
-                    <div className="card p-3">
-                        <div className="flex justify-between items-center mb-2">
-                            <span className="text-sm font-medium text-text-primary text-opacity-80">年度剩余</span>
-                            <span className="text-sm font-bold text-text-primary">{horizons.yearProgress}%</span>
+                    <Card className="p-3">
+                        <div className="mb-2 flex items-center justify-between">
+                            <span className="text-body-sm font-medium text-text-primary text-opacity-80">年度剩余</span>
+                            <span className="text-body-sm font-bold text-text-primary">{horizons.yearProgress}%</span>
                         </div>
                         <div className="h-1 bg-bg-tertiary rounded-full overflow-hidden">
                             <div
@@ -98,33 +97,51 @@ export default function SummaryPanel() {
                                 style={{ width: `${horizons.yearProgress}%` }}
                             />
                         </div>
-                        <div className="flex justify-between items-center mt-2">
+                        <div className="mt-2 flex items-center justify-between">
                             <div className="flex items-center gap-1.5 opacity-60">
                                 <Hourglass size={12} className="text-accent animate-hourglass" />
-                                <span className="text-[10px] text-text-tertiary tracking-tight">
-                                    时间正在流逝...
-                                </span>
+                                <span className="text-caption tracking-tight text-text-tertiary">年度进度</span>
                             </div>
-                            <div className="text-[10px] text-text-tertiary tracking-tight">
+                            <div className="text-caption tracking-tight text-text-tertiary">
                                 {horizons.yearRemaining}
                             </div>
                         </div>
-                    </div>
+                    </Card>
                 </div>
             </section>
 
             {/* Quick Actions */}
             <section>
-                <h2 className="text-sm font-medium text-text-secondary uppercase tracking-wide mb-widget-header">
-                    快捷操作
-                </h2>
+                <SectionHeader title="快捷操作" className="mb-3" />
                 <div className="space-y-2">
                     <Link
                         href="/fitness/workout/new"
-                        className="btn-primary block text-center"
+                        className={getButtonClassName({
+                            variant: 'tinted',
+                            size: 'sm',
+                            className: 'w-full gap-2 text-center',
+                        })}
                     >
+                        <Dumbbell size={15} />
                         记录一次训练
                     </Link>
+
+                    <div className="grid grid-cols-2 gap-2">
+                        <Link
+                            href="/growth/english"
+                            className="glass-list-row flex items-center gap-2 px-3 py-2 text-body-sm text-text-primary"
+                        >
+                            <BookOpen size={14} className="text-accent/85" />
+                            <span>今日英语</span>
+                        </Link>
+                        <Link
+                            href="/output"
+                            className="glass-list-row flex items-center gap-2 px-3 py-2 text-body-sm text-text-primary"
+                        >
+                            <PenLine size={14} className="text-accent/85" />
+                            <span>输出面板</span>
+                        </Link>
+                    </div>
                 </div>
             </section>
         </aside>

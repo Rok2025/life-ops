@@ -20,7 +20,7 @@ export type {
 	ExerciseType,
 	AggregatedExercise,
 } from './types';
-export { CATEGORY_CONFIG, WEEKLY_GOAL } from './types';
+export { CATEGORY_CONFIG, getCategoryConfig, WEEKLY_GOAL } from './types';
 export { ClientFitnessAreaCard } from './components/ClientFitnessAreaCard';
 export { useFitnessHistoryData } from './hooks/useFitnessHistory';
 export { useExerciseTypes } from './hooks/useExerciseTypes';

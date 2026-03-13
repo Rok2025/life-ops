@@ -12,6 +12,7 @@ import { NoteForm } from './NoteForm';
 import { useNotesByDate } from '../hooks/useNotesByDate';
 import type { QuickNote, NoteType, FilterType } from '../types';
 import { NOTE_TYPE_CONFIG, NOTE_TYPES } from '../types';
+import { Button, Card } from '@/components/ui';
 
 interface NotesWidgetProps {
     initialDate?: string;
@@ -118,40 +119,40 @@ export default function NotesWidget({ initialDate }: NotesWidgetProps) {
     };
 
     return (
-        <div className="card p-card">
+        <Card className="h-full p-card">
             <div className="flex items-center justify-between mb-widget-header">
                 <div className="flex items-center gap-3">
-                    <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
+                    <h2 className="text-h3 font-semibold text-text-primary flex items-center gap-2">
                         <StickyNote size={20} className="text-accent" />
                         随手记
                     </h2>
-                    <div className="flex items-center gap-1 bg-bg-tertiary rounded-lg px-1 py-1">
-                        <button onClick={() => changeDate(-1)} className="p-1 hover:bg-bg-secondary rounded">
+                    <div className="glass-segmented">
+                        <button onClick={() => changeDate(-1)} className="glass-segment-button h-8 w-8 p-0">
                             <ChevronLeft size={16} className="text-text-secondary" />
                         </button>
                         <button
                             ref={dateBtnRef}
                             type="button"
                             onClick={() => calendarRef.current?.open()}
-                            className="text-sm font-medium text-text-primary min-w-[70px] text-center px-2 py-1 hover:bg-bg-secondary rounded cursor-pointer"
+                            className="glass-segment-button min-w-[82px] px-2 text-body-sm font-medium text-text-primary"
                         >
                             {formatDisplayDate(selectedDate)}
                         </button>
                         <button
                             onClick={() => changeDate(1)}
-                            className="p-1 hover:bg-bg-secondary rounded"
+                            className="glass-segment-button h-8 w-8 p-0"
                             disabled={isToday}
                         >
                             <ChevronRight size={16} className={isToday ? 'text-text-secondary/30' : 'text-text-secondary'} />
                         </button>
                     </div>
                     <DataCalendar ref={calendarRef} scope="notes" selectedDate={selectedDate} onSelectDate={setSelectedDate} hideTrigger externalTriggerRef={dateBtnRef} />
-                    {notes.length > 0 && <span className="text-sm text-text-secondary">{notes.length} 条</span>}
+                    {notes.length > 0 && <span className="glass-mini-chip text-body-sm">{notes.length} 条</span>}
                 </div>
-                <button onClick={() => handleAdd()} className="btn-primary flex items-center gap-1 text-sm py-2">
+                <Button onClick={() => handleAdd()} variant="tinted" size="sm" className="gap-1">
                     <Plus size={16} />
                     记录
-                </button>
+                </Button>
             </div>
 
             {notes.length > 0 && <NoteFilter filter={filter} counts={counts} onFilterChange={setFilter} />}
@@ -159,26 +160,35 @@ export default function NotesWidget({ initialDate }: NotesWidgetProps) {
             {loading ? (
                 <div className="text-center py-4 text-text-secondary">加载中...</div>
             ) : notes.length === 0 ? (
-                <div className="text-center py-4 text-text-secondary">
-                    <div className="text-2xl mb-1">📝</div>
-                    <p className="text-sm mb-2">随时记录你的想法、灵感和疑问</p>
-                    <div className="flex items-center justify-center gap-2">
+                <div className="rounded-[1.125rem] border border-glass-border bg-card-bg/68 px-4 py-4 backdrop-blur-xl">
+                    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+                        <div className="min-w-0">
+                            <div className="mb-1 flex items-center gap-2 text-body-sm font-medium text-text-primary">
+                                <span className="text-h3">📝</span>
+                                <span>捕捉今天的想法</span>
+                            </div>
+                            <p className="text-body-sm text-text-secondary">
+                                备忘、灵感和问题都放在这里，先记下来，再慢慢整理。
+                            </p>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
                         {NOTE_TYPES.map(type => {
                             const config = NOTE_TYPE_CONFIG[type];
                             return (
                                 <button
                                     key={type}
                                     onClick={() => handleAdd(type)}
-                                    className={`px-3 py-1.5 rounded-lg text-sm ${config.bg} ${config.color} hover:opacity-80 transition-opacity`}
+                                    className={`rounded-full border border-glass-border bg-panel-bg px-3 py-1.5 text-body-sm backdrop-blur-xl transition-colors duration-normal ease-standard hover:bg-card-bg ${config.color}`}
                                 >
                                     {config.emoji} {config.label}
                                 </button>
                             );
                         })}
+                        </div>
                     </div>
                 </div>
             ) : filteredNotes.length === 0 ? (
-                <div className="text-center py-4 text-text-secondary text-sm">
+                <div className="text-center py-4 text-text-secondary text-body-sm">
                     无{filter !== 'all' ? NOTE_TYPE_CONFIG[filter].label : ''}记录
                 </div>
             ) : (
@@ -198,7 +208,7 @@ export default function NotesWidget({ initialDate }: NotesWidgetProps) {
                     {hasMore && (
                         <button
                             onClick={() => setShowAll(!showAll)}
-                            className="w-full mt-3 py-2 text-sm text-accent hover:bg-bg-tertiary rounded-lg flex items-center justify-center gap-1"
+                            className="mt-3 flex w-full items-center justify-center gap-1 rounded-control border border-transparent py-2 text-body-sm text-accent transition-colors duration-normal ease-standard hover:border-glass-border hover:bg-panel-bg"
                         >
                             {showAll ? (
                                 <>收起 <ChevronUp size={16} /></>
@@ -220,6 +230,6 @@ export default function NotesWidget({ initialDate }: NotesWidgetProps) {
                     onCancel={handleCancel}
                 />
             )}
-        </div>
+        </Card>
     );
 }

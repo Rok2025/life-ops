@@ -11,6 +11,7 @@ import { TilForm } from './TilForm';
 import { useConfigItems } from '@/features/system-config/hooks/useConfigItems';
 import { useTilsByDate } from '../hooks/useTilsByDate';
 import type { TIL } from '../types';
+import { Button, Card } from '@/components/ui';
 
 interface TilWidgetProps {
     initialDate?: string;
@@ -84,28 +85,28 @@ export default function TilWidget({ initialDate }: TilWidgetProps) {
     const hasMore = tils.length > 3;
 
     return (
-        <div className="card p-card">
+        <Card className="p-card">
             <div className="flex items-center justify-between mb-widget-header">
                 <div className="flex items-center gap-3">
-                    <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
+                    <h2 className="text-h3 font-semibold text-text-primary flex items-center gap-2">
                         <Lightbulb size={20} className="text-warning" />
                         TIL
                     </h2>
-                    <div className="flex items-center gap-1 bg-bg-tertiary rounded-lg px-1 py-1">
-                        <button onClick={() => changeDate(-1)} className="p-1 hover:bg-bg-secondary rounded" title="前一天">
+                    <div className="glass-segmented">
+                        <button onClick={() => changeDate(-1)} className="glass-segment-button h-8 w-8 p-0" title="前一天">
                             <ChevronLeft size={16} className="text-text-secondary" />
                         </button>
                         <button
                             ref={dateBtnRef}
                             type="button"
                             onClick={() => calendarRef.current?.open()}
-                            className="text-sm font-medium text-text-primary min-w-[70px] text-center px-2 py-1 hover:bg-bg-secondary rounded cursor-pointer"
+                            className="glass-segment-button min-w-[82px] px-2 text-body-sm font-medium text-text-primary"
                         >
                             {formatDisplayDate(selectedDate)}
                         </button>
                         <button
                             onClick={() => changeDate(1)}
-                            className="p-1 hover:bg-bg-secondary rounded"
+                            className="glass-segment-button h-8 w-8 p-0"
                             disabled={isToday}
                             title="后一天"
                         >
@@ -114,27 +115,24 @@ export default function TilWidget({ initialDate }: TilWidgetProps) {
                     </div>
                     <DataCalendar ref={calendarRef} scope="til" selectedDate={selectedDate} onSelectDate={setSelectedDate} hideTrigger externalTriggerRef={dateBtnRef} />
                     {tils.length > 0 && (
-                        <span className="text-sm text-text-secondary">{tils.length} 条</span>
+                        <span className="glass-mini-chip text-body-sm">{tils.length} 条</span>
                     )}
                 </div>
-                <button
-                    onClick={() => { setEditingTil(null); setShowForm(true); }}
-                    className="btn-primary flex items-center gap-1 text-sm py-2"
-                >
+                <Button onClick={() => { setEditingTil(null); setShowForm(true); }} variant="tinted" size="sm" className="gap-1">
                     <Plus size={16} />
                     记录
-                </button>
+                </Button>
             </div>
 
             {loading ? (
                 <div className="text-center py-4 text-text-secondary">加载中...</div>
             ) : tils.length === 0 ? (
                 <div className="text-center py-4 text-text-secondary">
-                    <div className="text-2xl mb-1">💡</div>
-                    <p className="text-sm">{formatDisplayDate(selectedDate)}学到了什么？</p>
+                    <div className="text-h2 mb-1">💡</div>
+                    <p className="text-body-sm">{formatDisplayDate(selectedDate)}学到了什么？</p>
                     <button
                         onClick={() => { setEditingTil(null); setShowForm(true); }}
-                        className="mt-2 text-accent hover:underline text-sm"
+                        className="mt-3 inline-flex items-center rounded-control border border-glass-border bg-panel-bg px-3 py-1.5 text-body-sm text-accent backdrop-blur-xl transition-colors duration-normal ease-standard hover:bg-card-bg"
                     >
                         记录一下 →
                     </button>
@@ -149,7 +147,7 @@ export default function TilWidget({ initialDate }: TilWidgetProps) {
                     {hasMore && (
                         <button
                             onClick={() => setShowAll(!showAll)}
-                            className="w-full mt-3 py-2 text-sm text-accent hover:bg-bg-tertiary rounded-lg flex items-center justify-center gap-1"
+                            className="mt-3 flex w-full items-center justify-center gap-1 rounded-control border border-transparent py-2 text-body-sm text-accent transition-colors duration-normal ease-standard hover:border-glass-border hover:bg-panel-bg"
                         >
                             {showAll ? (
                                 <>收起 <ChevronUp size={16} /></>
@@ -171,6 +169,6 @@ export default function TilWidget({ initialDate }: TilWidgetProps) {
                     onCancel={handleCancel}
                 />
             )}
-        </div>
+        </Card>
     );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import {
     Plus,
     Save,
@@ -32,6 +32,7 @@ import { OUTPUT_TYPE_CONFIG } from '../types';
 import { AREA_CONFIG, SCOPE_CONFIG, STATUS_CONFIG, type GrowthArea, type ProjectWithStats } from '@/features/growth-projects';
 import { MarkdownEditor } from './MarkdownEditor';
 import type { Output, OutputType } from '../types';
+import { Button, Card } from '@/components/ui';
 
 interface ProjectDocEditorProps {
     project: ProjectWithStats;
@@ -44,7 +45,12 @@ type InlineMode = 'edit' | 'preview';
 /* ── 工具栏按钮 ── */
 function TbBtn({ icon: Icon, label, onClick }: { icon: React.ComponentType<{ size?: number }>; label: string; onClick: () => void }) {
     return (
-        <button type="button" onClick={onClick} title={label} className="p-1 rounded text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors">
+        <button
+            type="button"
+            onClick={onClick}
+            title={label}
+            className="p-1 rounded-control text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors duration-normal ease-standard"
+        >
             <Icon size={14} />
         </button>
     );
@@ -56,13 +62,13 @@ function DocItem({ doc, onSelect, selected }: { doc: Output; onSelect: (d: Outpu
     return (
         <button
             onClick={() => onSelect(doc)}
-            className={`w-full text-left flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-colors ${
+            className={`w-full text-left flex items-center gap-2 px-2.5 py-1.5 rounded-control text-caption transition-colors duration-normal ease-standard ${
                 selected ? 'bg-accent/10 border border-accent/30' : 'hover:bg-bg-tertiary border border-transparent'
             }`}
         >
             <span className={`${typeCfg.color} shrink-0`}>{typeCfg.emoji}</span>
             <span className="text-text-primary truncate flex-1">{doc.title}</span>
-            <span className="text-[10px] text-text-tertiary shrink-0">
+            <span className="text-caption text-text-tertiary shrink-0">
                 {new Date(doc.updated_at).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })}
             </span>
         </button>
@@ -195,37 +201,45 @@ export function ProjectDocEditor({ project, area, onClose }: ProjectDocEditorPro
         [],
     );
 
-    const toolbarActions = [
-        { icon: Heading1, label: 'H1', action: () => insertMd('\n# ', '\n', '标题') },
-        { icon: Heading2, label: 'H2', action: () => insertMd('\n## ', '\n', '标题') },
-        { icon: Bold, label: '粗体', action: () => insertMd('**', '**', '粗体文本') },
-        { icon: Italic, label: '斜体', action: () => insertMd('*', '*', '斜体文本') },
-        { icon: Code, label: '代码', action: () => insertMd('`', '`', 'code') },
-        'sep' as const,
-        { icon: List, label: '列表', action: () => insertMd('\n- ', '\n', '列表项') },
-        { icon: ListOrdered, label: '有序列表', action: () => insertMd('\n1. ', '\n', '列表项') },
-        { icon: Quote, label: '引用', action: () => insertMd('\n> ', '\n', '引用文本') },
-        { icon: Minus, label: '分割线', action: () => insertMd('\n---\n') },
-        'sep' as const,
-        { icon: Link, label: '链接', action: () => insertMd('[', '](url)', '链接文本') },
-    ];
+    const insertMdRef = useRef(insertMd);
+    useEffect(() => {
+        insertMdRef.current = insertMd;
+    }, [insertMd]);
+
+    const toolbarActions = useMemo(
+        () => [
+            { icon: Heading1, label: 'H1', action: () => insertMdRef.current?.('\n# ', '\n', '标题') },
+            { icon: Heading2, label: 'H2', action: () => insertMdRef.current?.('\n## ', '\n', '标题') },
+            { icon: Bold, label: '粗体', action: () => insertMdRef.current?.('**', '**', '粗体文本') },
+            { icon: Italic, label: '斜体', action: () => insertMdRef.current?.('*', '*', '斜体文本') },
+            { icon: Code, label: '代码', action: () => insertMdRef.current?.('`', '`', 'code') },
+            'sep' as const,
+            { icon: List, label: '列表', action: () => insertMdRef.current?.('\n- ', '\n', '列表项') },
+            { icon: ListOrdered, label: '有序列表', action: () => insertMdRef.current?.('\n1. ', '\n', '列表项') },
+            { icon: Quote, label: '引用', action: () => insertMdRef.current?.('\n> ', '\n', '引用文本') },
+            { icon: Minus, label: '分割线', action: () => insertMdRef.current?.('\n---\n') },
+            'sep' as const,
+            { icon: Link, label: '链接', action: () => insertMdRef.current?.('[', '](url)', '链接文本') },
+        ],
+        [],
+    );
 
     const hasContent = isNew || !!selectedDoc;
     const pct = project.todo_total > 0 ? Math.round((project.todo_completed / project.todo_total) * 100) : 0;
 
     return (
-        <div className="rounded-xl border border-accent/30 bg-bg-secondary overflow-hidden">
+        <Card variant="subtle" className="overflow-hidden border border-accent/30">
             {/* ── 项目头部 ── */}
-            <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border bg-bg-secondary">
-                <span className="text-base">{areaCfg.icon}</span>
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-bg-secondary">
+                <span className="text-body">{areaCfg.icon}</span>
                 <span className={`w-2 h-2 rounded-full ${statusCfg.dot}`} />
-                <span className={`text-[10px] px-1.5 py-0.5 rounded ${scopeCfg.color} ${scopeCfg.bg}`}>{scopeCfg.label}</span>
-                <span className="text-sm font-semibold text-text-primary truncate">{project.title}</span>
+                <span className={`text-caption px-1.5 py-0.5 rounded-control ${scopeCfg.color} ${scopeCfg.bg}`}>{scopeCfg.label}</span>
+                <span className="text-body font-semibold text-text-primary truncate">{project.title}</span>
                 {project.todo_total > 0 && (
-                    <span className="text-[10px] text-text-tertiary ml-1">{pct}%</span>
+                    <span className="text-caption text-text-tertiary ml-1">{pct}%</span>
                 )}
                 <div className="ml-auto flex items-center gap-1">
-                    <button onClick={onClose} className="p-1 rounded-lg text-text-tertiary hover:text-text-primary hover:bg-bg-tertiary transition-colors">
+                    <button onClick={onClose} className="p-1 rounded-control text-text-tertiary hover:text-text-primary hover:bg-bg-tertiary transition-colors duration-normal ease-standard">
                         <X size={16} />
                     </button>
                 </div>
@@ -237,14 +251,14 @@ export function ProjectDocEditor({ project, area, onClose }: ProjectDocEditorPro
                     <div className="flex items-center justify-between mb-1">
                         <button
                             onClick={() => setDocsExpanded(!docsExpanded)}
-                            className="flex items-center gap-1 text-[10px] text-text-tertiary uppercase tracking-wide"
+                            className="flex items-center gap-1 text-caption text-text-tertiary uppercase tracking-wide"
                         >
                             {docsExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
                             文档 ({docs.length})
                         </button>
                         <button
                             onClick={handleNew}
-                            className="p-0.5 text-accent hover:bg-accent/10 rounded transition-colors"
+                            className="p-0.5 text-accent hover:bg-accent/10 rounded-control transition-colors duration-normal ease-standard"
                             title="新建文档"
                         >
                             <Plus size={14} />
@@ -253,10 +267,10 @@ export function ProjectDocEditor({ project, area, onClose }: ProjectDocEditorPro
                     {docsExpanded && (
                         <div className="space-y-0.5">
                             {docs.length === 0 && !isNew && (
-                                <p className="text-[10px] text-text-tertiary px-2 py-2">暂无文档</p>
+                                <p className="text-caption text-text-tertiary px-2 py-2">暂无文档</p>
                             )}
                             {isNew && (
-                                <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-accent/10 border border-accent/30 text-xs">
+                                <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-control bg-accent/10 border border-accent/30 text-caption">
                                     <FileText size={12} className="text-accent shrink-0" />
                                     <span className="text-accent truncate">新文档</span>
                                 </div>
@@ -283,12 +297,12 @@ export function ProjectDocEditor({ project, area, onClose }: ProjectDocEditorPro
                                     value={docTitle}
                                     onChange={e => setDocTitle(e.target.value)}
                                     placeholder="文档标题"
-                                    className="flex-1 text-sm font-medium bg-transparent text-text-primary outline-none placeholder:text-text-tertiary"
+                                    className="flex-1 text-body font-medium bg-transparent text-text-primary outline-none placeholder:text-text-tertiary"
                                 />
-                                <div className="flex items-center bg-bg-tertiary rounded-md p-0.5">
+                                <div className="flex items-center bg-bg-tertiary rounded-control p-0.5">
                                     <button
                                         onClick={() => setInlineMode('edit')}
-                                        className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] transition-colors ${
+                                        className={`flex items-center gap-1 px-2 py-0.5 rounded-control text-caption transition-colors duration-normal ease-standard ${
                                             inlineMode === 'edit' ? 'bg-bg-primary text-text-primary shadow-sm' : 'text-text-tertiary'
                                         }`}
                                     >
@@ -296,7 +310,7 @@ export function ProjectDocEditor({ project, area, onClose }: ProjectDocEditorPro
                                     </button>
                                     <button
                                         onClick={() => setInlineMode('preview')}
-                                        className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] transition-colors ${
+                                        className={`flex items-center gap-1 px-2 py-0.5 rounded-control text-caption transition-colors duration-normal ease-standard ${
                                             inlineMode === 'preview' ? 'bg-bg-primary text-text-primary shadow-sm' : 'text-text-tertiary'
                                         }`}
                                     >
@@ -305,23 +319,19 @@ export function ProjectDocEditor({ project, area, onClose }: ProjectDocEditorPro
                                 </div>
                                 <button
                                     onClick={() => setShowFullscreen(true)}
-                                    className="p-1 text-text-tertiary hover:text-text-primary hover:bg-bg-tertiary rounded transition-colors"
+                                    className="p-1 text-text-tertiary hover:text-text-primary hover:bg-bg-tertiary rounded-control transition-colors duration-normal ease-standard"
                                     title="全屏编辑"
                                 >
                                     <Maximize2 size={14} />
                                 </button>
-                                <button
-                                    onClick={handleSave}
-                                    disabled={saving}
-                                    className="flex items-center gap-1 text-xs text-accent hover:bg-accent/10 px-2 py-1 rounded transition-colors disabled:opacity-50"
-                                >
+                                <Button onClick={handleSave} disabled={saving} size="sm" className="gap-1.5">
                                     <Save size={12} />
                                     {saving ? '保存中…' : '保存'}
-                                </button>
+                                </Button>
                                 {selectedDoc && (
                                     <button
                                         onClick={handleDelete}
-                                        className="p-1 text-text-tertiary hover:text-danger hover:bg-danger/10 rounded transition-colors"
+                                        className="p-1 text-text-tertiary hover:text-danger hover:bg-danger/10 rounded-control transition-colors duration-normal ease-standard"
                                         title="删除文档"
                                     >
                                         <Trash2 size={13} />
@@ -332,6 +342,7 @@ export function ProjectDocEditor({ project, area, onClose }: ProjectDocEditorPro
                             {/* 工具栏（编辑模式） */}
                             {inlineMode === 'edit' && (
                                 <div className="flex items-center gap-0.5 px-3 py-1 border-b border-border overflow-x-auto">
+                                    {/* eslint-disable-next-line react-hooks/refs */}
                                     {toolbarActions.map((item, i) =>
                                         item === 'sep' ? (
                                             <div key={`sep-${i}`} className="w-px h-3.5 bg-border mx-0.5" />
@@ -339,7 +350,7 @@ export function ProjectDocEditor({ project, area, onClose }: ProjectDocEditorPro
                                             <TbBtn key={item.label} icon={item.icon} label={item.label} onClick={item.action} />
                                         ),
                                     )}
-                                    <span className="ml-auto text-[10px] text-text-tertiary">⌘S 保存</span>
+                                    <span className="ml-auto text-caption text-text-tertiary">⌘S 保存</span>
                                 </div>
                             )}
 
@@ -352,21 +363,21 @@ export function ProjectDocEditor({ project, area, onClose }: ProjectDocEditorPro
                                         onChange={e => setDocContent(e.target.value)}
                                         placeholder="开始用 Markdown 编写…"
                                         spellCheck={false}
-                                        className="w-full h-full min-h-[240px] px-4 py-3 text-sm leading-relaxed bg-transparent text-text-primary placeholder:text-text-tertiary outline-none resize-none font-mono"
+                                        className="w-full h-full min-h-[240px] px-4 py-3 text-body-sm leading-relaxed bg-transparent text-text-primary placeholder:text-text-tertiary outline-none resize-none font-mono"
                                     />
                                 ) : (
                                     <div className="px-4 py-3 prose-custom">
                                         {docContent.trim() ? (
                                             <ReactMarkdown remarkPlugins={[remarkGfm]}>{docContent}</ReactMarkdown>
                                         ) : (
-                                            <p className="text-text-tertiary italic text-sm">暂无内容</p>
+                                            <p className="text-text-tertiary italic text-body-sm">暂无内容</p>
                                         )}
                                     </div>
                                 )}
                             </div>
 
                             {/* 底部信息 */}
-                            <div className="flex items-center justify-between px-3 py-1 border-t border-border text-[10px] text-text-tertiary">
+                            <div className="flex items-center justify-between px-3 py-1 border-t border-border text-caption text-text-tertiary">
                                 <span>{docContent.length} 字符 · {docContent.split('\n').length} 行</span>
                                 {selectedDoc && (
                                     <span>更新于 {new Date(selectedDoc.updated_at).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
@@ -377,8 +388,8 @@ export function ProjectDocEditor({ project, area, onClose }: ProjectDocEditorPro
                         <div className="flex-1 flex items-center justify-center text-text-tertiary">
                             <div className="text-center">
                                 <FileText size={28} className="mx-auto mb-2 opacity-50" />
-                                <p className="text-xs mb-2">选择或创建一个文档</p>
-                                <button onClick={handleNew} className="text-xs text-accent hover:underline">
+                                <p className="text-body-sm mb-2">选择或创建一个文档</p>
+                                <button onClick={handleNew} className="text-body-sm text-accent hover:underline">
                                     新建文档 →
                                 </button>
                             </div>
@@ -400,6 +411,6 @@ export function ProjectDocEditor({ project, area, onClose }: ProjectDocEditorPro
                 }}
                 saving={saving}
             />
-        </div>
+        </Card>
     );
 }

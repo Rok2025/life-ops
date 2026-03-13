@@ -11,6 +11,7 @@ import { useQueryHistory } from '../hooks/useQueryHistory';
 import type { PromptMode, AIQueryResponse } from '../types';
 import QueryResultCard from './QueryResultCard';
 import PromptModeSelector from './PromptModeSelector';
+import { Button, Card, SectionHeader } from '@/components/ui';
 
 export default function EnglishQueryPanel() {
     const today = getLocalDateStr();
@@ -75,8 +76,12 @@ export default function EnglishQueryPanel() {
     return (
         <div className="space-y-4">
             {/* Input Area */}
-            <div className="card p-card">
+            <Card className="p-card">
                 <div className="space-y-3">
+                    <SectionHeader
+                        title="即时查询"
+                        description="输入单词、短语或句子，立刻得到解析，并能顺手保存到学习记录里。"
+                    />
                     <div className="relative">
                         <textarea
                             value={inputText}
@@ -84,19 +89,21 @@ export default function EnglishQueryPanel() {
                             onKeyDown={handleKeyDown}
                             placeholder="输入英文单词、短语或句子..."
                             rows={2}
-                            className="w-full px-4 py-3 pr-12 rounded-xl border border-border bg-bg-primary text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent resize-none"
+                            className="w-full resize-none rounded-card border border-glass-border bg-panel-bg px-4 py-3 pr-14 text-text-primary placeholder:text-text-tertiary shadow-sm outline-none transition-colors duration-normal ease-standard focus:border-accent focus:ring-2 focus:ring-accent/20"
                         />
-                        <button
+                        <Button
                             onClick={handleQuery}
                             disabled={!inputText.trim() || aiQuery.isPending}
-                            className="absolute right-3 top-3 p-1.5 rounded-lg bg-accent text-white hover:bg-accent/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                            variant="tinted"
+                            size="sm"
+                            className="absolute right-3 top-3 h-9 w-9 p-0"
                         >
                             {aiQuery.isPending ? (
                                 <Loader2 size={18} className="animate-spin" />
                             ) : (
                                 <Search size={18} />
                             )}
-                        </button>
+                        </Button>
                     </div>
 
                     {/* Mode Selector */}
@@ -107,25 +114,25 @@ export default function EnglishQueryPanel() {
                         onCustomInstructionChange={setCustomInstruction}
                     />
 
-                    <p className="text-xs text-text-tertiary">
+                    <p className="text-caption text-text-tertiary">
                         ⌘+Enter 快速查询 · 今日已查询 {todayQueries.length} 条
                     </p>
                 </div>
-            </div>
+            </Card>
 
             {/* Error */}
             {aiQuery.isError && (
-                <div className="card p-card border-danger/30 bg-danger/5">
-                    <p className="text-sm text-danger">
+                <Card className="border border-danger/25 bg-danger/8 p-card">
+                    <p className="text-body-sm text-danger">
                         查询失败: {aiQuery.error instanceof Error ? aiQuery.error.message : '未知错误'}
                     </p>
-                </div>
+                </Card>
             )}
 
             {saveWarning && (
-                <div className="card p-card border-warning/30 bg-warning/5">
-                    <p className="text-sm text-warning">{saveWarning}</p>
-                </div>
+                <Card className="border border-warning/25 bg-warning/8 p-card">
+                    <p className="text-body-sm text-warning">{saveWarning}</p>
+                </Card>
             )}
 
             {/* Result */}
@@ -139,10 +146,12 @@ export default function EnglishQueryPanel() {
 
             {/* Today's Query History */}
             {todayQueries.length > 0 && (
-                <div className="card p-card">
-                    <h3 className="text-sm font-medium text-text-secondary mb-3">
-                        今日查询记录 ({todayQueries.length})
-                    </h3>
+                <Card className="p-card">
+                    <SectionHeader
+                        title={`今日查询记录 (${todayQueries.length})`}
+                        description="点选任意一条，回到刚才的解析结果继续整理。"
+                        className="mb-3"
+                    />
                     <div className="space-y-2">
                         {todayQueries.map(q => (
                             <button
@@ -152,21 +161,21 @@ export default function EnglishQueryPanel() {
                                     queryId: q.id,
                                     resultId: crypto.randomUUID(),
                                 })}
-                                className="w-full text-left px-3 py-2 rounded-lg hover:bg-bg-tertiary transition-colors flex items-center justify-between"
+                                className="glass-list-row flex w-full items-center justify-between px-3 py-2 text-left"
                             >
-                                <span className="text-sm text-text-primary font-medium">{q.input_text}</span>
+                                <span className="text-body-sm text-text-primary font-medium">{q.input_text}</span>
                                 <div className="flex items-center gap-2">
                                     {q.is_saved && (
-                                        <span className="text-xs text-success">已存卡</span>
+                                        <span className="text-caption text-success">已存卡</span>
                                     )}
-                                    <span className="text-xs text-text-tertiary">
+                                    <span className="text-caption text-text-tertiary">
                                         {PROMPT_MODES.find(m => m.key === q.prompt_mode)?.label ?? q.prompt_mode}
                                     </span>
                                 </div>
                             </button>
                         ))}
                     </div>
-                </div>
+                </Card>
             )}
         </div>
     );

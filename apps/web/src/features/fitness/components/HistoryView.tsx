@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Dumbbell, Calendar, ChevronRight, ArrowLeft, Eye, Edit3 } from 'lucide-react';
+import { Dumbbell, Calendar, ArrowLeft, Eye, Edit3 } from 'lucide-react';
 import Link from 'next/link';
-import { CATEGORY_CONFIG } from '@/features/fitness/types';
+import { getCategoryConfig } from '@/features/fitness/types';
 import type { WorkoutSession } from '@/features/fitness/types';
 import { useFitnessHistoryData } from '@/features/fitness';
 import { WorkoutDetailDialog } from './WorkoutDetailDialog';
+import { Card, PageHero, getButtonClassName } from '@/components/ui';
 
 function groupSessionsByDate(sessions: WorkoutSession[]) {
     const map = new Map<string, WorkoutSession[]>();
@@ -58,103 +59,93 @@ export default function HistoryView() {
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
-                <div className="text-text-secondary">加载中...</div>
+                <div className="text-body-sm text-text-secondary">加载中...</div>
             </div>
         );
     }
 
     return (
-        <div className="space-y-section">
-            <header>
+        <div className="space-y-4 xl:space-y-5">
+            <PageHero
+                eyebrow="健身 / 历史"
+                icon={<Calendar size={18} className="text-accent" />}
+                title="训练历史"
+                description="按日期回看训练记录、动作组合和累计负荷，方便复盘近期训练节奏。"
+                stats={[
+                    { label: '总训练次数', value: stats.totalWorkouts, meta: '累计', tone: 'accent' },
+                    { label: '总训练组数', value: stats.totalSets, meta: '所有动作', tone: 'success' },
+                    { label: '总训练负荷', value: formatVolume(stats.totalVolume), meta: '累计重量', tone: 'warning' },
+                ]}
+            >
                 <Link
                     href="/fitness"
-                    className="inline-flex items-center gap-2 text-text-secondary hover:text-text-primary mb-3"
+                    className="glass-mini-chip text-body-sm transition-colors duration-normal ease-standard hover:bg-card-bg"
                 >
-                    <ArrowLeft size={16} />
+                    <ArrowLeft size={14} />
                     返回健身领域
                 </Link>
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
-                            <Calendar size={20} className="text-accent" />
-                        </div>
-                        <div>
-                            <h1 className="text-xl font-bold text-text-primary">训练历史</h1>
-                            <p className="text-sm text-text-secondary">查看所有训练记录</p>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <section className="grid grid-cols-3 gap-3">
-                <div className="card p-3 text-center">
-                    <div className="text-2xl font-bold text-text-primary">{stats.totalWorkouts}</div>
-                    <div className="text-sm text-text-secondary">总训练次数</div>
-                </div>
-                <div className="card p-3 text-center">
-                    <div className="text-2xl font-bold text-text-primary">{stats.totalSets}</div>
-                    <div className="text-sm text-text-secondary">总训练组数</div>
-                </div>
-                <div className="card p-3 text-center">
-                    <div className="text-2xl font-bold text-text-primary">{formatVolume(stats.totalVolume)}</div>
-                    <div className="text-sm text-text-secondary">总训练负荷</div>
-                </div>
-            </section>
+            </PageHero>
 
             {workoutsByMonth.length === 0 ? (
-                <div className="card p-card-lg text-center">
-                    <div className="w-14 h-14 rounded-full bg-bg-tertiary flex items-center justify-center mx-auto mb-3">
+                <Card className="p-card-lg text-center">
+                    <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full border border-glass-border bg-panel-bg">
                         <Dumbbell size={32} className="text-text-secondary" />
                     </div>
-                    <p className="text-text-secondary mb-3">暂无训练记录</p>
-                    <Link href="/fitness/workout/new" className="btn-primary inline-block">
+                    <p className="text-body text-text-primary">暂无训练记录</p>
+                    <p className="mt-1 text-body-sm text-text-secondary">先记录一次训练，历史页就会开始沉淀你的长期数据。</p>
+                    <Link
+                        href="/fitness/workout/new"
+                        className={getButtonClassName({
+                            variant: 'tinted',
+                            size: 'sm',
+                            className: 'mt-4',
+                        })}
+                    >
                         开始第一次训练
                     </Link>
-                </div>
+                </Card>
             ) : (
-                <div className="space-y-section">
+                <div className="space-y-4">
                     {workoutsByMonth.map((monthGroup) => {
                         const dayGroups = groupSessionsByDate(monthGroup.sessions);
                         return (
                             <section key={monthGroup.month}>
-                                <div className="flex items-center gap-3 mb-3">
-                                    <h2 className="text-base font-semibold text-text-primary">{monthGroup.label}</h2>
-                                    <span className="text-sm text-text-secondary">
-                                        {monthGroup.sessions.length} 次训练
-                                    </span>
+                                <div className="mb-3 flex items-center gap-3">
+                                    <h2 className="text-body font-semibold text-text-primary">{monthGroup.label}</h2>
+                                    <span className="glass-mini-chip text-caption">{monthGroup.sessions.length} 次训练</span>
                                 </div>
 
                                 <div className="space-y-2">
                                     {dayGroups.map((dayGroup) => (
-                                        <div key={dayGroup.date} className="card overflow-hidden">
-                                            <div className="px-4 py-3 bg-bg-secondary flex items-center justify-between">
+                                        <Card key={dayGroup.date} variant="subtle" className="overflow-hidden p-0">
+                                            <div className="flex items-center justify-between bg-panel-bg/90 px-4 py-3">
                                                 <div className="flex items-center gap-3">
                                                     <Calendar size={16} className="text-accent" />
-                                                    <span className="font-medium text-text-primary">
+                                                    <span className="font-medium text-text-primary text-body-sm">
                                                         {formatDate(dayGroup.date)}
                                                     </span>
-                                                    <span className="text-xs text-text-secondary">{dayGroup.date}</span>
+                                                    <span className="text-caption text-text-secondary">{dayGroup.date}</span>
                                                 </div>
-                                                <span className="text-xs text-text-secondary">
+                                                <span className="text-caption text-text-secondary">
                                                     {dayGroup.sessions.reduce((acc, s) => acc + s.exercises.length, 0)} 个动作
                                                 </span>
                                             </div>
 
-                                            <div className="divide-y divide-border/50">
+                                            <div className="divide-y divide-border/60">
                                                 {dayGroup.sessions.map((session) => (
                                                     <div key={session.id} className="p-3">
                                                         <div className="flex flex-wrap gap-1.5 mb-2">
                                                             {session.exercises.map((exercise, idx) => {
-                                                                const config = CATEGORY_CONFIG[exercise.category] || { label: exercise.category, color: 'text-gray-400', bg: 'bg-gray-500/20' };
+                                                                const config = getCategoryConfig(exercise.category);
                                                                 return (
                                                                     <div
                                                                         key={idx}
-                                                                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg ${config.bg}`}
+                                                                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-control ${config.bg}`}
                                                                     >
-                                                                        <span className={`text-sm font-medium ${config.color}`}>
+                                                                        <span className={`text-body-sm font-medium ${config.color}`}>
                                                                             {exercise.name}
                                                                         </span>
-                                                                        <span className="text-xs text-text-secondary">
+                                                                        <span className="text-caption text-text-secondary">
                                                                             {exercise.weight}kg×{exercise.sets}×{exercise.reps}
                                                                         </span>
                                                                     </div>
@@ -163,7 +154,7 @@ export default function HistoryView() {
                                                         </div>
 
                                                         {session.notes && (
-                                                            <p className="text-sm text-text-secondary mb-2 italic">
+                                                            <p className="text-body-sm text-text-secondary mb-2 italic">
                                                                 &quot;{session.notes}&quot;
                                                             </p>
                                                         )}
@@ -172,7 +163,7 @@ export default function HistoryView() {
                                                             <button
                                                                 type="button"
                                                                 onClick={() => openDetail(session.id)}
-                                                                className="text-sm text-accent hover:underline flex items-center gap-1"
+                                                                className="text-body-sm text-accent hover:underline flex items-center gap-1"
                                                             >
                                                                 <Eye size={14} />
                                                                 查看
@@ -180,7 +171,7 @@ export default function HistoryView() {
                                                             <button
                                                                 type="button"
                                                                 onClick={() => openDetail(session.id, true)}
-                                                                className="text-sm text-text-secondary hover:text-accent flex items-center gap-1"
+                                                                className="text-body-sm text-text-secondary hover:text-accent flex items-center gap-1"
                                                             >
                                                                 <Edit3 size={14} />
                                                                 编辑
@@ -189,7 +180,7 @@ export default function HistoryView() {
                                                     </div>
                                                 ))}
                                             </div>
-                                        </div>
+                                        </Card>
                                     ))}
                                 </div>
                             </section>

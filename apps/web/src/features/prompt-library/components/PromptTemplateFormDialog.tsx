@@ -1,10 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Columns2, Edit3, Eye, X } from 'lucide-react';
+import { useCallback, useMemo, useState } from 'react';
+import { Columns2, Edit3, Eye } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { PromptTemplate, PromptTemplateFormValues } from '../types';
+import { Button, Dialog, Input } from '@/components/ui';
 
 interface PromptTemplateFormDialogProps {
     editingTemplate: PromptTemplate | null;
@@ -53,84 +54,59 @@ export default function PromptTemplateFormDialog({
         });
     }, [content, description, isFavorite, onSubmit, tagsInput, title]);
 
-    useEffect(() => {
-        const handleKeydown = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') onClose();
-        };
-
-        document.addEventListener('keydown', handleKeydown);
-        document.body.style.overflow = 'hidden';
-
-        return () => {
-            document.removeEventListener('keydown', handleKeydown);
-            document.body.style.overflow = '';
-        };
-    }, [onClose]);
-
     const tagsPreview = useMemo(() => parseTags(tagsInput), [tagsInput]);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-
-            <div className="relative mx-4 flex max-h-[calc(100vh-2rem)] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-border bg-bg-primary shadow-2xl">
-                <div className="flex items-center justify-between border-b border-border px-5 py-3">
-                    <h2 className="text-base font-bold text-text-primary">
-                        {isEditing ? '编辑提示词模板' : '新建提示词模板'}
-                    </h2>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="rounded-lg p-1.5 text-text-secondary hover:bg-bg-tertiary hover:text-text-primary"
-                    >
-                        <X size={18} />
-                    </button>
-                </div>
-
-                <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-                    <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4">
+        <Dialog
+            open
+            onClose={onClose}
+            title={isEditing ? '编辑提示词模板' : '新建提示词模板'}
+            maxWidth="2xl"
+            bodyClassName="flex min-h-0 flex-1 flex-col"
+        >
+            <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+                <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4">
                         {submitError && (
-                            <div className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
+                            <div className="rounded-card border border-danger/30 bg-danger/10 px-3 py-2 text-body-sm text-danger">
                                 {submitError}
                             </div>
                         )}
                         <div>
-                            <label className="mb-1 block text-xs text-text-secondary">标题 *</label>
-                            <input
+                            <label className="mb-1 block text-caption text-text-secondary">标题 *</label>
+                            <Input
                                 type="text"
                                 value={title}
                                 onChange={event => setTitle(event.target.value)}
                                 placeholder="例如：需求改动实施模板"
-                                className="w-full rounded-lg border border-border bg-bg-tertiary px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
                                 required
                                 autoFocus
                             />
                         </div>
 
                         <div>
-                            <label className="mb-1 block text-xs text-text-secondary">描述</label>
-                            <input
+                            <label className="mb-1 block text-caption text-text-secondary">描述</label>
+                            <Input
                                 type="text"
                                 value={description}
                                 onChange={event => setDescription(event.target.value)}
                                 placeholder="简要说明这个模板适用场景"
-                                className="w-full rounded-lg border border-border bg-bg-tertiary px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
                             />
                         </div>
 
                         <div>
-                            <label className="mb-1 block text-xs text-text-secondary">标签（逗号或换行分隔）</label>
-                            <textarea
+                            <label className="mb-1 block text-caption text-text-secondary">标签（逗号或换行分隔）</label>
+                            <Input
+                                multiline
                                 value={tagsInput}
                                 onChange={event => setTagsInput(event.target.value)}
                                 rows={2}
                                 placeholder="开发协作, 需求模板, PRD"
-                                className="w-full resize-none rounded-lg border border-border bg-bg-tertiary px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
+                                className="resize-none"
                             />
                             {tagsPreview.length > 0 && (
                                 <div className="mt-2 flex flex-wrap gap-1">
                                     {tagsPreview.map(tag => (
-                                        <span key={tag} className="rounded-md bg-accent/10 px-1.5 py-0.5 text-xs text-accent">
+                                        <span key={tag} className="rounded-control bg-accent/10 px-1.5 py-0.5 text-caption text-accent">
                                             #{tag}
                                         </span>
                                     ))}
@@ -140,12 +116,12 @@ export default function PromptTemplateFormDialog({
 
                         <div>
                             <div className="mb-1 flex items-center justify-between">
-                                <label className="block text-xs text-text-secondary">模板内容 *</label>
-                                <div className="inline-flex items-center rounded-lg bg-bg-tertiary p-0.5">
+                                <label className="block text-caption text-text-secondary">模板内容 *</label>
+                                <div className="inline-flex items-center rounded-control bg-bg-tertiary p-0.5">
                                     <button
                                         type="button"
                                         onClick={() => setEditorMode('edit')}
-                                        className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs transition-colors ${
+                                        className={`inline-flex items-center gap-1 rounded-control px-2 py-1 text-caption transition-colors duration-normal ease-standard ${
                                             editorMode === 'edit'
                                                 ? 'bg-bg-primary text-text-primary shadow-sm'
                                                 : 'text-text-tertiary hover:text-text-secondary'
@@ -157,7 +133,7 @@ export default function PromptTemplateFormDialog({
                                     <button
                                         type="button"
                                         onClick={() => setEditorMode('split')}
-                                        className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs transition-colors ${
+                                        className={`inline-flex items-center gap-1 rounded-control px-2 py-1 text-caption transition-colors duration-normal ease-standard ${
                                             editorMode === 'split'
                                                 ? 'bg-bg-primary text-text-primary shadow-sm'
                                                 : 'text-text-tertiary hover:text-text-secondary'
@@ -169,7 +145,7 @@ export default function PromptTemplateFormDialog({
                                     <button
                                         type="button"
                                         onClick={() => setEditorMode('preview')}
-                                        className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs transition-colors ${
+                                        className={`inline-flex items-center gap-1 rounded-control px-2 py-1 text-caption transition-colors duration-normal ease-standard ${
                                             editorMode === 'preview'
                                                 ? 'bg-bg-primary text-text-primary shadow-sm'
                                                 : 'text-text-tertiary hover:text-text-secondary'
@@ -181,15 +157,16 @@ export default function PromptTemplateFormDialog({
                                 </div>
                             </div>
 
-                            <div className="overflow-hidden rounded-xl border border-border bg-bg-tertiary">
+                            <div className="overflow-hidden rounded-card border border-border bg-bg-tertiary">
                                 <div className={`grid ${editorMode === 'split' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}>
                                     {editorMode !== 'preview' && (
-                                        <textarea
+                                        <Input
+                                            multiline
                                             value={content}
                                             onChange={event => setContent(event.target.value)}
                                             rows={14}
                                             placeholder="输入你的提示词模板（Markdown）..."
-                                            className={`w-full resize-none bg-transparent px-3 py-2 font-mono text-sm leading-relaxed text-text-primary outline-none ${
+                                            className={`resize-none rounded-none border-0 bg-transparent font-mono leading-relaxed ${
                                                 editorMode === 'split' ? 'md:border-r md:border-border' : ''
                                             }`}
                                         />
@@ -200,19 +177,19 @@ export default function PromptTemplateFormDialog({
                                                 {content.trim() ? (
                                                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
                                                 ) : (
-                                                    <p className="text-sm italic text-text-tertiary">Markdown 预览将在这里显示</p>
+                                                    <p className="text-body-sm italic text-text-tertiary">Markdown 预览将在这里显示</p>
                                                 )}
                                             </div>
                                         </div>
                                     )}
                                 </div>
-                                <div className="border-t border-border px-3 py-1 text-right text-[11px] text-text-tertiary">
+                                <div className="border-t border-border px-3 py-1 text-right text-caption text-text-tertiary">
                                     {content.length} 字符 · {content.split('\n').length} 行
                                 </div>
                             </div>
                         </div>
 
-                        <label className="inline-flex items-center gap-2 text-sm text-text-secondary">
+                        <label className="inline-flex items-center gap-2 text-body-sm text-text-secondary">
                             <input
                                 type="checkbox"
                                 checked={isFavorite}
@@ -221,26 +198,17 @@ export default function PromptTemplateFormDialog({
                             />
                             默认收藏
                         </label>
-                    </div>
+                </div>
 
-                    <div className="flex justify-end gap-2 border-t border-border bg-bg-primary px-5 py-3">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="rounded-lg px-4 py-2 text-sm text-text-secondary hover:bg-bg-tertiary"
-                        >
-                            取消
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={submitting || !title.trim() || !content.trim()}
-                            className="btn-primary px-4 py-2 text-sm disabled:opacity-50"
-                        >
-                            {submitting ? '保存中...' : isEditing ? '保存' : '创建'}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                <div className="flex justify-end gap-2 border-t border-border bg-bg-primary px-5 py-3">
+                    <Button type="button" onClick={onClose} variant="ghost" size="sm">
+                        取消
+                    </Button>
+                    <Button type="submit" disabled={submitting || !title.trim() || !content.trim()} size="sm">
+                        {submitting ? '保存中...' : isEditing ? '保存' : '创建'}
+                    </Button>
+                </div>
+            </form>
+        </Dialog>
     );
 }

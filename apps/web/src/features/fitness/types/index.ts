@@ -1,13 +1,23 @@
+import { DEFAULT_TONE, TONES, type ToneTokenClasses } from '@/design-system/tokens';
+
+export type CategoryConfig = {
+    label: string;
+} & ToneTokenClasses;
+
 /** 肌群分类配置 */
-export const CATEGORY_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-    chest: { label: '胸部', color: 'text-red-400', bg: 'bg-red-500/20' },
-    back: { label: '背部', color: 'text-blue-400', bg: 'bg-blue-500/20' },
-    legs: { label: '腿部', color: 'text-green-400', bg: 'bg-green-500/20' },
-    shoulders: { label: '肩部', color: 'text-yellow-400', bg: 'bg-yellow-500/20' },
-    arms: { label: '手臂', color: 'text-purple-400', bg: 'bg-purple-500/20' },
-    core: { label: '核心', color: 'text-orange-400', bg: 'bg-orange-500/20' },
-    cardio: { label: '有氧', color: 'text-cyan-400', bg: 'bg-cyan-500/20' },
+export const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
+    chest: { label: '胸部', ...TONES.danger },
+    back: { label: '背部', ...TONES.blue },
+    legs: { label: '腿部', ...TONES.green },
+    shoulders: { label: '肩部', ...TONES.yellow },
+    arms: { label: '手臂', ...TONES.purple },
+    core: { label: '核心', ...TONES.orange },
+    cardio: { label: '有氧', ...TONES.cyan },
 };
+
+export function getCategoryConfig(category: string): CategoryConfig {
+    return CATEGORY_CONFIG[category] ?? { label: category, ...DEFAULT_TONE };
+}
 
 /** 单个训练动作 */
 export type Exercise = {

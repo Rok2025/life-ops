@@ -1,4 +1,4 @@
-import type { StickyNote, Lightbulb, HelpCircle } from 'lucide-react';
+import { TONES, type ToneTokenClasses } from '@/design-system/tokens';
 
 export type NoteType = 'memo' | 'idea' | 'question';
 export type FilterType = 'all' | NoteType;
@@ -28,31 +28,26 @@ export type UpdateNoteInput = Partial<CreateNoteInput> & {
 export type NoteTypeConfig = {
     label: string;
     emoji: string;
-    color: string;
-    bg: string;
     placeholder: string;
-};
+} & ToneTokenClasses;
 
 export const NOTE_TYPE_CONFIG: Record<NoteType, NoteTypeConfig> = {
     memo: {
         label: '备忘',
         emoji: '📌',
-        color: 'text-blue-400',
-        bg: 'bg-blue-500/20',
+        ...TONES.blue,
         placeholder: '记录一些待办、提醒...',
     },
     idea: {
         label: '灵感',
         emoji: '💡',
-        color: 'text-yellow-400',
-        bg: 'bg-yellow-500/20',
+        ...TONES.yellow,
         placeholder: '记录你的好想法、好点子...',
     },
     question: {
         label: '问答',
         emoji: '❓',
-        color: 'text-green-400',
-        bg: 'bg-green-500/20',
+        ...TONES.green,
         placeholder: '记录你的疑问...',
     },
 };

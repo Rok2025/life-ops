@@ -10,6 +10,7 @@ import { GrowthAreaCard } from '@/features/growth-projects';
 import { OutputAreaCard } from '@/features/output';
 import { EnglishDailyWidget } from '@/features/english-learning';
 import { getLocalDateStr } from '@/lib/utils/date';
+import { SectionHeader } from '@/components/ui';
 
 export default function HomeDashboard() {
     const today = getLocalDateStr();
@@ -35,35 +36,38 @@ export default function HomeDashboard() {
     });
 
     return (
-        <div>
-            <WelcomeHeader
-                userName="Rok"
-                frogsCompleted={frogsStats?.completed ?? 0}
-                frogsTotal={frogsStats?.total ?? 0}
-                tilCount={tilCount ?? 0}
-                notesCount={notesCount ?? 0}
-                workoutDays={weeklyWorkoutDays ?? 0}
-                workoutTarget={3}
-            />
+        <div className="space-y-4 xl:space-y-[1.125rem]">
+            <section className="relative isolate">
+                <div className="pointer-events-none absolute inset-x-10 top-3 -z-10 h-24 rounded-[2.25rem] bg-accent/5 blur-3xl dark:bg-accent/4" />
+                <div className="pointer-events-none absolute left-12 top-5 -z-10 h-20 w-44 rounded-full bg-white/8 blur-3xl dark:bg-white/4" />
+                <div className="pointer-events-none absolute right-16 top-10 -z-10 h-16 w-16 rounded-full bg-tone-sky/12 blur-3xl dark:bg-tone-sky/8" />
+                <WelcomeHeader
+                    userName="Rok"
+                    frogsCompleted={frogsStats?.completed ?? 0}
+                    frogsTotal={frogsStats?.total ?? 0}
+                    tilCount={tilCount ?? 0}
+                    notesCount={notesCount ?? 0}
+                    workoutDays={weeklyWorkoutDays ?? 0}
+                    workoutTarget={3}
+                />
+            </section>
 
-            <section className="mb-section grid grid-cols-1 lg:grid-cols-2 gap-section">
+            <section className="grid grid-cols-1 gap-3 xl:gap-4 lg:grid-cols-2">
                 <FrogsWidget initialDate={today} />
                 <TilWidget initialDate={today} />
             </section>
 
-            <section className="mb-section">
+            <section className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1.45fr)_minmax(300px,0.92fr)] xl:items-stretch">
                 <NotesWidget initialDate={today} />
-            </section>
-
-            <section className="mb-section">
                 <EnglishDailyWidget />
             </section>
 
             <section>
-                <h2 className="text-sm font-medium text-text-secondary uppercase tracking-wide mb-widget-header">
-                    人生领域
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <SectionHeader
+                    title="人生领域"
+                    className="mb-3"
+                />
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                     <ClientFitnessAreaCard target={3} unit="天" />
                     <GrowthAreaCard />
                     <OutputAreaCard />

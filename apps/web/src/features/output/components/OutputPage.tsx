@@ -8,6 +8,7 @@ import { OutputCard } from './OutputCard';
 import { OutputForm } from './OutputForm';
 import { ProjectDocEditor } from './ProjectDocEditor';
 import { OUTPUT_TYPE_CONFIG } from '../types';
+import { Button, Card, PageHero, SectionHeader } from '@/components/ui';
 import {
     AREA_CONFIG,
     SCOPE_CONFIG,
@@ -34,16 +35,16 @@ function AreaProjectSummary({
     const activeProjects = projects.filter(p => p.status === 'active');
 
     return (
-        <div className="p-card rounded-xl bg-bg-secondary border border-border">
+        <Card variant="subtle" className="p-card">
             <div className="flex items-center gap-2 mb-widget-header">
-                <span className="text-base">{cfg.icon}</span>
-                <span className={`text-sm font-semibold ${cfg.color}`}>{cfg.label}</span>
-                <span className="text-[10px] text-text-tertiary ml-auto">
+                <span className="text-body">{cfg.icon}</span>
+                <span className={`text-body-sm font-semibold ${cfg.color}`}>{cfg.label}</span>
+                <span className="text-caption text-text-tertiary ml-auto">
                     {activeProjects.length} 个进行中
                 </span>
             </div>
             {activeProjects.length === 0 ? (
-                <p className="text-xs text-text-tertiary">暂无进行中的项目</p>
+                <p className="text-caption text-text-tertiary">暂无进行中的项目</p>
             ) : (
                 <div className="space-y-1">
                     {activeProjects.map(p => {
@@ -55,23 +56,23 @@ function AreaProjectSummary({
                             <button
                                 key={p.id}
                                 onClick={() => onSelectProject(p, area)}
-                                className={`w-full flex items-center gap-2 text-xs px-2 py-1.5 rounded-lg transition-colors ${
+                                className={`glass-list-row w-full flex items-center gap-2 px-2 py-1.5 text-caption ${
                                     isSelected
-                                        ? 'bg-accent/10 border border-accent/30'
-                                        : 'hover:bg-bg-tertiary border border-transparent'
+                                        ? 'border-selection-border bg-selection-bg'
+                                        : ''
                                 }`}
                             >
                                 <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${statusCfg.dot}`} />
-                                <span className={`shrink-0 px-1.5 py-0.5 rounded text-[10px] ${scopeCfg.color} ${scopeCfg.bg}`}>
+                                <span className={`shrink-0 px-1.5 py-0.5 rounded-control text-caption ${scopeCfg.color} ${scopeCfg.bg}`}>
                                     {scopeCfg.label}
                                 </span>
                                 <span className="text-text-primary truncate flex-1 text-left">{p.title}</span>
                                 {p.todo_total > 0 && (
                                     <div className="flex items-center gap-1.5 shrink-0">
-                                        <div className="w-12 h-1 rounded-full bg-bg-tertiary overflow-hidden">
+                                        <div className="w-12 h-1 rounded-full bg-bg-tertiary/90 overflow-hidden">
                                             <div className="h-full rounded-full bg-accent" style={{ width: `${pct}%` }} />
                                         </div>
-                                        <span className="text-[10px] text-text-tertiary w-7 text-right">{pct}%</span>
+                                        <span className="text-caption text-text-tertiary w-7 text-right">{pct}%</span>
                                     </div>
                                 )}
                             </button>
@@ -79,7 +80,7 @@ function AreaProjectSummary({
                     })}
                 </div>
             )}
-        </div>
+        </Card>
     );
 }
 
@@ -149,83 +150,115 @@ export default function OutputPage() {
 
     const publishedCount = outputs.filter(o => o.status === 'published').length;
     const draftCount = outputs.filter(o => o.status === 'draft').length;
+    const activeProjectCount = areas.reduce(
+        (sum, area) => sum + (allProjects[area] ?? []).filter(project => project.status === 'active').length,
+        0,
+    );
 
     return (
-        <div className="space-y-section">
-            {/* 页面标题 */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
-                        <PenLine size={20} className="text-accent" />
+        <div className="space-y-4 xl:space-y-5">
+            <PageHero
+                eyebrow="输出面板"
+                icon={<PenLine size={18} className="text-accent" />}
+                title="输出"
+                description="把文章、草稿和项目文档收在同一处，保持发布、迭代和归档都在同一条节奏里。"
+                action={
+                    <Button onClick={handleAdd} variant="tinted" size="sm" className="gap-1">
+                        <Plus size={16} />
+                        新建输出
+                    </Button>
+                }
+                stats={[
+                    {
+                        label: '已发布',
+                        value: publishedCount,
+                        meta: outputs.length > 0 ? `${outputs.length} 总计` : '尚无记录',
+                        tone: 'success',
+                    },
+                    {
+                        label: '草稿',
+                        value: draftCount,
+                        meta: typeFilter ? OUTPUT_TYPE_CONFIG[typeFilter].label : '待整理',
+                        tone: 'warning',
+                    },
+                    {
+                        label: '进行中项目',
+                        value: activeProjectCount,
+                        meta: areaFilter ? AREA_CONFIG[areaFilter].label : '全部领域',
+                        tone: 'accent',
+                    },
+                    {
+                        label: '当前视图',
+                        value: filteredOutputs.length,
+                        meta: areaFilter || typeFilter ? '已过滤' : '全部内容',
+                        tone: 'blue',
+                    },
+                ]}
+            />
+
+            <Card variant="subtle" className="space-y-4 p-card">
+                <SectionHeader
+                    title="筛选视图"
+                    description="按领域和输出类型收束列表，也可以直接切入某个项目的文档编辑。"
+                />
+
+                <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+                    <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-caption text-text-tertiary">领域</span>
+                            <div className="glass-filter-bar">
+                                <button
+                                    onClick={() => setAreaFilter(null)}
+                                    className={`glass-filter-chip text-caption ${!areaFilter ? 'glass-filter-chip-active' : ''}`}
+                                >
+                                    全部
+                                </button>
+                                {(Object.keys(AREA_CONFIG) as GrowthArea[]).map(a => (
+                                    <button
+                                        key={a}
+                                        onClick={() => setAreaFilter(areaFilter === a ? null : a)}
+                                        className={`glass-filter-chip text-caption ${areaFilter === a ? 'glass-filter-chip-active' : ''}`}
+                                    >
+                                        {AREA_CONFIG[a].icon} {AREA_CONFIG[a].label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="hidden h-4 w-px bg-border xl:block" />
+
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-caption text-text-tertiary">类型</span>
+                            <div className="glass-filter-bar">
+                                <button
+                                    onClick={() => setTypeFilter(null)}
+                                    className={`glass-filter-chip text-caption ${!typeFilter ? 'glass-filter-chip-active' : ''}`}
+                                >
+                                    全部
+                                </button>
+                                {(Object.keys(OUTPUT_TYPE_CONFIG) as OutputType[]).map(t => (
+                                    <button
+                                        key={t}
+                                        onClick={() => setTypeFilter(typeFilter === t ? null : t)}
+                                        className={`glass-filter-chip text-caption ${typeFilter === t ? 'glass-filter-chip-active' : ''}`}
+                                    >
+                                        {OUTPUT_TYPE_CONFIG[t].emoji}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <h1 className="text-xl font-bold text-text-primary">输出</h1>
-                        <p className="text-sm text-text-secondary">
-                            已发布 {publishedCount} · 草稿 {draftCount}
-                        </p>
+
+                    <div className="glass-mini-chip text-body-sm">
+                        {selectedProject
+                            ? `${AREA_CONFIG[selectedProject.area].label} / ${selectedProject.project.title}`
+                            : '未选择项目文档'}
                     </div>
                 </div>
-                <button onClick={handleAdd} className="btn-primary flex items-center gap-1 text-sm">
-                    <Plus size={16} />
-                    新建输出
-                </button>
-            </div>
-
-            {/* 筛选栏 */}
-            <div className="flex items-center gap-4">
-                {/* 领域筛选 */}
-                <div className="flex items-center gap-1.5">
-                    <span className="text-xs text-text-tertiary">领域</span>
-                    <button
-                        onClick={() => setAreaFilter(null)}
-                        className={`text-xs px-2 py-1 rounded-lg transition-colors ${
-                            !areaFilter ? 'bg-accent/20 text-accent' : 'text-text-secondary hover:bg-bg-tertiary'
-                        }`}
-                    >
-                        全部
-                    </button>
-                    {(Object.keys(AREA_CONFIG) as GrowthArea[]).map(a => (
-                        <button
-                            key={a}
-                            onClick={() => setAreaFilter(areaFilter === a ? null : a)}
-                            className={`text-xs px-2 py-1 rounded-lg transition-colors ${
-                                areaFilter === a ? `${AREA_CONFIG[a].bg} ${AREA_CONFIG[a].color}` : 'text-text-secondary hover:bg-bg-tertiary'
-                            }`}
-                        >
-                            {AREA_CONFIG[a].icon} {AREA_CONFIG[a].label}
-                        </button>
-                    ))}
-                </div>
-
-                <div className="w-px h-4 bg-border" />
-
-                {/* 类型筛选 */}
-                <div className="flex items-center gap-1.5">
-                    <span className="text-xs text-text-tertiary">类型</span>
-                    <button
-                        onClick={() => setTypeFilter(null)}
-                        className={`text-xs px-2 py-1 rounded-lg transition-colors ${
-                            !typeFilter ? 'bg-accent/20 text-accent' : 'text-text-secondary hover:bg-bg-tertiary'
-                        }`}
-                    >
-                        全部
-                    </button>
-                    {(Object.keys(OUTPUT_TYPE_CONFIG) as OutputType[]).map(t => (
-                        <button
-                            key={t}
-                            onClick={() => setTypeFilter(typeFilter === t ? null : t)}
-                            className={`text-xs px-2 py-1 rounded-lg transition-colors ${
-                                typeFilter === t ? `${OUTPUT_TYPE_CONFIG[t].bg} ${OUTPUT_TYPE_CONFIG[t].color}` : 'text-text-secondary hover:bg-bg-tertiary'
-                            }`}
-                        >
-                            {OUTPUT_TYPE_CONFIG[t].emoji}
-                        </button>
-                    ))}
-                </div>
-            </div>
+            </Card>
 
             {/* 各领域项目概览 */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                 {areas.map(a => (
                     <AreaProjectSummary
                         key={a}
@@ -249,35 +282,42 @@ export default function OutputPage() {
 
             {/* 输出列表 */}
             {isLoading ? (
-                <div className="text-center py-8 text-text-secondary">加载中...</div>
+                <Card variant="subtle" className="p-card text-body-sm text-text-secondary">
+                    加载中...
+                </Card>
             ) : filteredOutputs.length === 0 ? (
-                <div className="text-center py-8 text-text-secondary">
-                    <FileText size={32} className="mx-auto mb-2 text-text-tertiary" />
-                    <p className="text-sm mb-2">还没有输出记录</p>
-                    <button onClick={handleAdd} className="text-accent hover:underline text-sm">
-                        创建第一条输出 →
-                    </button>
-                </div>
+                <Card className="p-card-lg text-center">
+                    <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full border border-glass-border bg-panel-bg">
+                        <FileText size={28} className="text-text-secondary" />
+                    </div>
+                    <p className="text-body text-text-primary">还没有输出记录</p>
+                    <p className="mt-1 text-body-sm text-text-secondary">
+                        先从一篇草稿或一份项目文档开始，把内容沉淀到这里。
+                    </p>
+                    <Button onClick={handleAdd} variant="tinted" size="sm" className="mt-4 gap-1">
+                        <Plus size={16} />
+                        创建第一条输出
+                    </Button>
+                </Card>
             ) : (
-                <div className="space-y-section">
+                <div className="space-y-4">
                     {groupEntries.map(([key, group]) => (
-                        <div key={key}>
-                            {/* 分组标题 */}
-                            <div className="flex items-center gap-2 mb-2">
+                        <Card key={key} variant="subtle" className="space-y-3 p-card">
+                            <div className="flex items-center gap-2">
                                 {key !== '__none__' && group.projectArea && (
-                                    <span className="text-xs">{AREA_CONFIG[group.projectArea as GrowthArea]?.icon}</span>
+                                    <span className="text-caption">{AREA_CONFIG[group.projectArea as GrowthArea]?.icon}</span>
                                 )}
-                                <span className="text-xs font-medium text-text-secondary uppercase tracking-wide">
+                                <span className="text-body-sm font-medium text-text-secondary">
                                     {key === '__none__' ? '未关联项目' : group.projectTitle}
                                 </span>
-                                <span className="text-[10px] text-text-tertiary">({group.items.length})</span>
+                                <span className="glass-mini-chip text-caption">{group.items.length} 条</span>
                             </div>
                             <div className="space-y-1">
                                 {group.items.map(output => (
                                     <OutputCard key={output.id} output={output} onEdit={handleEdit} />
                                 ))}
                             </div>
-                        </div>
+                        </Card>
                     ))}
                 </div>
             )}

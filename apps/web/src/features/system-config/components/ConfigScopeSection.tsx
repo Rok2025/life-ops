@@ -6,6 +6,7 @@ import { Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import { configApi } from '../api/configApi';
 import { ConfigItemRow } from './ConfigItemRow';
 import type { ConfigItem, ScopeMeta } from '../types';
+import { Button, Card, Input } from '@/components/ui';
 
 interface ConfigScopeSectionProps {
     meta: ScopeMeta;
@@ -82,15 +83,15 @@ export function ConfigScopeSection({ meta, initialItems }: ConfigScopeSectionPro
     const activeCount = items.filter(i => i.is_active).length;
 
     return (
-        <div className="card">
+        <Card variant="subtle" className="overflow-hidden p-0">
             {/* Header */}
             <button
                 onClick={() => setExpanded(v => !v)}
-                className="w-full flex items-center justify-between p-4 hover:bg-bg-tertiary/50 rounded-t-xl transition-colors"
+                className="flex w-full items-center justify-between p-4 transition-colors duration-normal ease-standard hover:bg-panel-bg/90"
             >
                 <div className="flex items-center gap-3">
-                    <h3 className="text-base font-semibold text-text-primary">{meta.label}</h3>
-                    <span className="text-xs text-text-tertiary bg-bg-tertiary px-2 py-0.5 rounded-full">
+                    <h3 className="text-body font-semibold text-text-primary">{meta.label}</h3>
+                    <span className="glass-mini-chip text-caption">
                         {activeCount} / {items.length}
                     </span>
                 </div>
@@ -98,8 +99,8 @@ export function ConfigScopeSection({ meta, initialItems }: ConfigScopeSectionPro
             </button>
 
             {expanded && (
-                <div className="px-4 pb-3 space-y-2">
-                    <p className="text-sm text-text-tertiary">{meta.description}</p>
+                <div className="space-y-3 px-4 pb-4">
+                    <p className="text-body-sm text-text-tertiary">{meta.description}</p>
 
                     {/* Items list */}
                     <div className="space-y-1.5">
@@ -113,31 +114,29 @@ export function ConfigScopeSection({ meta, initialItems }: ConfigScopeSectionPro
                             />
                         ))}
                         {items.length === 0 && (
-                            <p className="text-sm text-text-tertiary text-center py-4">暂无配置项</p>
+                            <div className="rounded-[1rem] border border-dashed border-glass-border bg-panel-bg/65 px-4 py-5 text-center text-body-sm text-text-tertiary">
+                                暂无配置项
+                            </div>
                         )}
                     </div>
 
                     {/* Add new */}
                     <div className="flex gap-2">
-                        <input
+                        <Input
                             type="text"
                             value={newLabel}
                             onChange={e => setNewLabel(e.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder="输入新配置项名称..."
-                            className="flex-1 px-3 py-2 text-sm rounded-lg bg-bg-tertiary border border-border text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-accent"
+                            className="flex-1"
                         />
-                        <button
-                            onClick={handleAdd}
-                            disabled={!newLabel.trim() || addMutation.isPending}
-                            className="btn-primary px-3 py-2 text-sm flex items-center gap-1 disabled:opacity-50"
-                        >
+                        <Button onClick={handleAdd} disabled={!newLabel.trim() || addMutation.isPending} variant="tinted" size="sm" className="gap-1">
                             <Plus size={14} />
                             添加
-                        </button>
+                        </Button>
                     </div>
                 </div>
             )}
-        </div>
+        </Card>
     );
 }

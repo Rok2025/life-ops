@@ -1,9 +1,9 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import { X } from 'lucide-react';
 import { ENGLISH_PROMPT_MODE_META } from '../types';
 import type { EnglishPromptMode, EnglishPromptTemplate, EnglishPromptTemplateFormValues } from '../types';
+import { Button, Dialog, Input } from '@/components/ui';
 
 interface EnglishPromptFormDialogProps {
     editingTemplate: EnglishPromptTemplate | null;
@@ -51,62 +51,48 @@ export default function EnglishPromptFormDialog({
     );
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-
-            <div className="relative mx-4 flex max-h-[calc(100vh-2rem)] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-border bg-bg-primary shadow-2xl">
-                <div className="flex items-center justify-between border-b border-border px-5 py-3">
-                    <div>
-                        <h2 className="text-base font-bold text-text-primary">
-                            {isEditing ? '编辑英语提示词' : '新建英语提示词'}
-                        </h2>
-                        <p className="text-xs text-text-tertiary mt-1">
+        <Dialog
+            open
+            onClose={onClose}
+            title={isEditing ? '编辑英语提示词' : '新建英语提示词'}
+            maxWidth="2xl"
+            bodyClassName="flex min-h-0 flex-1 flex-col"
+        >
+            <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+                <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4">
+                        <p className="text-caption text-text-tertiary">
                             为英语学习模块维护专用提示词，并绑定到简洁 / 详细 / 语法模式
                         </p>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="rounded-lg p-1.5 text-text-secondary hover:bg-bg-tertiary hover:text-text-primary"
-                    >
-                        <X size={18} />
-                    </button>
-                </div>
-
-                <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-                    <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4">
                         {submitError && (
-                            <div className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
+                            <div className="rounded-card border border-danger/30 bg-danger/10 px-3 py-2 text-body-sm text-danger">
                                 {submitError}
                             </div>
                         )}
 
                         <div>
-                            <label className="mb-1 block text-xs text-text-secondary">标题 *</label>
-                            <input
+                            <label className="mb-1 block text-caption text-text-secondary">标题 *</label>
+                            <Input
                                 type="text"
                                 value={title}
                                 onChange={event => setTitle(event.target.value)}
                                 placeholder="例如：商务英语简洁解析"
-                                className="w-full rounded-lg border border-border bg-bg-tertiary px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
                                 autoFocus
                                 required
                             />
                         </div>
 
                         <div>
-                            <label className="mb-1 block text-xs text-text-secondary">描述</label>
-                            <input
+                            <label className="mb-1 block text-caption text-text-secondary">描述</label>
+                            <Input
                                 type="text"
                                 value={description}
                                 onChange={event => setDescription(event.target.value)}
                                 placeholder="说明这个提示词适合什么场景"
-                                className="w-full rounded-lg border border-border bg-bg-tertiary px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
                             />
                         </div>
 
                         <div>
-                            <label className="mb-2 block text-xs text-text-secondary">适用模式 *</label>
+                            <label className="mb-2 block text-caption text-text-secondary">适用模式 *</label>
                             <div className="grid gap-2 sm:grid-cols-3">
                                 {ENGLISH_PROMPT_MODE_META.map(item => {
                                     const checked = supportedModes.includes(item.key);
@@ -114,7 +100,7 @@ export default function EnglishPromptFormDialog({
                                     return (
                                         <label
                                             key={item.key}
-                                            className={`rounded-xl border px-3 py-3 text-sm transition-colors ${
+                                            className={`rounded-card border px-3 py-3 text-body-sm transition-colors duration-normal ease-standard ${
                                                 checked
                                                     ? 'border-accent bg-accent/10 text-text-primary'
                                                     : 'border-border bg-bg-tertiary text-text-secondary'
@@ -133,7 +119,7 @@ export default function EnglishPromptFormDialog({
                                                 />
                                                 <div>
                                                     <p className="font-medium">{item.label}</p>
-                                                    <p className="text-xs text-text-tertiary mt-1">{item.description}</p>
+                                                    <p className="text-caption text-text-tertiary mt-1">{item.description}</p>
                                                 </div>
                                             </div>
                                         </label>
@@ -141,25 +127,26 @@ export default function EnglishPromptFormDialog({
                                 })}
                             </div>
                             {selectedModeLabels.length > 0 && (
-                                <p className="mt-2 text-xs text-text-tertiary">
+                                <p className="mt-2 text-caption text-text-tertiary">
                                     已选模式：{selectedModeLabels.join(' / ')}
                                 </p>
                             )}
                         </div>
 
                         <div>
-                            <label className="mb-1 block text-xs text-text-secondary">提示词内容 *</label>
-                            <textarea
+                            <label className="mb-1 block text-caption text-text-secondary">提示词内容 *</label>
+                            <Input
+                                multiline
                                 value={content}
                                 onChange={event => setContent(event.target.value)}
                                 rows={16}
                                 placeholder="输入英语模块专用提示词..."
-                                className="w-full resize-y rounded-xl border border-border bg-bg-tertiary px-3 py-3 font-mono text-sm leading-relaxed text-text-primary outline-none focus:border-accent"
+                                className="resize-y rounded-card font-mono leading-relaxed"
                                 required
                             />
                         </div>
 
-                        <label className="inline-flex items-center gap-2 text-sm text-text-secondary">
+                        <label className="inline-flex items-center gap-2 text-body-sm text-text-secondary">
                             <input
                                 type="checkbox"
                                 checked={isActive}
@@ -168,26 +155,21 @@ export default function EnglishPromptFormDialog({
                             />
                             启用该提示词模板
                         </label>
-                    </div>
+                </div>
 
-                    <div className="flex justify-end gap-2 border-t border-border bg-bg-primary px-5 py-3">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="rounded-lg px-4 py-2 text-sm text-text-secondary hover:bg-bg-tertiary"
-                        >
-                            取消
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={submitting || !title.trim() || !content.trim() || supportedModes.length === 0}
-                            className="btn-primary px-4 py-2 text-sm disabled:opacity-50"
-                        >
-                            {submitting ? '保存中...' : isEditing ? '保存' : '创建'}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                <div className="flex justify-end gap-2 border-t border-border bg-bg-primary px-5 py-3">
+                    <Button type="button" onClick={onClose} variant="ghost" size="sm">
+                        取消
+                    </Button>
+                    <Button
+                        type="submit"
+                        disabled={submitting || !title.trim() || !content.trim() || supportedModes.length === 0}
+                        size="sm"
+                    >
+                        {submitting ? '保存中...' : isEditing ? '保存' : '创建'}
+                    </Button>
+                </div>
+            </form>
+        </Dialog>
     );
 }

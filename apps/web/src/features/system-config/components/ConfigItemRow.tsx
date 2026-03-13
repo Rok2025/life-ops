@@ -13,24 +13,24 @@ interface ConfigItemRowProps {
 export function ConfigItemRow({ item, onToggle, onDelete, deleting }: ConfigItemRowProps) {
     return (
         <div
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+            className={`glass-list-row flex items-center gap-2 px-3 py-2 ${
                 item.is_active
-                    ? 'border-border bg-bg-tertiary'
-                    : 'border-border/50 bg-bg-tertiary/50 opacity-60'
+                    ? ''
+                    : 'opacity-60'
             }`}
         >
             <GripVertical size={14} className="text-text-tertiary flex-shrink-0 cursor-grab" />
 
-            <span className={`flex-1 text-sm ${item.is_active ? 'text-text-primary' : 'text-text-secondary line-through'}`}>
+            <span className={`flex-1 text-body-sm ${item.is_active ? 'text-text-primary' : 'text-text-secondary line-through'}`}>
                 {item.label}
             </span>
 
             <button
                 onClick={() => onToggle(item.id, !item.is_active)}
-                className={`p-1 rounded transition-colors ${
+                className={`rounded-control p-1 transition-colors ${
                     item.is_active
                         ? 'text-success hover:bg-success/10'
-                        : 'text-text-tertiary hover:bg-bg-secondary'
+                        : 'text-text-tertiary hover:bg-panel-bg'
                 }`}
                 title={item.is_active ? '停用' : '启用'}
             >
@@ -40,7 +40,7 @@ export function ConfigItemRow({ item, onToggle, onDelete, deleting }: ConfigItem
             <button
                 onClick={() => onDelete(item.id)}
                 disabled={deleting}
-                className="p-1 text-text-tertiary hover:text-danger hover:bg-danger/10 rounded transition-colors disabled:opacity-50"
+                className="rounded-control p-1 text-text-tertiary transition-colors hover:bg-danger/10 hover:text-danger disabled:opacity-50"
                 title="删除"
             >
                 <Trash2 size={14} />

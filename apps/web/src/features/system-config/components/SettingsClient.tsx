@@ -10,6 +10,7 @@ import { configApi } from '../api/configApi';
 import { exerciseTypesApi } from '../api/exerciseTypesApi';
 import { CONFIG_SCOPES } from '../types';
 import type { ConfigItem } from '../types';
+import { Card, PageHero } from '@/components/ui';
 
 export default function SettingsClient() {
     const generalScopes = useMemo(
@@ -41,22 +42,35 @@ export default function SettingsClient() {
 
     if (configLoading || exerciseLoading) {
         return (
-            <div className="max-w-2xl mx-auto">
-                <div className="text-text-secondary">加载配置中...</div>
+            <div className="mx-auto max-w-5xl">
+                <Card variant="subtle" className="p-card text-body-sm text-text-secondary">
+                    加载配置中...
+                </Card>
             </div>
         );
     }
 
+    const generalItemCount = generalScopes.reduce(
+        (sum, scope) => sum + (initialData[scope.scope]?.length ?? 0),
+        0,
+    );
+    const categoryCount = initialData['exercise_category']?.length ?? 0;
+
     return (
-        <div className="max-w-2xl mx-auto">
-            <div className="flex items-center gap-3 mb-section">
-                <Settings size={20} className="text-text-secondary" />
-                <h1 className="text-xl font-bold text-text-primary">系统配置</h1>
-            </div>
-            <p className="text-text-secondary mb-section">
-                管理系统中的分类、类型等可配置项。修改后会即时生效。
-            </p>
-            <div className="space-y-section">
+        <div className="mx-auto max-w-5xl space-y-4 xl:space-y-5">
+            <PageHero
+                eyebrow="系统 / 配置"
+                icon={<Settings size={18} className="text-accent" />}
+                title="系统配置"
+                description="统一管理分类、动作和英语提示词等底层配置，让全站词汇和选项保持一致。"
+                stats={[
+                    { label: '通用配置项', value: generalItemCount, meta: `${generalScopes.length} 个范围`, tone: 'accent' },
+                    { label: '训练动作', value: initialExercises.length, meta: `${categoryCount} 个部位`, tone: 'success' },
+                    { label: '配置状态', value: '实时生效', meta: '改完即用', tone: 'warning' },
+                ]}
+            />
+
+            <div className="space-y-4 xl:space-y-5">
                 <ConfigManager scopes={generalScopes} initialData={initialData} />
                 <ExerciseManager
                     initialCategories={initialData['exercise_category'] ?? []}

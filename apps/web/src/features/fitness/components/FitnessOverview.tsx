@@ -11,6 +11,7 @@ import { NewWorkoutDialog } from './NewWorkoutDialog';
 import { WorkoutDetailDialog } from './WorkoutDetailDialog';
 import { FitnessCalendar } from './FitnessCalendar';
 import { TopExercises } from './TopExercises';
+import { Button, PageHero } from '@/components/ui';
 
 export default function FitnessOverview() {
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -56,31 +57,44 @@ export default function FitnessOverview() {
     }
 
     return (
-        <div className="space-y-section">
-            <header className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center">
-                        <Dumbbell size={20} className="text-success" />
-                    </div>
-                    <div>
-                        <h1 className="text-xl font-bold text-text-primary">健身领域</h1>
-                        <p className="text-sm text-text-secondary">每周目标：{WEEKLY_GOAL} 次训练</p>
-                    </div>
-                </div>
-                <button
-                    type="button"
-                    onClick={() => openDialog()}
-                    className="btn-primary inline-flex items-center gap-1.5 text-sm"
-                >
-                    <Plus size={16} />
-                    添加记录
-                </button>
-            </header>
+        <div className="space-y-4 xl:space-y-5">
+            <PageHero
+                eyebrow="人生领域 / 健身"
+                icon={<Dumbbell size={18} className="text-success" />}
+                title="健身领域"
+                description="把本周训练、动作分布和历史记录放在一个稳定视图里，方便持续推进。"
+                action={
+                    <Button onClick={() => openDialog()} variant="tinted" size="sm" className="gap-1.5">
+                        <Plus size={16} />
+                        添加记录
+                    </Button>
+                }
+                stats={[
+                    {
+                        label: '本周训练',
+                        value: `${stats.count}/${WEEKLY_GOAL}`,
+                        meta: stats.trainedToday ? '今天已训练' : '等待记录',
+                        tone: 'success',
+                    },
+                    {
+                        label: '连续训练',
+                        value: `${stats.streak} 天`,
+                        meta: stats.lastWorkoutId ? '保持状态' : '从今天开始',
+                        tone: 'warning',
+                    },
+                    {
+                        label: '本周总组数',
+                        value: stats.totalSets,
+                        meta: `${stats.totalVolume}kg`,
+                        tone: 'accent',
+                    },
+                ]}
+            />
 
             <WeeklyStatsCards stats={stats} />
 
             {/* 日历 + 常练动作：桌面端并排，移动端堆叠 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-section">
                 <FitnessCalendar onSelectDate={(date) => {
                     const dayGroup = workoutsByDate.find(g => g.date === date);
                     if (dayGroup?.sessions[0]) {

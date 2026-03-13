@@ -2,6 +2,7 @@
 
 import { Star, Copy, Trash2 } from 'lucide-react';
 import type { PromptTemplate } from '../types';
+import { TONES } from '@/design-system/tokens';
 
 interface PromptTemplateListProps {
     templates: PromptTemplate[];
@@ -24,7 +25,7 @@ export default function PromptTemplateList({
 }: PromptTemplateListProps) {
     if (templates.length === 0) {
         return (
-            <div className="rounded-xl border border-border bg-bg-secondary/40 p-card text-sm text-text-secondary">
+            <div className="rounded-card border border-glass-border bg-panel-bg/70 p-card text-body-sm text-text-secondary">
                 当前筛选条件下没有模板。
             </div>
         );
@@ -41,23 +42,23 @@ export default function PromptTemplateList({
                         key={template.id}
                         type="button"
                         onClick={() => onSelect(template.id)}
-                        className={`w-full text-left rounded-xl border p-3 transition-colors ${
+                        className={`glass-list-row w-full rounded-card p-3 text-left ${
                             isSelected
-                                ? 'border-accent bg-accent/10'
-                                : 'border-border bg-bg-secondary/40 hover:bg-bg-tertiary/60'
+                                ? 'border-selection-border bg-selection-bg'
+                                : ''
                         }`}
                     >
                         <div className="flex items-start gap-2">
                             <div className="min-w-0 flex-1">
                                 <div className="flex items-center gap-2">
-                                    <span className="truncate text-sm font-semibold text-text-primary">{template.title}</span>
-                                    {template.is_favorite && <Star size={14} className="shrink-0 fill-yellow-400 text-yellow-400" />}
+                                    <span className="truncate text-body-sm font-semibold text-text-primary">{template.title}</span>
+                                    {template.is_favorite && <Star size={14} className={`shrink-0 ${TONES.yellow.fill} ${TONES.yellow.color}`} />}
                                 </div>
                                 {template.description && (
-                                    <p className="mt-1 line-clamp-1 text-xs text-text-secondary">{template.description}</p>
+                                    <p className="mt-1 line-clamp-1 text-caption text-text-secondary">{template.description}</p>
                                 )}
-                                <p className="mt-1 line-clamp-2 text-xs text-text-tertiary">{preview}</p>
-                                <div className="mt-2 flex items-center gap-2 text-[11px] text-text-tertiary">
+                                <p className="mt-1 line-clamp-2 text-caption text-text-tertiary">{preview}</p>
+                                <div className="mt-2 flex items-center gap-2 text-caption text-text-tertiary">
                                     <span>使用 {template.use_count} 次</span>
                                     <span>·</span>
                                     <span>{new Date(template.updated_at).toLocaleDateString('zh-CN')}</span>
@@ -67,7 +68,7 @@ export default function PromptTemplateList({
                                         {template.tags.slice(0, 3).map(tag => (
                                             <span
                                                 key={`${template.id}-${tag}`}
-                                                className="rounded-md bg-bg-tertiary px-1.5 py-0.5 text-[10px] text-text-secondary"
+                                                className="rounded-control bg-panel-bg px-1.5 py-0.5 text-caption text-text-secondary"
                                             >
                                                 #{tag}
                                             </span>
@@ -83,18 +84,18 @@ export default function PromptTemplateList({
                                 <button
                                     type="button"
                                     onClick={() => onToggleFavorite(template)}
-                                    className="rounded-lg p-1.5 text-text-secondary hover:bg-bg-tertiary hover:text-text-primary"
+                                    className="rounded-control p-1.5 text-text-secondary transition-colors duration-normal ease-standard hover:bg-panel-bg hover:text-text-primary"
                                     title={template.is_favorite ? '取消收藏' : '收藏'}
                                 >
                                     <Star
                                         size={14}
-                                        className={template.is_favorite ? 'fill-yellow-400 text-yellow-400' : ''}
+                                        className={template.is_favorite ? `${TONES.yellow.fill} ${TONES.yellow.color}` : ''}
                                     />
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => onDuplicate(template)}
-                                    className="rounded-lg p-1.5 text-text-secondary hover:bg-bg-tertiary hover:text-text-primary"
+                                    className="rounded-control p-1.5 text-text-secondary transition-colors duration-normal ease-standard hover:bg-panel-bg hover:text-text-primary"
                                     title="复制模板"
                                 >
                                     <Copy size={14} />
@@ -103,7 +104,7 @@ export default function PromptTemplateList({
                                     type="button"
                                     onClick={() => onDelete(template)}
                                     disabled={pendingDeleteId === template.id}
-                                    className="rounded-lg p-1.5 text-text-secondary hover:bg-danger/10 hover:text-danger disabled:opacity-50"
+                                    className="rounded-control p-1.5 text-text-secondary hover:bg-danger/10 hover:text-danger disabled:opacity-50 transition-colors duration-normal ease-standard"
                                     title="删除"
                                 >
                                     <Trash2 size={14} />

@@ -66,13 +66,13 @@ export default function Sidebar() {
     if (!user && !loading && pathname === '/login') return null;
 
     return (
-        <aside className="fixed left-0 top-0 h-screen w-[var(--sidebar-width)] bg-bg-secondary border-r border-border flex flex-col">
+        <aside className="fixed left-0 top-0 h-screen w-(--sidebar-width) bg-sidebar-bg border-r border-glass-border backdrop-blur-2xl flex flex-col">
             {/* Logo */}
-            <div className="p-4 border-b border-border">
+            <div className="p-4 border-b border-glass-border">
                 <Link href="/" className="hover:opacity-80 transition-opacity">
-                    <h1 className="text-xl font-semibold text-text-primary">Life OPS</h1>
+                    <h1 className="text-h2 text-text-primary">Life OPS</h1>
                 </Link>
-                <p className="text-sm text-text-secondary mt-1">{horizons.week}</p>
+                <p className="text-caption text-text-secondary mt-1">{horizons.week}</p>
             </div>
 
             {/* Navigation */}
@@ -86,12 +86,13 @@ export default function Sidebar() {
                                     key={item.label}
                                     label={item.label}
                                     icon={item.icon}
-                                    children={item.children}
                                     isExpanded={expandedGroups.includes(item.label)}
                                     hasActiveChild={hasActiveChild}
                                     pathname={pathname}
                                     onToggle={() => toggleGroup(item.label)}
-                                />
+                                >
+                                    {item.children}
+                                </NavGroup>
                             );
                         }
 
@@ -113,33 +114,33 @@ export default function Sidebar() {
             </nav>
 
             {/* Bottom Section */}
-            <div className="mt-auto p-3 border-t border-border bg-bg-secondary/40 backdrop-blur-md">
+            <div className="mt-auto p-3 border-t border-glass-border bg-sidebar-bg/80 backdrop-blur-xl">
                 {user ? (
                     <div className="flex flex-col gap-3">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3 overflow-hidden">
-                                <div className="w-10 h-10 rounded-full bg-accent text-white flex items-center justify-center flex-shrink-0 shadow-sm">
-                                    <span className="text-sm font-bold uppercase">{user.email?.charAt(0)}</span>
+                                <div className="w-10 h-10 rounded-full bg-accent text-white flex items-center justify-center shrink-0 shadow-sm shadow-accent/25">
+                                    <span className="text-body-sm font-bold uppercase">{user.email?.charAt(0)}</span>
                                 </div>
                                 <div className="flex flex-col overflow-hidden">
-                                    <span className="text-sm font-semibold text-text-primary truncate leading-tight">
+                                    <span className="text-body-sm font-semibold text-text-primary truncate leading-tight">
                                         {user.email?.split('@')[0]}
                                     </span>
-                                    <span className="text-[10px] text-text-tertiary truncate opacity-70">
+                                    <span className="text-caption text-text-tertiary truncate opacity-70">
                                         {user.email}
                                     </span>
                                 </div>
                             </div>
                             <button
                                 onClick={() => signOut()}
-                                className="p-2 text-text-tertiary hover:text-danger hover:bg-danger/10 rounded-xl transition-all"
+                                className="p-2 text-text-tertiary hover:text-danger hover:bg-panel-bg rounded-card transition-all"
                                 title="退出登录"
                             >
                                 <LogOut size={18} />
                             </button>
                             <Link
                                 href="/settings"
-                                className="p-2 text-text-tertiary hover:text-accent hover:bg-accent/10 rounded-xl transition-all"
+                                className="p-2 text-text-tertiary hover:text-accent hover:bg-panel-bg rounded-card transition-all"
                                 title="系统配置"
                             >
                                 <Settings size={18} />

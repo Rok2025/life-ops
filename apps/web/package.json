@@ -6,7 +6,10 @@
     "dev": "next dev -p 9999",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "lint:styles": "stylelint \"src/**/*.css\"",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.94.0",
@@ -26,6 +29,12 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "stylelint": "^16",
+    "@storybook/addon-essentials": "^8",
+    "@storybook/nextjs": "^8",
+    "@storybook/react": "^8",
+    "storybook": "^8",
+    "stylelint-config-standard": "^36",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

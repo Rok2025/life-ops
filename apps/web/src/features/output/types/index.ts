@@ -1,3 +1,5 @@
+import { TONES, type ToneTokenClasses } from '@/design-system/tokens';
+
 /** 输出类型 */
 export type OutputType = 'blog' | 'tweet' | 'code' | 'note' | 'share';
 
@@ -5,18 +7,18 @@ export type OutputType = 'blog' | 'tweet' | 'code' | 'note' | 'share';
 export type OutputStatus = 'draft' | 'published';
 
 /** 输出类型配置 */
-export const OUTPUT_TYPE_CONFIG: Record<OutputType, { label: string; emoji: string; color: string; bg: string }> = {
-    blog: { label: '博客', emoji: '📝', color: 'text-blue-400', bg: 'bg-blue-500/20' },
-    tweet: { label: '推文', emoji: '🐦', color: 'text-sky-400', bg: 'bg-sky-500/20' },
-    code: { label: '代码', emoji: '💻', color: 'text-green-400', bg: 'bg-green-500/20' },
-    note: { label: '笔记', emoji: '📋', color: 'text-yellow-400', bg: 'bg-yellow-500/20' },
-    share: { label: '分享', emoji: '🔗', color: 'text-purple-400', bg: 'bg-purple-500/20' },
+export const OUTPUT_TYPE_CONFIG: Record<OutputType, { label: string; emoji: string } & ToneTokenClasses> = {
+    blog: { label: '博客', emoji: '📝', ...TONES.blue },
+    tweet: { label: '推文', emoji: '🐦', ...TONES.sky },
+    code: { label: '代码', emoji: '💻', ...TONES.green },
+    note: { label: '笔记', emoji: '📋', ...TONES.yellow },
+    share: { label: '分享', emoji: '🔗', ...TONES.purple },
 };
 
 /** 输出状态配置 */
-export const OUTPUT_STATUS_CONFIG: Record<OutputStatus, { label: string; color: string; bg: string }> = {
-    draft: { label: '草稿', color: 'text-warning', bg: 'bg-warning/20' },
-    published: { label: '已发布', color: 'text-success', bg: 'bg-success/20' },
+export const OUTPUT_STATUS_CONFIG: Record<OutputStatus, { label: string } & ToneTokenClasses> = {
+    draft: { label: '草稿', ...TONES.warning },
+    published: { label: '已发布', ...TONES.success },
 };
 
 /** 输出数据类型 */

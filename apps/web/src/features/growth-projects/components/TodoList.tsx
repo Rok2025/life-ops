@@ -31,10 +31,10 @@ export function TodoItem({ todo, projectId }: TodoItemProps) {
     });
 
     return (
-        <div className={`py-1.5 px-2 flex items-center gap-2 rounded-lg hover:bg-bg-tertiary/50 ${todo.is_completed ? 'opacity-50' : ''}`}>
+        <div className={`glass-list-row flex items-center gap-2 px-2 py-1.5 ${todo.is_completed ? 'opacity-50' : ''}`}>
             <button
                 onClick={() => toggleMutation.mutate()}
-                className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors ${
+                className={`w-4 h-4 rounded-control border flex items-center justify-center shrink-0 transition-colors duration-normal ease-standard ${
                     todo.is_completed
                         ? 'bg-success border-success text-white'
                         : 'border-border hover:border-accent'
@@ -42,12 +42,12 @@ export function TodoItem({ todo, projectId }: TodoItemProps) {
             >
                 {todo.is_completed && <Check size={10} />}
             </button>
-            <span className={`text-sm flex-1 min-w-0 truncate ${todo.is_completed ? 'line-through text-text-secondary' : 'text-text-primary'}`}>
+            <span className={`text-body-sm flex-1 min-w-0 truncate ${todo.is_completed ? 'line-through text-text-secondary' : 'text-text-primary'}`}>
                 {todo.title}
             </span>
             <button
                 onClick={() => deleteMutation.mutate()}
-                className="p-0.5 text-text-tertiary hover:text-danger hover:bg-danger/10 rounded transition-colors shrink-0"
+                className="p-0.5 text-text-tertiary hover:text-danger hover:bg-danger/10 rounded-control transition-colors duration-normal ease-standard shrink-0"
             >
                 <Trash2 size={12} />
             </button>
@@ -86,7 +86,7 @@ export function TodoList({ projectId, todos }: TodoListProps) {
 
     return (
         <div>
-            <div className="text-xs font-medium text-text-secondary uppercase tracking-wide mb-2">
+            <div className="mb-2 text-caption font-medium uppercase tracking-wide text-text-secondary">
                 待办事项 ({activeTodos.length}{completedTodos.length > 0 ? ` · ✓${completedTodos.length}` : ''})
             </div>
 
@@ -98,18 +98,18 @@ export function TodoList({ projectId, todos }: TodoListProps) {
                     ))}
                 </div>
             ) : (
-                <p className="text-xs text-text-tertiary py-2 px-2">暂无待办事项</p>
+                <p className="text-caption text-text-tertiary py-2 px-2">暂无待办事项</p>
             )}
 
             {/* 添加待办 */}
-            <form onSubmit={handleSubmit} className="flex items-center gap-1.5 mt-1.5 px-2">
-                <Plus size={14} className="text-text-tertiary flex-shrink-0" />
+            <form onSubmit={handleSubmit} className="glass-list-row mt-2 flex items-center gap-1.5 px-2 py-2">
+                <Plus size={14} className="shrink-0 text-text-tertiary" />
                 <input
                     type="text"
                     value={newTitle}
                     onChange={e => setNewTitle(e.target.value)}
                     placeholder="添加待办..."
-                    className="flex-1 text-sm bg-transparent border-none outline-none text-text-primary placeholder:text-text-tertiary"
+                    className="flex-1 text-body-sm bg-transparent border-none outline-none text-text-primary placeholder:text-text-tertiary"
                 />
             </form>
 
@@ -118,7 +118,7 @@ export function TodoList({ projectId, todos }: TodoListProps) {
                 <div className="mt-3 pt-2 border-t border-border/40">
                     <button
                         onClick={() => setShowCompleted(!showCompleted)}
-                        className="flex items-center gap-1 text-[11px] text-text-tertiary hover:text-text-secondary transition-colors"
+                        className="flex items-center gap-1 text-caption text-text-tertiary hover:text-text-secondary transition-colors duration-normal ease-standard"
                     >
                         {showCompleted ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
                         已完成 ({completedTodos.length})

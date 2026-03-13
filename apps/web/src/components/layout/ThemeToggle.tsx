@@ -7,14 +7,25 @@ export default function ThemeToggle() {
     const [isDarkMode, setIsDarkMode] = useState(true);
 
     useEffect(() => {
-        const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        setIsDarkMode(dark);
-        if (dark) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.add('light');
-        }
+        const m = window.matchMedia('(prefers-color-scheme: dark)');
+        queueMicrotask(() => {
+            setIsDarkMode(m.matches);
+            if (m.matches) document.documentElement.classList.add('dark');
+            else document.documentElement.classList.add('light');
+        });
+        const onChange = (e: MediaQueryListEvent) => {
+            setIsDarkMode(e.matches);
+            if (e.matches) document.documentElement.classList.add('dark');
+            else document.documentElement.classList.add('light');
+        };
+        m.addEventListener('change', onChange);
+        return () => m.removeEventListener('change', onChange);
     }, []);
+
+    useEffect(() => {
+        document.documentElement.classList.toggle('dark', isDarkMode);
+        document.documentElement.classList.toggle('light', !isDarkMode);
+    }, [isDarkMode]);
 
     const toggleTheme = () => {
         setIsDarkMode(!isDarkMode);
@@ -26,15 +37,19 @@ export default function ThemeToggle() {
         <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2 text-text-secondary">
                 {isDarkMode ? <Moon size={14} className="text-accent" /> : <Sun size={14} className="text-warning" />}
-                <span className="text-[10px] font-bold tracking-tighter opacity-50">
+                <span className="text-caption font-bold tracking-tight opacity-50">
                     {isDarkMode ? '深色模式' : '浅色模式'}
                 </span>
             </div>
             <button
                 onClick={toggleTheme}
-                className="relative w-9 h-5 rounded-full bg-bg-tertiary transition-colors hover:bg-bg-tertiary/80 border border-border"
+                className={`relative h-6 w-10 rounded-full border transition-all duration-300 ${
+                    isDarkMode
+                        ? 'border-accent/25 bg-accent/90'
+                        : 'border-glass-border bg-panel-bg backdrop-blur-xl hover:bg-card-bg'
+                }`}
             >
-                <div className={`absolute top-[2px] left-[2px] w-3.5 h-3.5 rounded-full shadow-sm transition-all duration-300 ${isDarkMode ? 'translate-x-4 bg-accent' : 'translate-x-0 bg-white'}`} />
+                <div className={`absolute left-[4px] top-[4px] h-4 w-4 rounded-full border border-white/60 bg-white shadow-sm transition-all duration-300 ${isDarkMode ? 'translate-x-4' : 'translate-x-0'}`} />
             </button>
         </div>
     );

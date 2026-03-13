@@ -1,3 +1,5 @@
+import { TONES, type ToneTokenClasses } from '@/design-system/tokens';
+
 /** 成长领域 */
 export type GrowthArea = 'ai' | 'english' | 'reading';
 
@@ -14,37 +16,35 @@ export type ProjectNoteType = 'idea' | 'achievement' | 'note';
 export type AreaConfig = {
     label: string;
     icon: string;
-    color: string;
-    bg: string;
-};
+} & ToneTokenClasses;
 
 /** 领域配置映射 */
 export const AREA_CONFIG: Record<GrowthArea, AreaConfig> = {
-    ai: { label: 'AI', icon: '🤖', color: 'text-accent', bg: 'bg-accent/10' },
-    english: { label: '英语', icon: '🔤', color: 'text-blue-400', bg: 'bg-blue-500/10' },
-    reading: { label: '阅读', icon: '📚', color: 'text-green-400', bg: 'bg-green-500/10' },
+    ai: { label: 'AI', icon: '🤖', ...TONES.accent },
+    english: { label: '英语', icon: '🔤', ...TONES.blue },
+    reading: { label: '阅读', icon: '📚', ...TONES.green },
 };
 
 /** 范围标签配置 */
-export const SCOPE_CONFIG: Record<ProjectScope, { label: string; color: string; bg: string }> = {
-    annual: { label: '年度', color: 'text-purple-400', bg: 'bg-purple-500/20' },
-    quarterly: { label: '季度', color: 'text-blue-400', bg: 'bg-blue-500/20' },
-    monthly: { label: '月', color: 'text-green-400', bg: 'bg-green-500/20' },
+export const SCOPE_CONFIG: Record<ProjectScope, { label: string } & ToneTokenClasses> = {
+    annual: { label: '年度', ...TONES.purple },
+    quarterly: { label: '季度', ...TONES.blue },
+    monthly: { label: '月', ...TONES.green },
 };
 
 /** 状态配置 */
-export const STATUS_CONFIG: Record<ProjectStatus, { label: string; color: string; bg: string; dot: string }> = {
-    active: { label: '进行中', color: 'text-accent', bg: 'bg-accent/20', dot: 'bg-accent' },
-    completed: { label: '已完成', color: 'text-success', bg: 'bg-success/20', dot: 'bg-success' },
-    paused: { label: '暂停', color: 'text-warning', bg: 'bg-warning/20', dot: 'bg-warning' },
-    archived: { label: '归档', color: 'text-text-tertiary', bg: 'bg-bg-tertiary', dot: 'bg-text-tertiary' },
+export const STATUS_CONFIG: Record<ProjectStatus, { label: string; dot: string } & ToneTokenClasses> = {
+    active: { label: '进行中', dot: 'bg-accent', ...TONES.accent },
+    completed: { label: '已完成', dot: 'bg-success', ...TONES.success },
+    paused: { label: '暂停', dot: 'bg-warning', ...TONES.warning },
+    archived: { label: '归档', dot: 'bg-text-tertiary', ...TONES.muted },
 };
 
 /** 项目灵感/成果类型配置 */
-export const NOTE_TYPE_CONFIG: Record<ProjectNoteType, { label: string; emoji: string; color: string; bg: string }> = {
-    idea: { label: '灵感', emoji: '💡', color: 'text-yellow-400', bg: 'bg-yellow-500/20' },
-    achievement: { label: '成果', emoji: '🏆', color: 'text-green-400', bg: 'bg-green-500/20' },
-    note: { label: '笔记', emoji: '📝', color: 'text-blue-400', bg: 'bg-blue-500/20' },
+export const NOTE_TYPE_CONFIG: Record<ProjectNoteType, { label: string; emoji: string } & ToneTokenClasses> = {
+    idea: { label: '灵感', emoji: '💡', ...TONES.yellow },
+    achievement: { label: '成果', emoji: '🏆', ...TONES.green },
+    note: { label: '笔记', emoji: '📝', ...TONES.blue },
 };
 
 /** 项目数据类型 */

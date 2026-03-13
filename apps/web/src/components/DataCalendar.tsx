@@ -187,7 +187,7 @@ export default forwardRef<DataCalendarHandle, DataCalendarProps>(function DataCa
                     ref={triggerRef}
                     type="button"
                     onClick={() => setOpen(!open)}
-                    className="p-1 hover:bg-bg-secondary rounded text-text-secondary hover:text-accent transition-colors"
+                    className="glass-segment-button h-8 w-8 p-0 hover:text-accent"
                     title="打开日历"
                 >
                     <Calendar size={16} />
@@ -198,19 +198,17 @@ export default forwardRef<DataCalendarHandle, DataCalendarProps>(function DataCa
             {open && (
                 <div
                     ref={popoverRef}
-                    className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-50
-                               bg-card-bg border border-border rounded-xl shadow-lg p-3
-                               w-70 select-none"
+                    className="glass-popover absolute top-full left-1/2 z-50 mt-2 w-70 -translate-x-1/2 select-none rounded-card p-3"
                 >
                     {/* 月份导航 */}
                     <div className="flex items-center justify-between mb-3">
                         <button
                             onClick={goToPrevMonth}
-                            className="p-1 hover:bg-bg-tertiary rounded transition-colors"
+                            className="glass-segment-button h-7 w-7 p-0"
                         >
                             <ChevronLeft size={16} className="text-text-secondary" />
                         </button>
-                        <span className="text-sm font-semibold text-text-primary">
+                        <span className="text-body-sm font-semibold text-text-primary">
                             {viewYear}年{viewMonth + 1}月
                             {loading && (
                                 <span className="ml-1 inline-block w-3 h-3 border-2 border-accent/30 border-t-accent rounded-full animate-spin align-middle" />
@@ -219,7 +217,7 @@ export default forwardRef<DataCalendarHandle, DataCalendarProps>(function DataCa
                         <button
                             onClick={goToNextMonth}
                             disabled={isNextDisabled}
-                            className="p-1 hover:bg-bg-tertiary rounded transition-colors disabled:opacity-30"
+                            className="glass-segment-button h-7 w-7 p-0 disabled:opacity-30"
                         >
                             <ChevronRight size={16} className="text-text-secondary" />
                         </button>
@@ -228,7 +226,7 @@ export default forwardRef<DataCalendarHandle, DataCalendarProps>(function DataCa
                     {/* 星期表头 */}
                     <div className="grid grid-cols-7 mb-1">
                         {WEEKDAYS.map(w => (
-                            <div key={w} className="text-center text-xs text-text-secondary font-medium py-1">
+                            <div key={w} className="text-center text-caption text-text-secondary font-medium py-1">
                                 {w}
                             </div>
                         ))}
@@ -258,17 +256,17 @@ export default forwardRef<DataCalendarHandle, DataCalendarProps>(function DataCa
                                     onClick={() => handleDayClick(day)}
                                     className={`
                                         relative h-9 w-full flex flex-col items-center justify-center
-                                        rounded-lg text-sm transition-colors
+                                        rounded-control text-body-sm transition-colors
                                         ${isFuture
                                             ? 'text-text-secondary/30 cursor-not-allowed'
-                                            : 'hover:bg-bg-tertiary cursor-pointer'
+                                            : 'hover:bg-panel-bg cursor-pointer'
                                         }
                                         ${isSelected
-                                            ? 'bg-accent text-white hover:bg-accent-hover font-semibold'
+                                            ? 'bg-selection-bg text-selection-text border border-selection-border font-semibold'
                                             : ''
                                         }
                                         ${isToday && !isSelected
-                                            ? 'font-bold text-accent ring-1 ring-accent/30'
+                                            ? 'font-bold text-accent ring-1 ring-selection-border'
                                             : ''
                                         }
                                         ${!isSelected && !isToday && !isFuture

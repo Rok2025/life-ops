@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { X, FileEdit } from 'lucide-react';
+import { FileEdit } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { outputApi } from '../api/outputApi';
 import { projectsApi } from '@/features/growth-projects/api/projectsApi';
@@ -9,6 +9,7 @@ import { AREA_CONFIG, type GrowthArea } from '@/features/growth-projects';
 import { OUTPUT_TYPE_CONFIG, OUTPUT_STATUS_CONFIG } from '../types';
 import { MarkdownEditor } from './MarkdownEditor';
 import type { OutputWithProject, OutputType, OutputStatus, CreateOutputInput, UpdateOutputInput } from '../types';
+import { Button, Dialog, Input, Select } from '@/components/ui';
 
 interface OutputFormProps {
     open: boolean;
@@ -37,21 +38,23 @@ export function OutputForm({ open, onClose, editingOutput, defaultProjectId }: O
     });
 
     useEffect(() => {
-        if (editingOutput) {
-            setTitle(editingOutput.title);
-            setType(editingOutput.type);
-            setContent(editingOutput.content ?? '');
-            setUrl(editingOutput.url ?? '');
-            setStatus(editingOutput.status);
-            setProjectId(editingOutput.project_id ?? '');
-        } else {
-            setTitle('');
-            setType('blog');
-            setContent('');
-            setUrl('');
-            setStatus('draft');
-            setProjectId(defaultProjectId ?? '');
-        }
+        queueMicrotask(() => {
+            if (editingOutput) {
+                setTitle(editingOutput.title);
+                setType(editingOutput.type);
+                setContent(editingOutput.content ?? '');
+                setUrl(editingOutput.url ?? '');
+                setStatus(editingOutput.status);
+                setProjectId(editingOutput.project_id ?? '');
+            } else {
+                setTitle('');
+                setType('blog');
+                setContent('');
+                setUrl('');
+                setStatus('draft');
+                setProjectId(defaultProjectId ?? '');
+            }
+        });
     }, [editingOutput, defaultProjectId]);
 
     const createMutation = useMutation({
@@ -96,19 +99,6 @@ export function OutputForm({ open, onClose, editingOutput, defaultProjectId }: O
         }
     }, [title, type, content, url, status, projectId, isEditing, createMutation, updateMutation]);
 
-    useEffect(() => {
-        if (!open) return;
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') onClose();
-        };
-        document.addEventListener('keydown', handleKeyDown);
-        document.body.style.overflow = 'hidden';
-        return () => {
-            document.removeEventListener('keydown', handleKeyDown);
-            document.body.style.overflow = '';
-        };
-    }, [open, onClose]);
-
     if (!open) return null;
 
     const saving = createMutation.isPending || updateMutation.isPending;
@@ -121,28 +111,24 @@ export function OutputForm({ open, onClose, editingOutput, defaultProjectId }: O
     }, {} as Record<string, typeof allProjects>);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-            <div className="relative w-full max-w-lg mx-4 bg-bg-primary border border-border rounded-2xl shadow-2xl">
-                <div className="flex items-center justify-between px-5 py-2.5 border-b border-border">
-                    <h2 className="text-base font-bold text-text-primary">
-                        {isEditing ? '编辑输出' : '新建输出'}
-                    </h2>
-                    <button onClick={onClose} className="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors">
-                        <X size={18} />
-                    </button>
-                </div>
-
-                <form onSubmit={handleSubmit} className="px-5 py-3 space-y-3">
+        <>
+            <Dialog
+                open={open}
+                onClose={onClose}
+                title={isEditing ? '编辑输出' : '新建输出'}
+                maxWidth="lg"
+                bodyClassName="flex min-h-0 flex-1 flex-col"
+            >
+                <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+                    <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4">
                     {/* 标题 */}
                     <div>
-                        <label className="block text-xs text-text-secondary mb-1">标题 *</label>
-                        <input
+                        <label className="block text-caption text-text-secondary mb-1">标题 *</label>
+                        <Input
                             type="text"
                             value={title}
                             onChange={e => setTitle(e.target.value)}
                             placeholder="输出标题"
-                            className="w-full px-3 py-2 text-sm bg-bg-tertiary border border-border rounded-lg text-text-primary placeholder:text-text-tertiary outline-none focus:border-accent"
                             autoFocus
                             required
                         />
@@ -151,38 +137,35 @@ export function OutputForm({ open, onClose, editingOutput, defaultProjectId }: O
                     {/* 类型 + 状态 */}
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-xs text-text-secondary mb-1">类型</label>
-                            <select
+                            <label className="block text-caption text-text-secondary mb-1">类型</label>
+                            <Select
                                 value={type}
                                 onChange={e => setType(e.target.value as OutputType)}
-                                className="w-full px-3 py-2 text-sm bg-bg-tertiary border border-border rounded-lg text-text-primary outline-none focus:border-accent"
                             >
                                 {(Object.keys(OUTPUT_TYPE_CONFIG) as OutputType[]).map(t => (
                                     <option key={t} value={t}>{OUTPUT_TYPE_CONFIG[t].emoji} {OUTPUT_TYPE_CONFIG[t].label}</option>
                                 ))}
-                            </select>
+                            </Select>
                         </div>
                         <div>
-                            <label className="block text-xs text-text-secondary mb-1">状态</label>
-                            <select
+                            <label className="block text-caption text-text-secondary mb-1">状态</label>
+                            <Select
                                 value={status}
                                 onChange={e => setStatus(e.target.value as OutputStatus)}
-                                className="w-full px-3 py-2 text-sm bg-bg-tertiary border border-border rounded-lg text-text-primary outline-none focus:border-accent"
                             >
                                 {(Object.keys(OUTPUT_STATUS_CONFIG) as OutputStatus[]).map(s => (
                                     <option key={s} value={s}>{OUTPUT_STATUS_CONFIG[s].label}</option>
                                 ))}
-                            </select>
+                            </Select>
                         </div>
                     </div>
 
                     {/* 关联项目 */}
                     <div>
-                        <label className="block text-xs text-text-secondary mb-1">关联项目</label>
-                        <select
+                        <label className="block text-caption text-text-secondary mb-1">关联项目</label>
+                        <Select
                             value={projectId}
                             onChange={e => setProjectId(e.target.value)}
-                            className="w-full px-3 py-2 text-sm bg-bg-tertiary border border-border rounded-lg text-text-primary outline-none focus:border-accent"
                         >
                             <option value="">不关联项目</option>
                             {Object.entries(groupedProjects).map(([area, projects]) => (
@@ -192,54 +175,49 @@ export function OutputForm({ open, onClose, editingOutput, defaultProjectId }: O
                                     ))}
                                 </optgroup>
                             ))}
-                        </select>
+                        </Select>
                     </div>
 
                     {/* 链接 */}
                     <div>
-                        <label className="block text-xs text-text-secondary mb-1">链接（可选）</label>
-                        <input
+                        <label className="block text-caption text-text-secondary mb-1">链接（可选）</label>
+                        <Input
                             type="url"
                             value={url}
                             onChange={e => setUrl(e.target.value)}
                             placeholder="https://..."
-                            className="w-full px-3 py-2 text-sm bg-bg-tertiary border border-border rounded-lg text-text-primary placeholder:text-text-tertiary outline-none focus:border-accent"
                         />
                     </div>
 
                     {/* 内容编辑 */}
                     <div>
-                        <label className="block text-xs text-text-secondary mb-1">内容（Markdown）</label>
+                        <label className="block text-caption text-text-secondary mb-1">内容（Markdown）</label>
                         <button
                             type="button"
                             onClick={() => setShowEditor(true)}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-sm bg-bg-tertiary border border-border rounded-lg text-text-secondary hover:border-accent hover:text-accent transition-colors"
+                            className="w-full flex items-center gap-2 px-control-x py-control-y text-body-sm bg-bg-tertiary border border-border rounded-control text-text-secondary hover:border-accent hover:text-accent transition-colors duration-normal ease-standard"
                         >
                             <FileEdit size={14} />
                             {content ? `已编辑 · ${content.length} 字符` : '打开编辑器撰写内容 →'}
                         </button>
                     </div>
+                    </div>
 
                     {/* 按钮 */}
-                    <div className="flex justify-end gap-2 pt-1">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="px-4 py-2 text-sm text-text-secondary hover:bg-bg-tertiary rounded-lg transition-colors"
-                        >
+                    <div className="flex justify-end gap-2 border-t border-border bg-bg-primary px-5 py-3">
+                        <Button type="button" onClick={onClose} variant="ghost" size="sm">
                             取消
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             type="submit"
                             disabled={saving || !title.trim()}
-                            className="btn-primary text-sm px-4 py-2 disabled:opacity-50"
+                            size="sm"
                         >
                             {saving ? '保存中...' : isEditing ? '保存' : '创建'}
-                        </button>
+                        </Button>
                     </div>
                 </form>
-            </div>
-
+            </Dialog>
             {/* 全屏 Markdown 编辑器 */}
             <MarkdownEditor
                 open={showEditor}
@@ -249,6 +227,6 @@ export function OutputForm({ open, onClose, editingOutput, defaultProjectId }: O
                 onClose={() => setShowEditor(false)}
                 onSave={() => setShowEditor(false)}
             />
-        </div>
+        </>
     );
 }

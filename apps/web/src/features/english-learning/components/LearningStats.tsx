@@ -10,6 +10,7 @@ import { useDailySummary } from '../hooks/useDailySummary';
 import { useAISummary } from '../hooks/useAIQuery';
 import { useEnglishMutations } from '../hooks/useEnglishMutations';
 import type { Difficulty, Familiarity } from '../types';
+import { Button, Card } from '@/components/ui';
 
 export default function LearningStats() {
     const today = getLocalDateStr();
@@ -64,65 +65,67 @@ export default function LearningStats() {
 
             {/* Difficulty Distribution */}
             {stats && stats.total > 0 && (
-                <div className="card p-card">
-                    <h3 className="text-sm font-medium text-text-secondary mb-3">难度分布</h3>
+                <Card className="p-card">
+                    <h3 className="text-body-sm font-medium text-text-secondary mb-3">难度分布</h3>
                     <div className="space-y-2">
                         {(Object.entries(stats.byDifficulty) as [Difficulty, number][]).map(([diff, count]) => {
                             const pct = stats.total > 0 ? (count / stats.total) * 100 : 0;
                             const config = DIFFICULTY_CONFIG[diff];
                             return (
                                 <div key={diff} className="flex items-center gap-3">
-                                    <span className={`text-xs font-medium w-10 ${config.color}`}>{config.label}</span>
+                                    <span className={`text-caption font-medium w-10 ${config.color}`}>{config.label}</span>
                                     <div className="flex-1 bg-bg-tertiary rounded-full h-2">
                                         <div
-                                            className="bg-accent h-2 rounded-full transition-all duration-500"
+                                            className="bg-accent h-2 rounded-full transition-all duration-normal ease-standard"
                                             style={{ width: `${pct}%` }}
                                         />
                                     </div>
-                                    <span className="text-xs text-text-tertiary w-8 text-right">{count}</span>
+                                    <span className="text-caption text-text-tertiary w-8 text-right">{count}</span>
                                 </div>
                             );
                         })}
                     </div>
-                </div>
+                </Card>
             )}
 
             {/* Familiarity Distribution */}
             {stats && stats.total > 0 && (
-                <div className="card p-card">
-                    <h3 className="text-sm font-medium text-text-secondary mb-3">掌握度分布</h3>
+                <Card className="p-card">
+                    <h3 className="text-body-sm font-medium text-text-secondary mb-3">掌握度分布</h3>
                     <div className="grid grid-cols-6 gap-2">
                         {([0, 1, 2, 3, 4, 5] as Familiarity[]).map(level => {
                             const count = stats.byFamiliarity[level] ?? 0;
                             const pct = stats.total > 0 ? (count / stats.total) * 100 : 0;
                             return (
                                 <div key={level} className="text-center">
-                                    <div className="relative h-20 bg-bg-tertiary rounded-lg overflow-hidden mb-1">
+                                    <div className="relative h-20 bg-bg-tertiary rounded-control overflow-hidden mb-1">
                                         <div
-                                            className="absolute bottom-0 left-0 right-0 bg-accent/60 transition-all duration-500"
+                                            className="absolute bottom-0 left-0 right-0 bg-accent/60 transition-all duration-normal ease-standard"
                                             style={{ height: `${pct}%` }}
                                         />
-                                        <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-text-primary">
+                                        <span className="absolute inset-0 flex items-center justify-center text-caption font-medium text-text-primary">
                                             {count}
                                         </span>
                                     </div>
-                                    <span className="text-xs text-text-tertiary">{FAMILIARITY_LABELS[level]}</span>
+                                    <span className="text-caption text-text-tertiary">{FAMILIARITY_LABELS[level]}</span>
                                 </div>
                             );
                         })}
                     </div>
-                </div>
+                </Card>
             )}
 
             {/* Daily Summary */}
-            <div className="card p-card">
+            <Card className="p-card">
                 <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-medium text-text-secondary">今日总结</h3>
+                    <h3 className="text-body-sm font-medium text-text-secondary">今日总结</h3>
                     {todayQueries.length > 0 && (
-                        <button
+                        <Button
                             onClick={handleGenerateSummary}
                             disabled={generatingSummary}
-                            className="flex items-center gap-1 text-xs text-accent hover:text-accent/80 disabled:opacity-50"
+                            variant="ghost"
+                            size="sm"
+                            className="gap-1 text-accent hover:text-accent/80"
                         >
                             {generatingSummary ? (
                                 <Loader2 size={14} className="animate-spin" />
@@ -130,17 +133,17 @@ export default function LearningStats() {
                                 <Sparkles size={14} />
                             )}
                             {summary ? '重新生成' : '生成总结'}
-                        </button>
+                        </Button>
                     )}
                 </div>
 
                 {summary?.ai_summary ? (
                     <div className="space-y-2">
-                        <p className="text-sm text-text-primary whitespace-pre-wrap">{summary.ai_summary}</p>
+                        <p className="text-body-sm text-text-primary whitespace-pre-wrap">{summary.ai_summary}</p>
                         {summary.new_words.length > 0 && (
                             <div className="flex flex-wrap gap-1 pt-2 border-t border-border">
                                 {summary.new_words.map((w, i) => (
-                                    <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-accent/10 text-accent">
+                                    <span key={i} className="text-caption px-2 py-0.5 rounded-full bg-accent/10 text-accent">
                                         {w}
                                     </span>
                                 ))}
@@ -148,13 +151,13 @@ export default function LearningStats() {
                         )}
                     </div>
                 ) : (
-                    <p className="text-sm text-text-tertiary">
+                    <p className="text-body-sm text-text-tertiary">
                         {todayQueries.length === 0
                             ? '今天还没有查询记录'
                             : '点击"生成总结"让 AI 帮你提炼今日学习要点'}
                     </p>
                 )}
-            </div>
+            </Card>
         </div>
     );
 }
@@ -173,12 +176,12 @@ function StatCard({
     accent?: boolean;
 }) {
     return (
-        <div className="card p-card text-center">
-            <p className="text-2xl mb-1">{icon}</p>
-            <p className={`text-2xl font-bold ${accent ? 'text-accent' : 'text-text-primary'}`}>
+        <Card className="p-card text-center">
+            <p className="text-h2 mb-1">{icon}</p>
+            <p className={`text-h2 font-bold ${accent ? 'text-accent' : 'text-text-primary'}`}>
                 {value}
             </p>
-            <p className="text-xs text-text-tertiary mt-0.5">{label}</p>
-        </div>
+            <p className="text-caption text-text-tertiary mt-0.5">{label}</p>
+        </Card>
     );
 }

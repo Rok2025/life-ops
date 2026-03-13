@@ -1,6 +1,7 @@
 import { TrendingUp } from 'lucide-react';
 import type { WorkoutsByDate } from '../types';
-import { CATEGORY_CONFIG } from '../types';
+import { getCategoryConfig } from '../types';
+import { Card } from '@/components/ui';
 
 interface TopExercisesProps {
     workoutsByDate: WorkoutsByDate[];
@@ -46,27 +47,27 @@ export function TopExercises({ workoutsByDate }: TopExercisesProps) {
     const maxCount = top5[0].count;
 
     return (
-        <section className="card p-3">
+        <Card className="p-3">
             <div className="flex items-center gap-2 mb-3">
                 <TrendingUp size={14} className="text-accent" />
-                <h3 className="text-sm font-medium text-text-secondary">常练动作 Top {top5.length}</h3>
+                <h3 className="text-body-sm font-medium text-text-secondary">常练动作 Top {top5.length}</h3>
             </div>
             <div className="space-y-2">
                 {top5.map((ex, i) => {
-                    const config = CATEGORY_CONFIG[ex.category] || { label: ex.category, color: 'text-gray-400', bg: 'bg-gray-500/20' };
+                    const config = getCategoryConfig(ex.category);
                     const percentage = Math.round((ex.count / maxCount) * 100);
 
                     return (
                         <div key={ex.name} className="flex items-center gap-3">
-                            <span className="text-xs text-text-secondary w-4 text-right">{i + 1}</span>
+                            <span className="text-caption text-text-secondary w-4 text-right">{i + 1}</span>
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between mb-0.5">
-                                    <span className="text-sm text-text-primary truncate">{ex.name}</span>
+                                    <span className="text-body-sm text-text-primary truncate">{ex.name}</span>
                                     <div className="flex items-center gap-2 shrink-0 ml-2">
-                                        <span className={`text-xs px-1.5 py-0.5 rounded ${config.bg} ${config.color}`}>
+                                        <span className={`text-caption px-1.5 py-0.5 rounded ${config.bg} ${config.color}`}>
                                             {config.label}
                                         </span>
-                                        <span className="text-xs text-text-secondary">{ex.count}次</span>
+                                        <span className="text-caption text-text-secondary">{ex.count}次</span>
                                     </div>
                                 </div>
                                 <div className="h-1.5 bg-bg-tertiary rounded-full overflow-hidden">
@@ -80,6 +81,6 @@ export function TopExercises({ workoutsByDate }: TopExercisesProps) {
                     );
                 })}
             </div>
-        </section>
+        </Card>
     );
 }

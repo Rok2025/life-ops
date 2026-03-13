@@ -25,13 +25,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN" suppressHydrationWarning>
-      <body className="antialiased font-sans bg-bg-primary text-text-primary transition-colors duration-300">
+      <body className="antialiased font-sans text-body bg-bg-primary text-text-primary transition-colors duration-300">
         <QueryProvider>
           <AuthProvider>
             <AuthGuard>
               <div className="flex min-h-screen">
                 <Sidebar />
-                <main className="flex-1 ml-[var(--sidebar-width)] mr-[var(--summary-width)]">
+                <main className="flex-1 ml-(--sidebar-width) mr-(--summary-width)">
                   <div className="max-w-6xl mx-auto py-page-y px-page-x">
                     {children}
                   </div>

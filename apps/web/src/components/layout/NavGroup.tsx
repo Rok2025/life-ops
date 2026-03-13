@@ -27,9 +27,9 @@ export default function NavGroup({
         <li>
             <button
                 onClick={onToggle}
-                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl border transition-all duration-200 group ${hasActiveChild
-                    ? 'text-accent bg-accent/10 border-accent/50'
-                    : 'border-border bg-bg-tertiary/30 text-text-secondary hover:border-accent hover:bg-accent/10 hover:text-text-primary'
+                className={`relative w-full flex items-center justify-between overflow-hidden px-4 py-2.5 rounded-card border transition-all duration-200 group ${hasActiveChild
+                    ? 'border-selection-border/80 bg-selection-bg/85 text-selection-text shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-sm before:pointer-events-none before:absolute before:left-2 before:top-1/2 before:h-4 before:w-0.5 before:-translate-y-1/2 before:rounded-full before:bg-accent/80'
+                    : 'border-transparent bg-transparent text-text-secondary hover:border-glass-border hover:bg-panel-bg/90 hover:text-text-primary'
                     }`}
             >
                 <div className="flex items-center gap-3">
@@ -37,7 +37,7 @@ export default function NavGroup({
                         size={20}
                         className={hasActiveChild ? 'text-accent' : 'text-text-tertiary group-hover:text-text-primary'}
                     />
-                    <span className="font-medium text-sm">{label}</span>
+                    <span className="font-medium text-body-sm">{label}</span>
                 </div>
                 <ChevronDown
                     size={16}

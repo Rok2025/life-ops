@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { Button } from '@/components/ui';
 
 interface MarkdownViewerProps {
     title: string;
@@ -25,19 +26,16 @@ export function MarkdownViewer({ title, content, onClose }: MarkdownViewerProps)
     }, [onClose]);
 
     return (
-        <div className="fixed inset-0 z-[60] flex flex-col bg-bg-primary">
+        <div className="fixed inset-0 z-60 flex flex-col bg-bg-primary">
             {/* 顶栏 */}
             <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-bg-secondary shrink-0">
                 <div className="flex items-center gap-3 min-w-0">
-                    <button
-                        onClick={onClose}
-                        className="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors"
-                    >
+                    <Button onClick={onClose} variant="ghost" size="sm" className="px-2 py-1.5">
                         <X size={18} />
-                    </button>
-                    <span className="text-sm font-semibold text-text-primary truncate">{title}</span>
+                    </Button>
+                    <span className="text-body font-semibold text-text-primary truncate">{title}</span>
                 </div>
-                <span className="text-[10px] text-text-tertiary">Esc 退出</span>
+                <span className="text-caption text-text-tertiary">Esc 退出</span>
             </div>
 
             {/* 内容 */}
@@ -50,7 +48,7 @@ export function MarkdownViewer({ title, content, onClose }: MarkdownViewerProps)
             </div>
 
             {/* 底栏 */}
-            <div className="flex items-center justify-between px-4 py-1.5 border-t border-border bg-bg-secondary text-[10px] text-text-tertiary shrink-0">
+            <div className="flex items-center justify-between px-4 py-1.5 border-t border-border bg-bg-secondary text-caption text-text-tertiary shrink-0">
                 <span>{content.length} 字符</span>
                 <span>{content.split('\n').length} 行</span>
             </div>

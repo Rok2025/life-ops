@@ -10,6 +10,7 @@ import {
 import { configApi } from '../api/configApi';
 import { exerciseTypesApi } from '../api/exerciseTypesApi';
 import type { ConfigItem } from '../types';
+import { Button, Card, Dialog, Input, Select } from '@/components/ui';
 
 // ---------- Types ----------
 
@@ -198,16 +199,16 @@ export default function ExerciseManager({ initialCategories, initialExercises }:
     // ========== Render ==========
 
     return (
-        <div className="card">
+        <Card variant="subtle" className="overflow-hidden p-0">
             {/* Header */}
             <button
                 onClick={() => setExpanded(v => !v)}
-                className="w-full flex items-center justify-between p-4 hover:bg-bg-tertiary/50 rounded-t-xl transition-colors"
+                className="flex w-full items-center justify-between p-4 transition-colors duration-normal ease-standard hover:bg-panel-bg/90"
             >
                 <div className="flex items-center gap-3">
                     <Dumbbell size={18} className="text-accent" />
-                    <h3 className="text-base font-semibold text-text-primary">训练配置</h3>
-                    <span className="text-xs text-text-tertiary bg-bg-tertiary px-2 py-0.5 rounded-full">
+                    <h3 className="text-body font-semibold text-text-primary">训练配置</h3>
+                    <span className="glass-mini-chip text-caption">
                         {activeCategories.length} 部位 · {exercises.length} 动作
                     </span>
                 </div>
@@ -219,29 +220,31 @@ export default function ExerciseManager({ initialCategories, initialExercises }:
             {expanded && (
                 <div className="px-4 pb-4">
                     {/* Tab 切换 */}
-                    <div className="flex border-b border-border mb-4">
+                    <div className="mb-4">
+                        <div className="glass-filter-bar inline-flex items-center">
                         <button
                             onClick={() => setTab('exercises')}
-                            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px ${
+                            className={`glass-filter-chip text-body-sm ${
                                 tab === 'exercises'
-                                    ? 'border-accent text-accent'
-                                    : 'border-transparent text-text-secondary hover:text-text-primary'
+                                    ? 'glass-filter-chip-active font-medium text-text-primary'
+                                    : ''
                             }`}
                         >
                             训练动作
-                            <span className="ml-1.5 text-xs text-text-tertiary">({exercises.length})</span>
+                            <span className="ml-1.5 text-caption text-text-tertiary">({exercises.length})</span>
                         </button>
                         <button
                             onClick={() => setTab('categories')}
-                            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px ${
+                            className={`glass-filter-chip text-body-sm ${
                                 tab === 'categories'
-                                    ? 'border-accent text-accent'
-                                    : 'border-transparent text-text-secondary hover:text-text-primary'
+                                    ? 'glass-filter-chip-active font-medium text-text-primary'
+                                    : ''
                             }`}
                         >
                             训练部位
-                            <span className="ml-1.5 text-xs text-text-tertiary">({activeCategories.length}/{categories.length})</span>
+                            <span className="ml-1.5 text-caption text-text-tertiary">({activeCategories.length}/{categories.length})</span>
                         </button>
+                        </div>
                     </div>
 
                     {/* ===== Tab: 训练动作 ===== */}
@@ -249,13 +252,13 @@ export default function ExerciseManager({ initialCategories, initialExercises }:
                         <div className="space-y-4">
                             {/* Category filter + Add */}
                             <div className="flex items-center justify-between gap-3">
-                                <div className="flex flex-wrap gap-1.5 flex-1">
+                                <div className="glass-filter-bar flex flex-1 flex-wrap items-center">
                                     <button
                                         onClick={() => setSelectedCategory(null)}
-                                        className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                                        className={`glass-filter-chip text-caption ${
                                             selectedCategory === null
-                                                ? 'bg-accent text-white'
-                                                : 'bg-bg-tertiary text-text-secondary hover:text-text-primary'
+                                                ? 'glass-filter-chip-active font-medium'
+                                                : ''
                                         }`}
                                     >
                                         全部
@@ -264,23 +267,20 @@ export default function ExerciseManager({ initialCategories, initialExercises }:
                                         <button
                                             key={cat}
                                             onClick={() => setSelectedCategory(cat)}
-                                            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                                            className={`glass-filter-chip text-caption ${
                                                 selectedCategory === cat
-                                                    ? 'bg-accent text-white'
-                                                    : 'bg-bg-tertiary text-text-secondary hover:text-text-primary'
+                                                    ? 'glass-filter-chip-active font-medium'
+                                                    : ''
                                             }`}
                                         >
                                             {categoryLabels[cat] || cat}
                                         </button>
                                     ))}
                                 </div>
-                                <button
-                                    onClick={() => setShowAddForm(true)}
-                                    className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1 shrink-0"
-                                >
+                                <Button onClick={() => setShowAddForm(true)} variant="tinted" size="sm" className="gap-1 shrink-0">
                                     <Plus size={14} />
                                     添加
-                                </button>
+                                </Button>
                             </div>
 
                             {/* Exercise list by category */}
@@ -289,10 +289,10 @@ export default function ExerciseManager({ initialCategories, initialExercises }:
                                     <div key={category}>
                                         <div className="flex items-center gap-2 mb-2">
                                             <span className="w-2 h-2 rounded-full bg-accent" />
-                                            <span className="text-sm font-medium text-text-primary">
+                                            <span className="text-body-sm font-medium text-text-primary">
                                                 {categoryLabels[category] || category}
                                             </span>
-                                            <span className="text-xs text-text-tertiary">
+                                            <span className="text-caption text-text-tertiary">
                                                 ({exercisesByCategory[category]?.length || 0})
                                             </span>
                                         </div>
@@ -300,33 +300,34 @@ export default function ExerciseManager({ initialCategories, initialExercises }:
                                             {exercisesByCategory[category]?.map(exercise => (
                                                 <div
                                                     key={exercise.id}
-                                                    className="flex items-center justify-between px-3 py-2 bg-bg-tertiary rounded-lg"
+                                                    className="glass-list-row flex items-center justify-between px-3 py-2"
                                                 >
                                                     {editingId === exercise.id ? (
-                                                        <input
+                                                        <Input
                                                             type="text"
                                                             value={editName}
                                                             onChange={e => setEditName(e.target.value)}
                                                             onKeyDown={e => { if (e.key === 'Enter') handleUpdateExercise(exercise.id); }}
-                                                            className="flex-1 px-2 py-1 rounded bg-card-bg border border-border text-text-primary text-sm mr-2"
+                                                            size="sm"
+                                                            className="mr-2 flex-1 bg-card-bg"
                                                             autoFocus
                                                         />
                                                     ) : (
-                                                        <span className="text-sm text-text-primary">{exercise.name}</span>
+                                                        <span className="text-body-sm text-text-primary">{exercise.name}</span>
                                                     )}
                                                     <div className="flex items-center gap-1">
                                                         {editingId === exercise.id ? (
                                                             <>
                                                                 <button
                                                                     onClick={() => handleUpdateExercise(exercise.id)}
-                                                                    className="p-1 text-success hover:bg-success/10 rounded"
+                                                                    className="p-1 text-success hover:bg-success/10 rounded-control transition-colors duration-normal ease-standard"
                                                                 >
                                                                     <Check size={14} />
                                                                 </button>
-                                                                <button
-                                                                    onClick={() => setEditingId(null)}
-                                                                    className="p-1 text-text-secondary hover:bg-bg-secondary rounded"
-                                                                >
+                                                            <button
+                                                                onClick={() => setEditingId(null)}
+                                                                className="rounded-control p-1 text-text-secondary transition-colors duration-normal ease-standard hover:bg-panel-bg"
+                                                            >
                                                                     <X size={14} />
                                                                 </button>
                                                             </>
@@ -334,13 +335,13 @@ export default function ExerciseManager({ initialCategories, initialExercises }:
                                                             <>
                                                                 <button
                                                                     onClick={() => { setEditingId(exercise.id); setEditName(exercise.name); }}
-                                                                    className="p-1 text-text-tertiary hover:text-text-secondary hover:bg-bg-secondary rounded"
+                                                                    className="rounded-control p-1 text-text-tertiary transition-colors duration-normal ease-standard hover:bg-panel-bg hover:text-text-secondary"
                                                                 >
                                                                     <Edit2 size={13} />
                                                                 </button>
                                                                 <button
                                                                     onClick={() => handleDeleteExercise(exercise.id, exercise.name)}
-                                                                    className="p-1 text-text-tertiary hover:text-danger hover:bg-danger/10 rounded"
+                                                                    className="p-1 text-text-tertiary hover:text-danger hover:bg-danger/10 rounded-control transition-colors duration-normal ease-standard"
                                                                 >
                                                                     <Trash2 size={13} />
                                                                 </button>
@@ -353,7 +354,9 @@ export default function ExerciseManager({ initialCategories, initialExercises }:
                                     </div>
                                 ))}
                                 {displayCategories.length === 0 && (
-                                    <p className="text-sm text-text-tertiary text-center py-4">暂无动作</p>
+                                    <div className="rounded-[1rem] border border-dashed border-glass-border bg-panel-bg/65 px-4 py-5 text-center text-body-sm text-text-tertiary">
+                                        暂无动作
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -362,34 +365,35 @@ export default function ExerciseManager({ initialCategories, initialExercises }:
                     {/* ===== Tab: 训练部位 ===== */}
                     {tab === 'categories' && (
                         <div className="space-y-3">
-                            <p className="text-sm text-text-tertiary">管理健身训练的肌群分类。停用后对应部位不再显示。</p>
+                            <p className="text-body-sm text-text-tertiary">管理健身训练的肌群分类。停用后对应部位不再显示。</p>
 
                             {/* Category list */}
                             <div className="space-y-2">
                                 {categories.map(cat => (
                                     <div
                                         key={cat.id}
-                                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-colors ${
+                                        className={`glass-list-row flex items-center gap-3 px-3 py-2.5 ${
                                             cat.is_active
-                                                ? 'border-border bg-bg-tertiary'
-                                                : 'border-border/50 bg-bg-tertiary/50 opacity-60'
+                                                ? ''
+                                                : 'opacity-60'
                                         }`}
                                     >
                                         {editingCatId === cat.id ? (
-                                            <input
+                                            <Input
                                                 type="text"
                                                 value={editCatLabel}
                                                 onChange={e => setEditCatLabel(e.target.value)}
                                                 onKeyDown={e => { if (e.key === 'Enter') handleSaveEditCategory(); if (e.key === 'Escape') setEditingCatId(null); }}
-                                                className="flex-1 px-2 py-1 rounded bg-card-bg border border-border text-text-primary text-sm mr-2"
+                                                size="sm"
+                                                className="mr-2 flex-1 bg-card-bg"
                                                 autoFocus
                                             />
                                         ) : (
-                                            <span className={`flex-1 text-sm ${cat.is_active ? 'text-text-primary' : 'text-text-secondary line-through'}`}>
+                                            <span className={`flex-1 text-body-sm ${cat.is_active ? 'text-text-primary' : 'text-text-secondary line-through'}`}>
                                                 {cat.label}
                                             </span>
                                         )}
-                                        <span className="text-xs text-text-tertiary">
+                                        <span className="text-caption text-text-tertiary">
                                             {exercisesByCategory[cat.value]?.length ?? 0} 个动作
                                         </span>
                                         <div className="flex items-center gap-1">
@@ -397,14 +401,14 @@ export default function ExerciseManager({ initialCategories, initialExercises }:
                                                 <>
                                                     <button
                                                         onClick={handleSaveEditCategory}
-                                                        className="p-1 text-success hover:bg-success/10 rounded"
+                                                        className="p-1 text-success hover:bg-success/10 rounded-control transition-colors duration-normal ease-standard"
                                                         title="保存"
                                                     >
                                                         <Check size={14} />
                                                     </button>
                                                     <button
                                                         onClick={() => setEditingCatId(null)}
-                                                        className="p-1 text-text-secondary hover:bg-bg-secondary rounded"
+                                                        className="rounded-control p-1 text-text-secondary transition-colors duration-normal ease-standard hover:bg-panel-bg"
                                                         title="取消"
                                                     >
                                                         <X size={14} />
@@ -414,17 +418,17 @@ export default function ExerciseManager({ initialCategories, initialExercises }:
                                                 <>
                                                     <button
                                                         onClick={() => handleStartEditCategory(cat)}
-                                                        className="p-1 text-text-tertiary hover:text-text-secondary hover:bg-bg-secondary rounded"
+                                                        className="rounded-control p-1 text-text-tertiary transition-colors duration-normal ease-standard hover:bg-panel-bg hover:text-text-secondary"
                                                         title="编辑"
                                                     >
                                                         <Edit2 size={13} />
                                                     </button>
                                                     <button
                                                         onClick={() => toggleCatMutation.mutate({ id: cat.id, isActive: !cat.is_active })}
-                                                        className={`p-1 rounded transition-colors ${
+                                                        className={`p-1 rounded-control transition-colors duration-normal ease-standard ${
                                                             cat.is_active
                                                                 ? 'text-success hover:bg-success/10'
-                                                                : 'text-text-tertiary hover:bg-bg-secondary'
+                                                                : 'text-text-tertiary hover:bg-panel-bg'
                                                         }`}
                                                         title={cat.is_active ? '停用' : '启用'}
                                                     >
@@ -433,7 +437,7 @@ export default function ExerciseManager({ initialCategories, initialExercises }:
                                                     <button
                                                         onClick={() => handleDeleteCategory(cat.id)}
                                                         disabled={deleteCatMutation.isPending}
-                                                        className="p-1 text-text-tertiary hover:text-danger hover:bg-danger/10 rounded transition-colors disabled:opacity-50"
+                                                        className="p-1 text-text-tertiary hover:text-danger hover:bg-danger/10 rounded-control transition-colors duration-normal ease-standard disabled:opacity-50"
                                                         title="删除"
                                                     >
                                                         <Trash2 size={14} />
@@ -444,28 +448,26 @@ export default function ExerciseManager({ initialCategories, initialExercises }:
                                     </div>
                                 ))}
                                 {categories.length === 0 && (
-                                    <p className="text-sm text-text-tertiary text-center py-4">暂无部位</p>
+                                    <div className="rounded-[1rem] border border-dashed border-glass-border bg-panel-bg/65 px-4 py-5 text-center text-body-sm text-text-tertiary">
+                                        暂无部位
+                                    </div>
                                 )}
                             </div>
 
                             {/* Add new category */}
                             <div className="flex gap-2">
-                                <input
+                                <Input
                                     type="text"
                                     value={newCatLabel}
                                     onChange={e => setNewCatLabel(e.target.value)}
                                     onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddCategory(); } }}
                                     placeholder="输入新部位名称..."
-                                    className="flex-1 px-3 py-2 text-sm rounded-lg bg-bg-tertiary border border-border text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-accent"
+                                    className="flex-1"
                                 />
-                                <button
-                                    onClick={handleAddCategory}
-                                    disabled={!newCatLabel.trim() || addCatMutation.isPending}
-                                    className="btn-primary px-3 py-2 text-sm flex items-center gap-1 disabled:opacity-50"
-                                >
+                                <Button onClick={handleAddCategory} disabled={!newCatLabel.trim() || addCatMutation.isPending} variant="tinted" size="sm" className="gap-1">
                                     <Plus size={14} />
                                     添加
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     )}
@@ -473,54 +475,53 @@ export default function ExerciseManager({ initialCategories, initialExercises }:
             )}
 
             {/* Add Exercise Modal */}
-            {showAddForm && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="card p-6 w-full max-w-md mx-4">
-                        <h2 className="text-lg font-semibold text-text-primary mb-4">添加新动作</h2>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm text-text-secondary mb-1">部位</label>
-                                <select
-                                    value={effectiveNewCategory}
-                                    onChange={e => setNewCategory(e.target.value)}
-                                    className="w-full px-3 py-2 rounded-lg bg-bg-tertiary border border-border text-text-primary"
-                                >
-                                    {allCatValues.map(cat => (
-                                        <option key={cat} value={cat}>{categoryLabels[cat] || cat}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm text-text-secondary mb-1">动作名称</label>
-                                <input
-                                    type="text"
-                                    value={newName}
-                                    onChange={e => setNewName(e.target.value)}
-                                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddExercise(); } }}
-                                    placeholder="请输入动作名称"
-                                    className="w-full px-3 py-2 rounded-lg bg-bg-tertiary border border-border text-text-primary"
-                                    autoFocus
-                                />
-                            </div>
+            <Dialog
+                open={showAddForm}
+                onClose={() => setShowAddForm(false)}
+                title="添加新动作"
+                maxWidth="md"
+                bodyClassName="flex min-h-0 flex-1 flex-col"
+            >
+                <form
+                    onSubmit={(event) => {
+                        event.preventDefault();
+                        void handleAddExercise();
+                    }}
+                    className="flex min-h-0 flex-1 flex-col"
+                >
+                    <div className="space-y-4 px-5 py-4">
+                        <div>
+                            <label className="mb-1 block text-caption text-text-secondary">部位</label>
+                            <Select
+                                value={effectiveNewCategory}
+                                onChange={e => setNewCategory(e.target.value)}
+                            >
+                                {allCatValues.map(cat => (
+                                    <option key={cat} value={cat}>{categoryLabels[cat] || cat}</option>
+                                ))}
+                            </Select>
                         </div>
-                        <div className="flex gap-3 mt-6">
-                            <button
-                                onClick={() => setShowAddForm(false)}
-                                className="flex-1 py-2 rounded-lg border border-border text-text-secondary hover:bg-bg-tertiary"
-                            >
-                                取消
-                            </button>
-                            <button
-                                onClick={handleAddExercise}
-                                disabled={!newName.trim() || saving}
-                                className="flex-1 btn-primary py-2 disabled:opacity-50"
-                            >
-                                {saving ? '保存中...' : '确定添加'}
-                            </button>
+                        <div>
+                            <label className="mb-1 block text-caption text-text-secondary">动作名称</label>
+                            <Input
+                                type="text"
+                                value={newName}
+                                onChange={e => setNewName(e.target.value)}
+                                placeholder="请输入动作名称"
+                                autoFocus
+                            />
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                    <div className="flex gap-3 border-t border-border bg-bg-primary px-5 py-3">
+                        <Button type="button" onClick={() => setShowAddForm(false)} variant="ghost">
+                            取消
+                        </Button>
+                        <Button type="submit" disabled={!newName.trim() || saving}>
+                            {saving ? '保存中...' : '确定添加'}
+                        </Button>
+                    </div>
+                </form>
+            </Dialog>
+        </Card>
     );
 }

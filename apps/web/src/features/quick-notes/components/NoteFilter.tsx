@@ -1,6 +1,6 @@
 'use client';
 
-import type { FilterType, NoteType } from '../types';
+import type { FilterType } from '../types';
 import { NOTE_TYPE_CONFIG, NOTE_TYPES } from '../types';
 
 interface NoteFilterProps {
@@ -11,15 +11,15 @@ interface NoteFilterProps {
 
 export function NoteFilter({ filter, counts, onFilterChange }: NoteFilterProps) {
     return (
-        <div className="flex items-center gap-1 mb-4 bg-bg-tertiary rounded-lg p-1">
+        <div className="glass-filter-bar mb-4 flex items-center">
             <button
                 onClick={() => onFilterChange('all')}
-                className={`px-3 py-1.5 rounded-md text-sm transition-colors ${filter === 'all'
-                        ? 'bg-bg-secondary text-text-primary font-medium shadow-sm'
-                        : 'text-text-secondary hover:text-text-primary'
+                className={`glass-filter-chip text-body-sm ${filter === 'all'
+                        ? 'glass-filter-chip-active font-medium'
+                        : ''
                     }`}
             >
-                全部 {counts.all > 0 && <span className="ml-1 text-xs opacity-70">{counts.all}</span>}
+                全部 {counts.all > 0 && <span className="ml-1 text-caption opacity-70">{counts.all}</span>}
             </button>
             {NOTE_TYPES.map(type => {
                 const config = NOTE_TYPE_CONFIG[type];
@@ -27,14 +27,14 @@ export function NoteFilter({ filter, counts, onFilterChange }: NoteFilterProps) 
                     <button
                         key={type}
                         onClick={() => onFilterChange(type)}
-                        className={`px-3 py-1.5 rounded-md text-sm transition-colors flex items-center gap-1 ${filter === type
-                                ? 'bg-bg-secondary text-text-primary font-medium shadow-sm'
-                                : 'text-text-secondary hover:text-text-primary'
+                        className={`glass-filter-chip text-body-sm ${filter === type
+                                ? 'glass-filter-chip-active font-medium'
+                                : ''
                             }`}
                     >
                         <span>{config.emoji}</span>
                         {config.label}
-                        {counts[type] > 0 && <span className="text-xs opacity-70">{counts[type]}</span>}
+                        {counts[type] > 0 && <span className="text-caption opacity-70">{counts[type]}</span>}
                     </button>
                 );
             })}

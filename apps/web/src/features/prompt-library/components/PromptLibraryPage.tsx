@@ -8,6 +8,8 @@ import PromptTemplateList from './PromptTemplateList';
 import PromptTemplateDetail from './PromptTemplateDetail';
 import PromptTemplateFormDialog from './PromptTemplateFormDialog';
 import type { PromptTemplate, PromptTemplateFormValues } from '../types';
+import { TONES } from '@/design-system/tokens';
+import { Button, Card, Input, PageHero, SectionHeader } from '@/components/ui';
 
 function resolveSubmitErrorMessage(error: unknown, fallback: string): string {
     if (error instanceof Error && error.message) {
@@ -106,6 +108,10 @@ export default function PromptLibraryPage() {
         () => [...new Set(templates.flatMap(template => template.tags))].sort((a, b) => a.localeCompare(b, 'zh-CN')),
         [templates],
     );
+    const favoritesCount = useMemo(
+        () => templates.filter(template => template.is_favorite).length,
+        [templates],
+    );
 
     const handleCreate = useCallback(() => {
         setEditingTemplate(null);
@@ -196,89 +202,88 @@ export default function PromptLibraryPage() {
     }, [recordUseMutation]);
 
     return (
-        <div className="space-y-section">
-            <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
-                        <Sparkles size={20} className="text-accent" />
-                    </div>
-                    <div>
-                        <h1 className="text-xl font-bold text-text-primary">提示词库</h1>
-                        <p className="text-sm text-text-secondary">维护高频提示词模板，支持搜索、收藏和一键复制</p>
-                    </div>
-                </div>
-                <button type="button" onClick={handleCreate} className="btn-primary flex items-center gap-1 text-sm">
-                    <Plus size={16} />
-                    新建模板
-                </button>
-            </div>
+        <div className="space-y-4 xl:space-y-5">
+            <PageHero
+                eyebrow="成长 / 提示词"
+                icon={<Sparkles size={18} className="text-accent" />}
+                title="提示词库"
+                description="维护高频模板、快速检索和一键复制，让常用提示词沉淀成稳定资产。"
+                action={
+                    <Button type="button" onClick={handleCreate} variant="tinted" size="sm" className="gap-1">
+                        <Plus size={16} />
+                        新建模板
+                    </Button>
+                }
+                stats={[
+                    { label: '模板总数', value: templates.length, meta: selectedId ? '已选模板' : '等待选择', tone: 'accent' },
+                    { label: '收藏模板', value: favoritesCount, meta: favoritesOnly ? '仅看收藏' : '全部可见', tone: 'warning' },
+                    { label: '标签维度', value: allTags.length, meta: selectedTag ? `#${selectedTag}` : '全部标签', tone: 'success' },
+                ]}
+            />
 
-            <div className="card p-card space-y-3">
+            <Card variant="subtle" className="space-y-4 p-card">
+                <SectionHeader
+                    title="筛选模板"
+                    description="按内容、收藏状态和标签快速定位常用模板。"
+                />
+
                 <div className="grid grid-cols-1 gap-2 md:grid-cols-[1fr_auto]">
                     <div className="relative">
                         <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
-                        <input
+                        <Input
                             type="text"
                             value={searchInput}
                             onChange={(event) => setSearchInput(event.target.value)}
                             placeholder="搜索标题或内容..."
-                            className="w-full rounded-lg border border-border bg-bg-tertiary py-2 pl-9 pr-3 text-sm text-text-primary outline-none focus:border-accent"
+                            className="pl-9 pr-3"
                         />
                     </div>
 
-                    <button
+                    <Button
                         type="button"
                         onClick={() => setFavoritesOnly(prev => !prev)}
-                        className={`rounded-lg border px-3 py-2 text-sm ${
-                            favoritesOnly
-                                ? 'border-yellow-400 bg-yellow-400/10 text-yellow-500'
-                                : 'border-border text-text-secondary hover:bg-bg-tertiary'
-                        }`}
+                        variant={favoritesOnly ? 'tinted' : 'secondary'}
+                        size="sm"
+                        className="gap-1.5"
                     >
-                        <span className="inline-flex items-center gap-1">
-                            <Star size={14} className={favoritesOnly ? 'fill-yellow-400 text-yellow-400' : ''} />
-                            仅看收藏
-                        </span>
-                    </button>
+                        <Star size={14} className={favoritesOnly ? `${TONES.yellow.fill} ${TONES.yellow.color}` : ''} />
+                        仅看收藏
+                    </Button>
                 </div>
 
                 {allTags.length > 0 && (
-                    <div className="flex flex-wrap items-center gap-1.5">
-                        <button
-                            type="button"
-                            onClick={() => setSelectedTag(null)}
-                            className={`rounded-md px-2 py-1 text-xs ${
-                                !selectedTag ? 'bg-accent/15 text-accent' : 'bg-bg-tertiary text-text-secondary hover:bg-bg-secondary'
-                            }`}
-                        >
-                            全部标签
-                        </button>
-                        {allTags.map(tag => (
+                    <div className="flex flex-wrap gap-2">
+                        <div className="glass-filter-bar flex flex-wrap items-center">
                             <button
-                                key={tag}
                                 type="button"
-                                onClick={() => setSelectedTag(prev => (prev === tag ? null : tag))}
-                                className={`rounded-md px-2 py-1 text-xs ${
-                                    selectedTag === tag
-                                        ? 'bg-accent/15 text-accent'
-                                        : 'bg-bg-tertiary text-text-secondary hover:bg-bg-secondary'
-                                }`}
+                                onClick={() => setSelectedTag(null)}
+                                className={`glass-filter-chip text-caption ${!selectedTag ? 'glass-filter-chip-active' : ''}`}
                             >
-                                #{tag}
+                                全部标签
                             </button>
-                        ))}
+                            {allTags.map(tag => (
+                                <button
+                                    key={tag}
+                                    type="button"
+                                    onClick={() => setSelectedTag(prev => (prev === tag ? null : tag))}
+                                    className={`glass-filter-chip text-caption ${selectedTag === tag ? 'glass-filter-chip-active' : ''}`}
+                                >
+                                    #{tag}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 )}
-            </div>
+            </Card>
 
             {copyMessage && (
-                <div className="rounded-lg border border-accent/30 bg-accent/10 px-3 py-2 text-sm text-accent">
+                <Card className="border-accent/20 bg-accent/8 px-3 py-2 text-body-sm text-accent">
                     {copyMessage}
-                </div>
+                </Card>
             )}
 
             {isError ? (
-                <div className="rounded-xl border border-danger/30 bg-danger/10 p-card text-sm text-danger">
+                <Card className="border-danger/25 bg-danger/8 p-card text-body-sm text-danger">
                     加载失败，请稍后重试。
                     <button
                         type="button"
@@ -287,14 +292,14 @@ export default function PromptLibraryPage() {
                     >
                         重新加载
                     </button>
-                </div>
+                </Card>
             ) : (
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-[360px_1fr]">
                     <div>
                         {isLoading ? (
-                            <div className="rounded-xl border border-border bg-bg-secondary/40 p-card text-sm text-text-secondary">
+                            <Card variant="subtle" className="p-card text-body-sm text-text-secondary">
                                 加载模板中...
-                            </div>
+                            </Card>
                         ) : (
                             <PromptTemplateList
                                 templates={templates}

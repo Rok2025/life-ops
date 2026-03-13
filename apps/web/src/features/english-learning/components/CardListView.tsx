@@ -6,6 +6,7 @@ import { DIFFICULTY_CONFIG, FAMILIARITY_LABELS } from '../constants';
 import { useEnglishCards } from '../hooks/useEnglishCards';
 import { useEnglishMutations } from '../hooks/useEnglishMutations';
 import type { CardFilters, Difficulty, Familiarity } from '../types';
+import { Card, Input, SectionHeader } from '@/components/ui';
 
 const DIFFICULTY_OPTIONS: (Difficulty | '')[] = ['', 'easy', 'medium', 'hard'];
 
@@ -40,37 +41,37 @@ export default function CardListView() {
     const hasFilters = filters.search || filters.difficulty || filters.familiarity !== undefined;
 
     return (
-        <div className="card p-card space-y-4">
-            <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-text-primary">📚 卡片库</h3>
-                <span className="text-sm text-text-tertiary">{cards.length} 张卡片</span>
-            </div>
+        <Card className="p-card space-y-4">
+            <SectionHeader
+                title="📚 卡片库"
+                description={`当前共 ${cards.length} 张卡片`}
+            />
 
             {/* Filters */}
             <div className="flex flex-wrap gap-2">
                 {/* Search */}
                 <div className="relative flex-1 min-w-[200px]">
-                    <input
+                    <Input
                         type="text"
                         value={searchInput}
                         onChange={e => setSearchInput(e.target.value)}
                         onKeyDown={handleSearchKeyDown}
                         placeholder="搜索卡片..."
-                        className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-border bg-bg-primary text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/30"
+                        className="pl-8 pr-3"
                     />
                     <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-tertiary" />
                 </div>
 
                 {/* Difficulty Filter */}
-                <div className="flex gap-1 bg-bg-tertiary rounded-lg p-0.5">
+                <div className="glass-filter-bar">
                     {DIFFICULTY_OPTIONS.map(d => (
                         <button
                             key={d || 'all'}
                             onClick={() => handleDifficultyFilter(d)}
-                            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                            className={`glass-filter-chip text-caption ${
                                 (filters.difficulty ?? '') === d
-                                    ? 'bg-bg-primary text-text-primary shadow-sm'
-                                    : 'text-text-secondary hover:text-text-primary'
+                                    ? 'glass-filter-chip-active font-medium text-text-primary'
+                                    : ''
                             }`}
                         >
                             {d ? DIFFICULTY_CONFIG[d].label : '全部'}
@@ -81,7 +82,7 @@ export default function CardListView() {
                 {hasFilters && (
                     <button
                         onClick={handleClearFilters}
-                        className="flex items-center gap-1 px-2.5 py-1 text-xs text-text-secondary hover:text-text-primary"
+                        className="glass-mini-chip text-caption transition-colors duration-normal ease-standard hover:bg-card-bg"
                     >
                         <X size={12} /> 清除
                     </button>
@@ -93,7 +94,7 @@ export default function CardListView() {
                 <div className="text-center py-6 text-text-secondary">加载中...</div>
             ) : cards.length === 0 ? (
                 <div className="text-center py-6 text-text-secondary">
-                    <p className="text-sm">
+                    <p className="text-body-sm">
                         {hasFilters ? '没有匹配的卡片' : '还没有学习卡片，去查个单词吧'}
                     </p>
                 </div>
@@ -104,28 +105,28 @@ export default function CardListView() {
                         return (
                             <div
                                 key={card.id}
-                                className="flex items-center justify-between px-3 py-2.5 rounded-lg border border-border hover:bg-bg-tertiary/50 transition-colors"
+                                className="glass-list-row flex items-center justify-between px-3 py-2.5"
                             >
                                 <div className="flex-1 min-w-0 mr-3">
                                     <div className="flex items-center gap-2">
-                                        <span className="text-sm font-medium text-text-primary truncate">
+                                        <span className="text-body-sm font-medium text-text-primary truncate">
                                             {card.front_text}
                                         </span>
                                         {card.phonetic && (
-                                            <span className="text-xs text-text-tertiary shrink-0">
+                                            <span className="text-caption text-text-tertiary shrink-0">
                                                 {card.phonetic}
                                             </span>
                                         )}
                                     </div>
-                                    <p className="text-xs text-text-secondary truncate mt-0.5">
+                                    <p className="text-caption text-text-secondary truncate mt-0.5">
                                         {card.back_text.split('\n')[0]}
                                     </p>
                                 </div>
                                 <div className="flex items-center gap-2 shrink-0">
-                                    <span className={`text-xs px-1.5 py-0.5 rounded ${diffConfig.color} bg-bg-tertiary`}>
+                                    <span className={`text-caption px-1.5 py-0.5 rounded-control ${diffConfig.color} bg-panel-bg`}>
                                         {diffConfig.label}
                                     </span>
-                                    <span className="text-xs text-text-tertiary">
+                                    <span className="text-caption text-text-tertiary">
                                         {FAMILIARITY_LABELS[card.familiarity as Familiarity]}
                                     </span>
                                     <button
@@ -140,6 +141,6 @@ export default function CardListView() {
                     })}
                 </div>
             )}
-        </div>
+        </Card>
     );
 }

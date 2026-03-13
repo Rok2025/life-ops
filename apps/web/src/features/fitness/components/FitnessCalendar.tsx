@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Dumbbell } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getLocalDateStr } from '@/lib/utils/date';
 import { fitnessApi } from '../api/fitnessApi';
+import { Card } from '@/components/ui';
 
 const WEEKDAYS = ['一', '二', '三', '四', '五', '六', '日'];
 
@@ -83,7 +84,7 @@ export function FitnessCalendar({ onSelectDate }: FitnessCalendarProps) {
     const monthWorkoutCount = workoutDates.length;
 
     return (
-        <section className="card p-4">
+        <Card className="p-4">
             {/* 月份导航 */}
             <div className="flex items-center justify-between mb-3">
                 <button
@@ -94,11 +95,11 @@ export function FitnessCalendar({ onSelectDate }: FitnessCalendarProps) {
                     <ChevronLeft size={16} className="text-text-secondary" />
                 </button>
                 <div className="text-center">
-                    <span className="text-sm font-semibold text-text-primary">
+                    <span className="text-body-sm font-semibold text-text-primary">
                         {viewYear}年{viewMonth + 1}月
                     </span>
                     {monthWorkoutCount > 0 && (
-                        <span className="ml-2 text-xs text-success">
+                        <span className="ml-2 text-caption text-success">
                             {monthWorkoutCount} 天训练
                         </span>
                     )}
@@ -116,7 +117,7 @@ export function FitnessCalendar({ onSelectDate }: FitnessCalendarProps) {
             {/* 星期表头 */}
             <div className="grid grid-cols-7 mb-1">
                 {WEEKDAYS.map(w => (
-                    <div key={w} className="text-center text-xs text-text-secondary font-medium py-1">
+                    <div key={w} className="text-center text-caption text-text-secondary font-medium py-1">
                         {w}
                     </div>
                 ))}
@@ -143,7 +144,7 @@ export function FitnessCalendar({ onSelectDate }: FitnessCalendarProps) {
                             onClick={() => hasWorkout && onSelectDate?.(dateStr)}
                             className={`
                                 relative h-9 w-full flex flex-col items-center justify-center
-                                rounded-lg text-sm transition-colors
+                                rounded-control text-body-sm transition-colors
                                 ${isFuture
                                     ? 'text-text-secondary/30 cursor-default'
                                     : hasWorkout
@@ -176,6 +177,6 @@ export function FitnessCalendar({ onSelectDate }: FitnessCalendarProps) {
                     );
                 })}
             </div>
-        </section>
+        </Card>
     );
 }

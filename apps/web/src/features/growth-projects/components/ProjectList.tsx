@@ -8,6 +8,7 @@ import { ProjectForm } from './ProjectForm';
 import { ProjectDetailPanel, ProjectDetailEmpty } from './ProjectDetailPanel';
 import { AREA_CONFIG, SCOPE_CONFIG } from '../types';
 import type { GrowthArea, ProjectScope, ProjectWithStats } from '../types';
+import { Button, Card, PageHero } from '@/components/ui';
 
 interface ProjectListProps {
     area: GrowthArea;
@@ -54,35 +55,37 @@ export default function ProjectList({ area }: ProjectListProps) {
         setMobileDetail(false);
     }, []);
 
-    // 左侧 - 项目列表面板
-    const listPanel = (
-        <div className="space-y-section">
-            {/* 页面标题 */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl ${areaConfig.bg} flex items-center justify-center`}>
-                        <span className="text-xl">{areaConfig.icon}</span>
-                    </div>
-                    <div>
-                        <h1 className="text-xl font-bold text-text-primary">{areaConfig.label}</h1>
-                        <p className="text-sm text-text-secondary">
-                            成长 / {areaConfig.label} · {activeProjects.length} 个活跃项目
-                        </p>
-                    </div>
-                </div>
-                <button onClick={handleAdd} className="btn-primary flex items-center gap-1 text-sm">
+    const hero = (
+        <PageHero
+            eyebrow={`成长 / ${areaConfig.label}`}
+            icon={<span className="text-lg">{areaConfig.icon}</span>}
+            title={areaConfig.label}
+            description="把长期项目、待办和灵感放进同一块视图，让推进节奏更稳定。"
+            action={
+                <Button onClick={handleAdd} variant="tinted" size="sm" className="gap-1">
                     <Plus size={16} />
                     新建项目
-                </button>
-            </div>
-
-            {/* 筛选栏 */}
-            <div className="flex items-center gap-2">
+                </Button>
+            }
+            stats={[
+                {
+                    label: '活跃项目',
+                    value: activeProjects.length,
+                    meta: scopeFilter ? SCOPE_CONFIG[scopeFilter].label : '全部范围',
+                    tone: 'accent',
+                },
+                {
+                    label: '归档项目',
+                    value: archivedProjects.length,
+                    meta: showArchived ? '已展开' : '已收起',
+                    tone: 'warning',
+                },
+            ]}
+        >
+            <div className="glass-filter-bar flex items-center">
                 <button
                     onClick={() => setScopeFilter(null)}
-                    className={`text-xs px-2.5 py-1 rounded-lg transition-colors ${
-                        !scopeFilter ? 'bg-accent/20 text-accent' : 'text-text-secondary hover:bg-bg-tertiary'
-                    }`}
+                    className={`glass-filter-chip text-caption ${!scopeFilter ? 'glass-filter-chip-active' : ''}`}
                 >
                     全部
                 </button>
@@ -90,26 +93,45 @@ export default function ProjectList({ area }: ProjectListProps) {
                     <button
                         key={s}
                         onClick={() => setScopeFilter(scopeFilter === s ? null : s)}
-                        className={`text-xs px-2.5 py-1 rounded-lg transition-colors ${
-                            scopeFilter === s ? `${SCOPE_CONFIG[s].bg} ${SCOPE_CONFIG[s].color}` : 'text-text-secondary hover:bg-bg-tertiary'
-                        }`}
+                        className={`glass-filter-chip text-caption ${scopeFilter === s ? 'glass-filter-chip-active' : ''}`}
                     >
                         {SCOPE_CONFIG[s].label}
                     </button>
                 ))}
             </div>
+            {archivedProjects.length > 0 ? (
+                <button
+                    onClick={() => setShowArchived(!showArchived)}
+                    className="glass-mini-chip text-body-sm transition-colors duration-normal ease-standard hover:bg-card-bg"
+                >
+                    {showArchived ? '隐藏已归档' : `查看已归档 ${archivedProjects.length}`}
+                </button>
+            ) : null}
+        </PageHero>
+    );
 
+    // 左侧 - 项目列表面板
+    const listPanel = (
+        <div className="space-y-4 xl:space-y-5">
             {/* 项目列表 */}
             {isLoading ? (
-                <div className="text-center py-8 text-text-secondary">加载中...</div>
+                <Card variant="subtle" className="p-card text-body-sm text-text-secondary">
+                    加载中...
+                </Card>
             ) : activeProjects.length === 0 && archivedProjects.length === 0 ? (
-                <div className="text-center py-8 text-text-secondary">
-                    <FolderOpen size={32} className="mx-auto mb-2 text-text-tertiary" />
-                    <p className="text-sm mb-2">还没有项目</p>
-                    <button onClick={handleAdd} className="text-accent hover:underline text-sm">
-                        创建第一个项目 →
-                    </button>
-                </div>
+                <Card className="p-card-lg text-center">
+                    <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full border border-glass-border bg-panel-bg">
+                        <FolderOpen size={28} className="text-text-secondary" />
+                    </div>
+                    <p className="text-body text-text-primary">还没有项目</p>
+                    <p className="mt-1 text-body-sm text-text-secondary">
+                        从一个明确的长期目标开始，把任务和想法都落到同一个项目里。
+                    </p>
+                    <Button onClick={handleAdd} variant="tinted" size="sm" className="mt-4 gap-1">
+                        <Plus size={16} />
+                        创建第一个项目
+                    </Button>
+                </Card>
             ) : (
                 <>
                     {/* 活跃项目 */}
@@ -129,12 +151,6 @@ export default function ProjectList({ area }: ProjectListProps) {
                     {/* 已完成/归档项目 */}
                     {archivedProjects.length > 0 && (
                         <div>
-                            <button
-                                onClick={() => setShowArchived(!showArchived)}
-                                className="text-xs text-text-tertiary hover:text-text-secondary mb-2"
-                            >
-                                {showArchived ? '隐藏' : '显示'}已完成/归档 ({archivedProjects.length})
-                            </button>
                             {showArchived && (
                                 <div className="space-y-1 opacity-60">
                                     {archivedProjects.map(project => (
@@ -166,19 +182,23 @@ export default function ProjectList({ area }: ProjectListProps) {
     return (
         <>
             {/* 桌面端：左右分栏 */}
-            <div className="hidden md:grid md:grid-cols-[2fr_3fr] md:gap-6 md:items-start">
-                <div>{listPanel}</div>
-                <div className="card sticky top-4 max-h-[calc(100vh-6rem)] overflow-hidden flex flex-col">
-                    {detailPanel}
+            <div className="hidden space-y-4 xl:space-y-5 md:block">
+                {hero}
+                <div className="grid items-start gap-5 md:grid-cols-[minmax(320px,1.6fr)_minmax(0,2.2fr)]">
+                    <div>{listPanel}</div>
+                    <Card variant="subtle" className="sticky top-4 max-h-[calc(100vh-6rem)] overflow-hidden flex flex-col">
+                        {detailPanel}
+                    </Card>
                 </div>
             </div>
 
             {/* 移动端：列表/详情切换 */}
-            <div className="md:hidden">
+            <div className="space-y-4 md:hidden">
+                {hero}
                 {mobileDetail && selectedProject ? (
-                    <div className="card min-h-[60vh]">
+                    <Card className="min-h-[60vh]">
                         <ProjectDetailPanel project={selectedProject} onBack={handleMobileBack} />
-                    </div>
+                    </Card>
                 ) : (
                     listPanel
                 )}

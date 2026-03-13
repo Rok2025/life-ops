@@ -7,6 +7,7 @@ import { outputApi } from '../api/outputApi';
 import { OUTPUT_TYPE_CONFIG } from '../types';
 import { AREA_CONFIG, type GrowthArea } from '@/features/growth-projects';
 import type { OutputWithProject } from '../types';
+import { Card } from '@/components/ui';
 
 export function OutputAreaCard() {
     const { data: stats } = useQuery({
@@ -29,19 +30,20 @@ export function OutputAreaCard() {
     const statusLabel = published > 0 ? `${published} 已发布` : total > 0 ? '全部草稿' : '暂无输出';
 
     return (
-        <Link href="/output" className="card p-card block hover:shadow-lg transition-shadow">
+        <Link href="/output" className="block">
+            <Card className="h-full p-card transition-all duration-normal ease-standard hover:-translate-y-0.5 hover:bg-card-bg">
             <div className="flex items-center justify-between mb-widget-header">
                 <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-bg-tertiary flex items-center justify-center">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full border border-glass-border bg-panel-bg">
                         <PenLine size={16} className="text-accent" />
                     </div>
-                    <h3 className="text-base font-semibold text-text-primary">输出</h3>
+                    <h3 className="text-body font-semibold text-text-primary">输出</h3>
                 </div>
                 <span className={`pill pill-${status}`}>{statusLabel}</span>
             </div>
             <div className="space-y-2">
                 {/* 统计行 */}
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-body-sm">
                     <span className="text-text-secondary">总计</span>
                     <span className="font-medium text-text-primary">
                         已发布 {published} · 草稿 {draft}
@@ -54,15 +56,15 @@ export function OutputAreaCard() {
                         {recent.map((o: OutputWithProject) => {
                             const typeCfg = OUTPUT_TYPE_CONFIG[o.type];
                             return (
-                                <div key={o.id} className="flex items-center gap-2 text-xs">
+                                <div key={o.id} className="flex items-center gap-2 rounded-control border border-glass-border/70 bg-panel-bg/85 px-2.5 py-1.5 text-caption backdrop-blur-xl">
                                     <span className={`shrink-0 ${typeCfg.color}`}>{typeCfg.emoji}</span>
                                     <span className="text-text-primary truncate flex-1">{o.title}</span>
                                     {o.project_area && (
-                                        <span className="text-[10px] text-text-tertiary shrink-0">
+                                        <span className="text-caption text-text-tertiary shrink-0">
                                             {AREA_CONFIG[o.project_area as GrowthArea]?.icon}
                                         </span>
                                     )}
-                                    <span className="text-[10px] text-text-tertiary shrink-0">
+                                    <span className="text-caption text-text-tertiary shrink-0">
                                         {new Date(o.updated_at).toLocaleDateString('zh-CN', {
                                             month: 'numeric',
                                             day: 'numeric',
@@ -73,9 +75,10 @@ export function OutputAreaCard() {
                         })}
                     </div>
                 ) : (
-                    <p className="text-xs text-text-tertiary pt-0.5">还没有输出记录</p>
+                    <p className="text-caption text-text-tertiary pt-0.5">还没有输出记录</p>
                 )}
             </div>
+            </Card>
         </Link>
     );
 }

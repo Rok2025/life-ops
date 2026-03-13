@@ -28,30 +28,30 @@ function NoteItem({ note, projectId }: NoteItemProps) {
     const isLong = note.content.length > 80;
 
     return (
-        <div className="py-1.5 px-2 rounded-lg hover:bg-bg-tertiary/50">
+        <div className="glass-list-row px-2 py-1.5">
             <div className="flex items-start gap-2">
-                <span className={`text-xs px-1.5 py-0.5 rounded ${config.bg} ${config.color} shrink-0 mt-0.5`}>
+                <span className={`text-caption px-1.5 py-0.5 rounded-control ${config.bg} ${config.color} shrink-0 mt-0.5`}>
                     {config.emoji}
                 </span>
                 <div className="flex-1 min-w-0">
-                    <p className={`text-sm text-text-primary whitespace-pre-wrap break-words ${!expanded && isLong ? 'line-clamp-2' : ''}`}>
+                    <p className={`text-body-sm text-text-primary whitespace-pre-wrap wrap-break-word ${!expanded && isLong ? 'line-clamp-2' : ''}`}>
                         {note.content}
                     </p>
                     {isLong && (
                         <button
                             onClick={() => setExpanded(!expanded)}
-                            className="text-[10px] text-accent hover:underline mt-0.5"
+                            className="text-caption text-accent hover:underline mt-0.5"
                         >
                             {expanded ? '收起' : '展开'}
                         </button>
                     )}
                 </div>
-                <span className="text-[10px] text-text-tertiary shrink-0 mt-0.5">
+                <span className="text-caption text-text-tertiary shrink-0 mt-0.5">
                     {new Date(note.created_at).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })}
                 </span>
                 <button
                     onClick={() => deleteMutation.mutate()}
-                    className="p-0.5 text-text-tertiary hover:text-danger hover:bg-danger/10 rounded transition-colors shrink-0 mt-0.5"
+                    className="p-0.5 text-text-tertiary hover:text-danger hover:bg-danger/10 rounded-control transition-colors duration-normal ease-standard shrink-0 mt-0.5"
                 >
                     <Trash2 size={12} />
                 </button>
@@ -100,7 +100,7 @@ export function NoteList({ projectId, notes }: NoteListProps) {
 
     return (
         <div>
-            <div className="text-xs font-medium text-text-secondary uppercase tracking-wide mb-2">
+            <div className="mb-2 text-caption font-medium uppercase tracking-wide text-text-secondary">
                 灵感 & 成果 ({notes.length})
             </div>
             {notes.length > 0 ? (
@@ -110,19 +110,19 @@ export function NoteList({ projectId, notes }: NoteListProps) {
                     ))}
                 </div>
             ) : (
-                <p className="text-xs text-text-tertiary py-2 px-2 mb-2">暂无灵感记录</p>
+                <p className="text-caption text-text-tertiary py-2 px-2 mb-2">暂无灵感记录</p>
             )}
             <form onSubmit={handleSubmit} className="space-y-1.5">
-                <div className="flex items-center gap-1.5">
+                <div className="glass-filter-bar flex flex-wrap items-center">
                     {noteTypes.map(t => (
                         <button
                             key={t}
                             type="button"
                             onClick={() => setNewType(t)}
-                            className={`text-xs px-2 py-0.5 rounded transition-colors ${
+                            className={`glass-filter-chip text-caption ${
                                 newType === t
-                                    ? `${NOTE_TYPE_CONFIG[t].bg} ${NOTE_TYPE_CONFIG[t].color}`
-                                    : 'text-text-tertiary hover:bg-bg-tertiary'
+                                    ? 'glass-filter-chip-active font-medium text-text-primary'
+                                    : ''
                             }`}
                         >
                             {NOTE_TYPE_CONFIG[t].emoji} {NOTE_TYPE_CONFIG[t].label}
@@ -136,19 +136,19 @@ export function NoteList({ projectId, notes }: NoteListProps) {
                         onKeyDown={handleKeyDown}
                         placeholder="记录灵感或成果... (⌘+Enter 提交)"
                         rows={2}
-                        className="flex-1 text-sm bg-bg-tertiary border border-border rounded-lg px-2.5 py-1.5 text-text-primary placeholder:text-text-tertiary outline-none focus:border-accent resize-none"
+                        className="flex-1 resize-none rounded-control border border-glass-border bg-panel-bg px-control-x py-control-y text-body-sm text-text-primary placeholder:text-text-tertiary outline-none transition-colors duration-normal ease-standard focus:border-accent"
                     />
                     <div className="flex flex-col justify-end gap-1 shrink-0 pb-1.5">
                         <button
                             type="button"
                             onClick={() => setShowEditor(true)}
-                            className="p-1 text-text-tertiary hover:text-accent hover:bg-accent/10 rounded transition-colors"
+                            className="p-1 text-text-tertiary hover:text-accent hover:bg-accent/10 rounded-control transition-colors duration-normal ease-standard"
                             title="全屏编辑"
                         >
                             <Maximize2 size={14} />
                         </button>
                         {newContent.trim() && (
-                            <button type="submit" className="text-xs text-accent hover:underline">
+                            <button type="submit" className="text-caption text-accent hover:underline">
                                 添加
                             </button>
                         )}

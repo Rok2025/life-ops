@@ -16,6 +16,7 @@ import EnglishPromptFormDialog from './EnglishPromptFormDialog';
 import { ENGLISH_PROMPT_MODE_META } from '../types';
 import { useEnglishPromptBindings, useEnglishPromptMutations, useEnglishPromptTemplates } from '../hooks/useEnglishPrompts';
 import type { EnglishPromptMode, EnglishPromptTemplate, EnglishPromptTemplateFormValues } from '../types';
+import { Button, Card, Select } from '@/components/ui';
 
 function resolveErrorMessage(error: unknown, fallback: string): string {
     if (error instanceof Error && error.message) {
@@ -138,15 +139,15 @@ export default function EnglishPromptManager() {
     }, [queryClient]);
 
     return (
-        <div className="card">
+        <Card variant="subtle" className="overflow-hidden p-0">
             <button
                 onClick={() => setExpanded(prev => !prev)}
-                className="w-full flex items-center justify-between p-4 hover:bg-bg-tertiary/50 rounded-t-xl transition-colors"
+                className="flex w-full items-center justify-between p-4 transition-colors duration-normal ease-standard hover:bg-panel-bg/90"
             >
                 <div className="flex items-center gap-3">
                     <Bot size={18} className="text-accent" />
-                    <h3 className="text-base font-semibold text-text-primary">英语提示词配置</h3>
-                    <span className="text-xs text-text-tertiary bg-bg-tertiary px-2 py-0.5 rounded-full">
+                    <h3 className="text-body font-semibold text-text-primary">英语提示词配置</h3>
+                    <span className="glass-mini-chip text-caption">
                         {selectedCount} / {ENGLISH_PROMPT_MODE_META.length} 已绑定
                     </span>
                 </div>
@@ -157,12 +158,12 @@ export default function EnglishPromptManager() {
 
             {expanded && (
                 <div className="px-4 pb-4 space-y-4">
-                    <p className="text-sm text-text-tertiary">
+                    <p className="text-body-sm text-text-tertiary">
                         独立管理英语模块专用提示词，并为简洁 / 详细 / 语法三种模式分别选择生效模板。
                     </p>
 
                     {(templatesQuery.isError || bindingsQuery.isError) && (
-                        <div className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
+                        <div className="rounded-card border border-danger/25 bg-danger/8 px-3 py-2 text-body-sm text-danger">
                             {resolveErrorMessage(templatesQuery.error ?? bindingsQuery.error, '加载英语提示词配置失败')}
                             <button
                                 type="button"
@@ -180,16 +181,15 @@ export default function EnglishPromptManager() {
                             const options = templateOptionsByMode[meta.key] ?? [];
 
                             return (
-                                <div key={meta.key} className="rounded-xl border border-border bg-bg-secondary/30 p-3 space-y-2">
+                                <div key={meta.key} className="rounded-[1.125rem] border border-glass-border bg-panel-bg/78 p-3 space-y-2 shadow-sm">
                                     <div>
-                                        <p className="text-sm font-medium text-text-primary">{meta.label}</p>
-                                        <p className="text-xs text-text-tertiary mt-1">{meta.description}</p>
+                                        <p className="text-body-sm font-medium text-text-primary">{meta.label}</p>
+                                        <p className="text-caption text-text-tertiary mt-1">{meta.description}</p>
                                     </div>
-                                    <select
+                                    <Select
                                         value={selectedBinding?.template_id ?? ''}
                                         onChange={event => handleBindingChange(meta.key, event.target.value || null)}
                                         disabled={bindingsQuery.isLoading || setBindingMutation.isPending}
-                                        className="w-full rounded-lg border border-border bg-bg-tertiary px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
                                     >
                                         <option value="">使用内置默认提示词</option>
                                         {options.map(template => (
@@ -197,8 +197,8 @@ export default function EnglishPromptManager() {
                                                 {template.title}{template.is_active ? '' : '（已停用）'}
                                             </option>
                                         ))}
-                                    </select>
-                                    <p className="text-xs text-text-tertiary">
+                                    </Select>
+                                    <p className="text-caption text-text-tertiary">
                                         当前：{selectedBinding?.template?.title ?? '未绑定，自带默认提示词'}
                                     </p>
                                 </div>
@@ -208,28 +208,24 @@ export default function EnglishPromptManager() {
 
                     <div className="flex items-center justify-between gap-3">
                         <div>
-                            <h4 className="text-sm font-medium text-text-primary">英语提示词模板</h4>
-                            <p className="text-xs text-text-tertiary mt-1">
+                            <h4 className="text-body-sm font-medium text-text-primary">英语提示词模板</h4>
+                            <p className="text-caption text-text-tertiary mt-1">
                                 这里只管理英语模块专用提示词，不与通用提示词库共用。
                             </p>
                         </div>
-                        <button
-                            type="button"
-                            onClick={handleCreate}
-                            className="btn-primary flex items-center gap-1 text-sm"
-                        >
+                        <Button type="button" onClick={handleCreate} variant="tinted" size="sm" className="gap-1">
                             <Plus size={16} />
                             新建英语提示词
-                        </button>
+                        </Button>
                     </div>
 
                     <div className="space-y-2">
                         {templatesQuery.isLoading ? (
-                            <div className="rounded-xl border border-border bg-bg-secondary/30 px-4 py-5 text-sm text-text-secondary">
+                            <div className="rounded-[1rem] border border-glass-border bg-panel-bg/70 px-4 py-5 text-body-sm text-text-secondary">
                                 加载英语提示词中...
                             </div>
                         ) : templates.length === 0 ? (
-                            <div className="rounded-xl border border-dashed border-border px-4 py-6 text-sm text-text-tertiary text-center">
+                            <div className="rounded-[1rem] border border-dashed border-glass-border px-4 py-6 text-body-sm text-text-tertiary text-center">
                                 还没有英语提示词模板，先新建一个即可绑定到模式。
                             </div>
                         ) : (
@@ -241,20 +237,20 @@ export default function EnglishPromptManager() {
                                 return (
                                     <div
                                         key={template.id}
-                                        className={`rounded-xl border px-4 py-3 ${
+                                        className={`glass-list-row px-4 py-3 ${
                                             template.is_active
-                                                ? 'border-border bg-bg-tertiary'
-                                                : 'border-border/50 bg-bg-tertiary/50 opacity-70'
+                                                ? ''
+                                                : 'opacity-70'
                                         }`}
                                     >
                                         <div className="flex items-start justify-between gap-4">
                                             <div className="min-w-0">
                                                 <div className="flex items-center flex-wrap gap-2">
-                                                    <h5 className="text-sm font-medium text-text-primary">{template.title}</h5>
+                                                    <h5 className="text-body-sm font-medium text-text-primary">{template.title}</h5>
                                                     {template.supported_modes.map(mode => (
                                                         <span
                                                             key={mode}
-                                                            className="text-[11px] px-2 py-0.5 rounded-full bg-accent/10 text-accent"
+                                                            className="text-caption px-2 py-0.5 rounded-full bg-accent/10 text-accent"
                                                         >
                                                             {ENGLISH_PROMPT_MODE_META.find(item => item.key === mode)?.label ?? mode}
                                                         </span>
@@ -262,16 +258,16 @@ export default function EnglishPromptManager() {
                                                     {selectedModes.map(label => (
                                                         <span
                                                             key={`${template.id}-${label}`}
-                                                            className="text-[11px] px-2 py-0.5 rounded-full bg-success/10 text-success"
+                                                            className="text-caption px-2 py-0.5 rounded-full bg-success/10 text-success"
                                                         >
                                                             当前绑定：{label}
                                                         </span>
                                                     ))}
                                                 </div>
                                                 {template.description && (
-                                                    <p className="text-xs text-text-tertiary mt-1">{template.description}</p>
+                                                    <p className="text-caption text-text-tertiary mt-1">{template.description}</p>
                                                 )}
-                                                <p className="text-xs text-text-secondary mt-2 max-h-20 overflow-hidden whitespace-pre-wrap">
+                                                <p className="text-caption text-text-secondary mt-2 max-h-20 overflow-hidden whitespace-pre-wrap">
                                                     {template.content}
                                                 </p>
                                             </div>
@@ -283,7 +279,7 @@ export default function EnglishPromptManager() {
                                                         id: template.id,
                                                         isActive: !template.is_active,
                                                     })}
-                                                    className={`p-1 rounded transition-colors ${
+                                                    className={`p-1 rounded-control transition-colors duration-normal ease-standard ${
                                                         template.is_active
                                                             ? 'text-success hover:bg-success/10'
                                                             : 'text-text-tertiary hover:bg-bg-secondary'
@@ -295,7 +291,7 @@ export default function EnglishPromptManager() {
                                                 <button
                                                     type="button"
                                                     onClick={() => handleEdit(template)}
-                                                    className="p-1 rounded text-text-tertiary hover:text-text-primary hover:bg-bg-secondary transition-colors"
+                                                    className="p-1 rounded-control text-text-tertiary hover:text-text-primary hover:bg-bg-secondary transition-colors duration-normal ease-standard"
                                                     title="编辑"
                                                 >
                                                     <Pencil size={15} />
@@ -303,7 +299,7 @@ export default function EnglishPromptManager() {
                                                 <button
                                                     type="button"
                                                     onClick={() => handleDelete(template)}
-                                                    className="p-1 rounded text-text-tertiary hover:text-danger hover:bg-danger/10 transition-colors"
+                                                    className="p-1 rounded-control text-text-tertiary hover:text-danger hover:bg-danger/10 transition-colors duration-normal ease-standard"
                                                     title="删除"
                                                 >
                                                     <Trash2 size={15} />
@@ -328,6 +324,6 @@ export default function EnglishPromptManager() {
                     onSubmit={handleSubmit}
                 />
             )}
-        </div>
+        </Card>
     );
 }
