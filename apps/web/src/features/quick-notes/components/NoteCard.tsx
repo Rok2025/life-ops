@@ -1,19 +1,16 @@
 'use client';
 
-import { Edit2, Trash2, Check, ChevronDown, ChevronUp, MessageSquare } from 'lucide-react';
+import { Edit2, Trash2 } from 'lucide-react';
 import type { QuickNote } from '../types';
 import { NOTE_TYPE_CONFIG } from '../types';
-import { TONES } from '@/design-system/tokens';
 
 interface NoteCardProps {
     note: QuickNote;
-    isExpanded: boolean;
-    onToggleExpand: (id: string) => void;
     onEdit: (note: QuickNote) => void;
     onDelete: (id: string) => void;
 }
 
-export function NoteCard({ note, isExpanded, onToggleExpand, onEdit, onDelete }: NoteCardProps) {
+export function NoteCard({ note, onEdit, onDelete }: NoteCardProps) {
     const config = NOTE_TYPE_CONFIG[note.type];
 
     return (
@@ -27,30 +24,6 @@ export function NoteCard({ note, isExpanded, onToggleExpand, onEdit, onDelete }:
                 {/* 内容 */}
                 <div className="flex-1 min-w-0 truncate">
                     <span className="text-text-primary text-body-sm">{note.content}</span>
-
-                    {/* 问答类型 - 内联显示 */}
-                    {note.type === 'question' && (
-                        <>
-                            {note.is_answered ? (
-                                <button
-                                    onClick={() => onToggleExpand(note.id)}
-                                    className={`ml-2 inline-flex items-center gap-0.5 text-caption hover:underline ${TONES.success.color}`}
-                                >
-                                    <Check size={11} />
-                                    已回答
-                                    {isExpanded ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
-                                </button>
-                            ) : (
-                                <button
-                                    onClick={() => onEdit(note)}
-                                    className={`ml-2 inline-flex items-center gap-0.5 text-caption hover:underline ${TONES.orange.color}`}
-                                >
-                                    <MessageSquare size={11} />
-                                    待回答
-                                </button>
-                            )}
-                        </>
-                    )}
                 </div>
 
                 {/* 时间 + 操作 */}
@@ -72,13 +45,6 @@ export function NoteCard({ note, isExpanded, onToggleExpand, onEdit, onDelete }:
                     </button>
                 </div>
             </div>
-
-            {/* 展开的答案 - 在行下方展开 */}
-            {note.type === 'question' && note.is_answered && isExpanded && (
-                <div className="mt-1 ml-3 rounded-control border border-glass-border bg-panel-bg px-3 py-2 text-body-sm text-text-secondary backdrop-blur-xl">
-                    {note.answer}
-                </div>
-            )}
         </div>
     );
 }

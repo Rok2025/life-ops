@@ -1,6 +1,6 @@
 import { TONES, type ToneTokenClasses } from '@/design-system/tokens';
 
-export type NoteType = 'memo' | 'idea' | 'question';
+export type NoteType = 'memo' | 'idea' | 'todo';
 export type FilterType = 'all' | NoteType;
 
 export type QuickNote = {
@@ -44,12 +44,12 @@ export const NOTE_TYPE_CONFIG: Record<NoteType, NoteTypeConfig> = {
         ...TONES.yellow,
         placeholder: '记录你的好想法、好点子...',
     },
-    question: {
-        label: '问答',
-        emoji: '❓',
+    todo: {
+        label: '待办',
+        emoji: '✅',
         ...TONES.green,
-        placeholder: '记录你的疑问...',
+        placeholder: '记录你的待办事项...',
     },
 };
 
-export const NOTE_TYPES: NoteType[] = ['memo', 'idea', 'question'];
+export const NOTE_TYPES: NoteType[] = ['memo', 'idea', 'todo'];

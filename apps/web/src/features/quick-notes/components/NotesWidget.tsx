@@ -25,7 +25,6 @@ export default function NotesWidget({ initialDate }: NotesWidgetProps) {
     const [selectedDate, setSelectedDate] = useState(() => initialDate ?? getLocalDateStr());
     const [showAll, setShowAll] = useState(false);
     const [filter, setFilter] = useState<FilterType>('all');
-    const [expandedQA, setExpandedQA] = useState<Set<string>>(new Set());
     const [showForm, setShowForm] = useState(false);
     const [editingNote, setEditingNote] = useState<QuickNote | null>(null);
     const [defaultFormType, setDefaultFormType] = useState<NoteType>('memo');
@@ -50,8 +49,8 @@ export default function NotesWidget({ initialDate }: NotesWidgetProps) {
                 note_date: data.date,
                 type: data.type,
                 content: data.content,
-                answer: data.answer,
-                is_answered: data.type === 'question' ? !!data.answer : false,
+                answer: null,
+                is_answered: false,
             };
             if (data.id) {
                 await notesApi.update(data.id, noteData);
@@ -98,15 +97,6 @@ export default function NotesWidget({ initialDate }: NotesWidgetProps) {
         setEditingNote(null);
     }, []);
 
-    const toggleExpand = useCallback((id: string) => {
-        setExpandedQA(prev => {
-            const next = new Set(prev);
-            if (next.has(id)) next.delete(id);
-            else next.add(id);
-            return next;
-        });
-    }, []);
-
     const filteredNotes = filter === 'all' ? notes : notes.filter(n => n.type === filter);
     const displayNotes = showAll ? filteredNotes : filteredNotes.slice(0, 4);
     const hasMore = filteredNotes.length > 4;
@@ -115,7 +105,7 @@ export default function NotesWidget({ initialDate }: NotesWidgetProps) {
         all: notes.length,
         memo: notes.filter(n => n.type === 'memo').length,
         idea: notes.filter(n => n.type === 'idea').length,
-        question: notes.filter(n => n.type === 'question').length,
+        todo: notes.filter(n => n.type === 'todo').length,
     };
 
     return (
@@ -160,7 +150,7 @@ export default function NotesWidget({ initialDate }: NotesWidgetProps) {
             {loading ? (
                 <div className="text-center py-4 text-text-secondary">加载中...</div>
             ) : notes.length === 0 ? (
-                <div className="rounded-[1.125rem] border border-glass-border bg-card-bg/68 px-4 py-4 backdrop-blur-xl">
+                <div className="rounded-inner-card border border-glass-border bg-card-bg/68 px-4 py-4 backdrop-blur-xl">
                     <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
                         <div className="min-w-0">
                             <div className="mb-1 flex items-center gap-2 text-body-sm font-medium text-text-primary">
@@ -168,7 +158,7 @@ export default function NotesWidget({ initialDate }: NotesWidgetProps) {
                                 <span>捕捉今天的想法</span>
                             </div>
                             <p className="text-body-sm text-text-secondary">
-                                备忘、灵感和问题都放在这里，先记下来，再慢慢整理。
+                                备忘、灵感和待办都放在这里，先记下来，再慢慢整理。
                             </p>
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
@@ -198,8 +188,6 @@ export default function NotesWidget({ initialDate }: NotesWidgetProps) {
                             <NoteCard
                                 key={note.id}
                                 note={note}
-                                isExpanded={expandedQA.has(note.id)}
-                                onToggleExpand={toggleExpand}
                                 onEdit={handleEdit}
                                 onDelete={handleDelete}
                             />

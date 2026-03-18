@@ -18,7 +18,6 @@ interface NoteFormProps {
 export function NoteForm({ editingNote, defaultDate, defaultType, saving, onSave, onCancel }: NoteFormProps) {
     const [type, setType] = useState<NoteType>(editingNote?.type ?? defaultType ?? 'memo');
     const [content, setContent] = useState(editingNote?.content ?? '');
-    const [answer, setAnswer] = useState(editingNote?.answer ?? '');
     const [date, setDate] = useState(editingNote?.note_date ?? defaultDate);
 
     const handleSubmit = useCallback(() => {
@@ -26,10 +25,10 @@ export function NoteForm({ editingNote, defaultDate, defaultType, saving, onSave
         onSave({
             type,
             content: content.trim(),
-            answer: type === 'question' ? (answer.trim() || null) : null,
+            answer: null,
             date,
         });
-    }, [type, content, answer, date, onSave]);
+    }, [type, content, date, onSave]);
 
     return (
         <Dialog
@@ -84,7 +83,7 @@ export function NoteForm({ editingNote, defaultDate, defaultType, saving, onSave
                     {/* 内容 */}
                     <div>
                         <label className="block text-caption text-text-secondary mb-1">
-                            {type === 'question' ? '你的疑问' : '内容'}
+                            内容
                         </label>
                         <Input
                             multiline
@@ -96,23 +95,6 @@ export function NoteForm({ editingNote, defaultDate, defaultType, saving, onSave
                             autoFocus
                         />
                     </div>
-
-                    {/* 问答类型的答案 */}
-                    {type === 'question' && (
-                        <div>
-                            <label className="block text-caption text-text-secondary mb-1">
-                                答案 <span className="text-text-secondary/50">（可稍后填写）</span>
-                            </label>
-                            <Input
-                                multiline
-                                value={answer}
-                                onChange={(e) => setAnswer(e.target.value)}
-                                placeholder="写下你的回答..."
-                                rows={3}
-                                className="resize-none"
-                            />
-                        </div>
-                    )}
                 </div>
 
                 <div className="flex gap-2 border-t border-border bg-bg-primary px-5 py-3">

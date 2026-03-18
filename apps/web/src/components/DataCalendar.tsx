@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useImperativeHandle, forwardRef } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { getLocalDateStr } from '@/lib/utils/date';
 import { frogsApi } from '@/features/daily-frogs/api/frogsApi';
@@ -179,6 +180,33 @@ export default forwardRef<DataCalendarHandle, DataCalendarProps>(function DataCa
         setOpen(false);
     }, [viewYear, viewMonth, today, onSelectDate]);
 
+    // ── Compute fixed position for the popover ──
+    const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties>({});
+
+    useEffect(() => {
+        if (!open) return;
+        const anchor = externalTriggerRef?.current ?? triggerRef.current;
+        if (!anchor) return;
+
+        function reposition() {
+            const rect = anchor!.getBoundingClientRect();
+            const popW = 280; // w-70 = 17.5rem = 280px
+            let left = rect.left + rect.width / 2 - popW / 2;
+            // clamp to viewport
+            if (left < 8) left = 8;
+            if (left + popW > window.innerWidth - 8) left = window.innerWidth - 8 - popW;
+            setPopoverStyle({ position: 'fixed', top: rect.bottom + 8, left });
+        }
+
+        reposition();
+        window.addEventListener('scroll', reposition, true);
+        window.addEventListener('resize', reposition);
+        return () => {
+            window.removeEventListener('scroll', reposition, true);
+            window.removeEventListener('resize', reposition);
+        };
+    }, [open, externalTriggerRef]);
+
     return (
         <div className="relative inline-flex">
             {/* 触发按钮 */}
@@ -194,11 +222,12 @@ export default forwardRef<DataCalendarHandle, DataCalendarProps>(function DataCa
                 </button>
             )}
 
-            {/* 日历弹窗 */}
-            {open && (
+            {/* 日历弹窗 — portal 到 body，避免被 overflow-hidden 裁剪 */}
+            {open && createPortal(
                 <div
                     ref={popoverRef}
-                    className="glass-popover absolute top-full left-1/2 z-50 mt-2 w-70 -translate-x-1/2 select-none rounded-card p-3"
+                    style={popoverStyle}
+                    className="glass-popover z-[80] w-70 select-none rounded-card p-3"
                 >
                     {/* 月份导航 */}
                     <div className="flex items-center justify-between mb-3">
@@ -291,7 +320,7 @@ export default forwardRef<DataCalendarHandle, DataCalendarProps>(function DataCa
                     </div>
 
                 </div>
-            )}
+            , document.body)}
         </div>
     );
 });
