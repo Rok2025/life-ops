@@ -16,7 +16,7 @@ const toneStyles: Record<BadgeTone, string> = {
 
 export function Badge({ tone = 'default', className, children }: BadgeProps) {
   const base =
-    'ui-badge inline-flex items-center rounded-full border border-glass-border bg-panel-bg px-2.5 py-1 text-caption font-medium backdrop-blur-xl [box-shadow:inset_0_1px_0_rgb(255_255_255/6%)]';
+    'ui-badge inline-flex items-center rounded-full border border-glass-border bg-panel-bg px-2.5 py-1 text-caption font-medium shadow-glass-inset backdrop-blur-xl';
 
   return (
     <span className={[base, toneStyles[tone], className].filter(Boolean).join(' ')}>

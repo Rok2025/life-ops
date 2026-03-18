@@ -61,6 +61,7 @@
   --badge-warning-border: color-mix(in srgb, var(--warning) 18%, var(--glass-border));
   --badge-danger-bg: color-mix(in srgb, var(--danger) 9%, var(--panel-bg));
   --badge-danger-border: color-mix(in srgb, var(--danger) 18%, var(--glass-border));
+  --shadow-glass-inset: inset 0 1px 0 rgb(255 255 255 / 6%);
   --z-popover: 70;
   --z-overlay: 80;
   --sidebar-width: 240px;
@@ -90,6 +91,7 @@
   --space-16: 4rem;
 
   /* ── Radius (foundation) ── */
+  --radius-xs: 0.375rem;
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
@@ -260,6 +262,7 @@
   --card-shadow-token: 0 14px 32px rgb(0 0 0 / 22%), inset 0 1px 0 rgb(255 255 255 / 5%);
   --shadow-glass-active: inset 0 1px 0 rgb(255 255 255 / 10%), 0 10px 24px rgb(0 0 0 / 18%);
   --shadow-glass-idle: inset 0 1px 0 rgb(255 255 255 / 5%);
+  --shadow-glass-inset: inset 0 1px 0 rgb(255 255 255 / 4%);
   --gradient-logo-start: #0a84ff;
   --gradient-logo-end: #3fd3f3;
   --badge-success-bg: color-mix(in srgb, var(--success) 9%, var(--panel-bg));
@@ -273,6 +276,7 @@
 }
 
 :root.dracula {
+
   /* Dracula Theme */
   --bg-primary: #101119;
   --bg-secondary: #181a24;
@@ -310,6 +314,7 @@
   --card-shadow-token: 0 18px 42px rgb(4 5 10 / 38%), inset 0 1px 0 rgb(255 255 255 / 8%);
   --shadow-glass-active: inset 0 1px 0 rgb(255 255 255 / 10%), 0 10px 24px rgb(4 5 10 / 22%);
   --shadow-glass-idle: inset 0 1px 0 rgb(255 255 255 / 5%);
+  --shadow-glass-inset: inset 0 1px 0 rgb(255 255 255 / 5%);
   --gradient-logo-start: #bd93f9;
   --gradient-logo-end: #8be9fd;
   --badge-success-bg: color-mix(in srgb, var(--success) 9%, var(--panel-bg));
@@ -389,6 +394,7 @@
   --radius-md: var(--radius-md);
   --radius-lg: var(--radius-lg);
   --radius-xl: var(--radius-xl);
+  --radius-xs: var(--radius-xs);
   --radius-card: var(--card-radius);
   --radius-control: var(--control-radius);
   --radius-inner-card: var(--inner-card-radius);
@@ -404,6 +410,7 @@
   --shadow-card: var(--card-shadow-token);
   --shadow-glass-active: var(--shadow-glass-active);
   --shadow-glass-idle: var(--shadow-glass-idle);
+  --shadow-glass-inset: var(--shadow-glass-inset);
 
   /* Z-index tokens → Tailwind utilities */
   --z-popover: var(--z-popover);
@@ -505,6 +512,7 @@
     --card-shadow-token: 0 14px 32px rgb(0 0 0 / 22%), inset 0 1px 0 rgb(255 255 255 / 5%);
     --shadow-glass-active: inset 0 1px 0 rgb(255 255 255 / 10%), 0 10px 24px rgb(0 0 0 / 18%);
     --shadow-glass-idle: inset 0 1px 0 rgb(255 255 255 / 5%);
+    --shadow-glass-inset: inset 0 1px 0 rgb(255 255 255 / 4%);
     --gradient-logo-start: #0a84ff;
     --gradient-logo-end: #3fd3f3;
     --badge-success-bg: color-mix(in srgb, var(--success) 9%, var(--panel-bg));
@@ -704,6 +712,7 @@ html.dracula .glass-popover {
 html.dracula .glass-list-row,
 html.dracula .glass-filter-bar,
 html.dracula .glass-segmented,
+html.dracula .glass-icon-badge,
 html.dracula .glass-mini-chip {
   background: color-mix(in srgb, var(--panel-bg) 94%, var(--bg-secondary));
   border-color: color-mix(in srgb, var(--glass-border) 82%, var(--tone-purple) 18%);
