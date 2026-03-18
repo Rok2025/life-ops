@@ -4,7 +4,7 @@ import { Dumbbell } from 'lucide-react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { fitnessApi } from '@/features/fitness/api/fitnessApi';
-import { Card } from '@/components/ui';
+import { Badge, Card } from '@/components/ui';
 
 export function ClientFitnessAreaCard({
     target, unit,
@@ -30,7 +30,7 @@ export function ClientFitnessAreaCard({
                         </div>
                         <h3 className="text-body font-semibold text-text-primary">健身</h3>
                     </div>
-                    <span className={`pill pill-${status}`}>{statusLabel}</span>
+                    <Badge tone={status}>{statusLabel}</Badge>
                 </div>
                 <div className="space-y-2">
                     <div className="flex justify-between text-body-sm">

@@ -88,7 +88,7 @@ export default function EnglishDailyWidget() {
                         </div>
 
                         {recentQueries.length > 0 ? (
-                            <div className="rounded-[1.125rem] border border-glass-border bg-card-bg/72 px-4 py-3 backdrop-blur-xl">
+                            <div className="rounded-inner-card border border-glass-border bg-card-bg/72 px-4 py-3 backdrop-blur-xl">
                                 <div className="mb-2 flex items-center justify-between gap-2">
                                     <span className="text-caption text-text-tertiary">最近查询</span>
                                     <span className="glass-mini-chip text-caption">{recentQueries.length} 条</span>
@@ -105,7 +105,7 @@ export default function EnglishDailyWidget() {
                                 </div>
                             </div>
                         ) : (
-                            <div className="rounded-[1.125rem] border border-dashed border-glass-border px-4 py-3 text-caption text-text-secondary">
+                            <div className="rounded-inner-card border border-dashed border-glass-border px-4 py-3 text-caption text-text-secondary">
                                 今天的查询还没有留下最近记录。
                             </div>
                         )}

@@ -24,31 +24,31 @@ export default function NavGroup({
     label, icon: Icon, children, isExpanded, hasActiveChild, pathname, onToggle,
 }: NavGroupProps) {
     return (
-        <li>
+        <li className="space-y-1">
             <button
                 onClick={onToggle}
-                className={`relative w-full flex items-center justify-between overflow-hidden px-4 py-2.5 rounded-card border transition-all duration-200 group ${hasActiveChild
-                    ? 'border-selection-border/80 bg-selection-bg/85 text-selection-text shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-sm before:pointer-events-none before:absolute before:left-2 before:top-1/2 before:h-4 before:w-0.5 before:-translate-y-1/2 before:rounded-full before:bg-accent/80'
-                    : 'border-transparent bg-transparent text-text-secondary hover:border-glass-border hover:bg-panel-bg/90 hover:text-text-primary'
+                className={`group relative flex w-full items-center justify-between overflow-hidden rounded-nav-item border px-3.5 py-2.5 transition-all duration-200 ease-standard ${hasActiveChild
+                    ? 'border-selection-border/90 bg-selection-bg text-selection-text shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_10px_24px_rgba(15,23,42,0.06)] backdrop-blur-sm'
+                    : 'border-glass-border/45 bg-panel-bg/42 text-text-secondary shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] hover:border-glass-border/85 hover:bg-panel-bg/82 hover:text-text-primary'
                     }`}
             >
                 <div className="flex items-center gap-3">
                     <Icon
-                        size={20}
+                        size={19}
                         className={hasActiveChild ? 'text-accent' : 'text-text-tertiary group-hover:text-text-primary'}
                     />
                     <span className="font-medium text-body-sm">{label}</span>
                 </div>
                 <ChevronDown
-                    size={16}
-                    className={`text-text-tertiary transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                    size={15}
+                    className={`text-text-tertiary transition-transform duration-200 ease-standard ${isExpanded ? 'rotate-180' : ''}`}
                 />
             </button>
-            <ul className={`overflow-hidden transition-all duration-200 space-y-2 ${isExpanded ? 'max-h-48 mt-2' : 'max-h-0'}`}>
+            <ul className={`overflow-hidden transition-[max-height,opacity,margin] duration-200 ease-standard ${isExpanded ? 'mt-1 max-h-56 opacity-100' : 'max-h-0 opacity-0'}`}>
                 {children.map((child) => {
                     const isActive = pathname === child.href || pathname.startsWith(child.href);
                     return (
-                        <li key={child.href}>
+                        <li key={child.href} className="mt-1 first:mt-0">
                             <NavLink
                                 href={child.href}
                                 label={child.label}

@@ -8,6 +8,7 @@ Use these instead of ad‑hoc markup so styles stay consistent:
 
 | Component | Use for |
 |-----------|--------|
+| **Badge** | Status pills / labels. Tones: `default`, `success`, `warning`, `danger`. |
 | **Button** | Primary / secondary / ghost / danger actions. Sizes: `sm`, `md`. |
 | **Card** | Content panels, list containers. Variants: `default`, `subtle`. |
 | **Input** | Text fields and textareas. Sizes: `sm`, `md`. Supports `error`, `multiline`, `rows`. |
@@ -86,12 +87,17 @@ For TypeScript config maps (category/status/tag metadata), prefer reusing the sh
 
 - **Cards**: `p-card` or `p-card-lg`, `rounded-card`, `shadow-card`
 - **Controls**: `rounded-control`, padding via `px-control-x` / `py-control-y` (or Button/Input primitives)
+- **Inner cards / sub-panels**: `rounded-inner-card` (nested surfaces inside a Card)
+- **Popovers / dropdowns**: `rounded-popover`
+- **Nav items**: `rounded-nav-item` (sidebar links), child items use `rounded-inner-card`
+- **Nav container**: `rounded-nav-container` (sidebar nav group wrapper)
 - **Layout**: `space-y-section`, `space-header-bottom`, `gap-2` / `gap-4` for local rhythm is fine; for page-level padding prefer `p-page-y` / `p-page-x` if you add new page wrappers
 
 ### Components
 
-- **Surfaces**: `<Card>` from `@/components/ui` (not `.card` class)
-- **Actions**: `<Button variant="primary">` (not `.btn-primary`)
+- **Surfaces**: `<Card>` from `@/components/ui`
+- **Actions**: `<Button variant="primary">`
+- **Status labels**: `<Badge tone="success">` (not `.pill` class)
 - **Forms**: `<Input>`, `<Input multiline>` (not raw `<input>` / `<textarea>` with repeated styles)
 
 ### Theming and density

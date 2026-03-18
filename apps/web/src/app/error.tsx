@@ -20,7 +20,7 @@ export default function Error({
             <div className="w-16 h-16 rounded-full bg-danger/20 flex items-center justify-center mb-6">
                 <AlertTriangle size={32} className="text-danger" />
             </div>
-            <h2 className="text-xl font-semibold text-text-primary mb-2">
+            <h2 className="text-h3 text-text-primary mb-2">
                 出了点问题
             </h2>
             <p className="text-text-secondary mb-6 max-w-md">

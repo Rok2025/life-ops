@@ -7,7 +7,7 @@ import { outputApi } from '../api/outputApi';
 import { OUTPUT_TYPE_CONFIG } from '../types';
 import { AREA_CONFIG, type GrowthArea } from '@/features/growth-projects';
 import type { OutputWithProject } from '../types';
-import { Card } from '@/components/ui';
+import { Badge, Card } from '@/components/ui';
 
 export function OutputAreaCard() {
     const { data: stats } = useQuery({
@@ -39,7 +39,7 @@ export function OutputAreaCard() {
                     </div>
                     <h3 className="text-body font-semibold text-text-primary">输出</h3>
                 </div>
-                <span className={`pill pill-${status}`}>{statusLabel}</span>
+                <Badge tone={status}>{statusLabel}</Badge>
             </div>
             <div className="space-y-2">
                 {/* 统计行 */}

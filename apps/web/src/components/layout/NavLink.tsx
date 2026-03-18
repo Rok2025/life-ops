@@ -12,9 +12,16 @@ interface NavLinkProps {
 }
 
 export default function NavLink({ href, label, icon: Icon, isActive, isChild = false, disabled = false }: NavLinkProps) {
+    const spacingClass = isChild ? 'pl-10 pr-3 py-2.5 rounded-inner-card' : 'px-3.5 py-2.5 rounded-nav-item';
+    const childIndicatorClass = isChild
+        ? isActive
+            ? 'before:pointer-events-none before:absolute before:left-4 before:top-1/2 before:h-1.5 before:w-1.5 before:-translate-y-1/2 before:rounded-full before:bg-accent'
+            : 'before:pointer-events-none before:absolute before:left-4 before:top-1/2 before:h-1.5 before:w-1.5 before:-translate-y-1/2 before:rounded-full before:bg-glass-border'
+        : '';
+
     if (disabled) {
         return (
-            <div className={`flex items-center gap-3 px-4 py-2.5 rounded-card border border-glass-border bg-panel-bg text-text-tertiary cursor-not-allowed opacity-50 backdrop-blur-sm ${isChild ? 'ml-6' : ''}`}>
+            <div className={`relative flex items-center gap-3 border border-glass-border/60 bg-panel-bg/55 text-text-tertiary opacity-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-sm ${spacingClass} ${childIndicatorClass} cursor-not-allowed`}>
                 <Icon size={isChild ? 16 : 20} />
                 <span className="font-medium text-body-sm">{label}</span>
             </div>
@@ -24,13 +31,13 @@ export default function NavLink({ href, label, icon: Icon, isActive, isChild = f
     return (
         <Link
             href={href}
-            className={`relative flex items-center gap-3 overflow-hidden px-4 py-2.5 rounded-card border transition-all duration-200 group ${isChild ? 'ml-6' : ''} ${isActive
-                ? 'border-selection-border/80 bg-selection-bg/85 text-selection-text shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-sm before:pointer-events-none before:absolute before:left-2 before:top-1/2 before:h-4 before:w-0.5 before:-translate-y-1/2 before:rounded-full before:bg-accent/80'
-                : 'border-transparent bg-transparent text-text-secondary hover:border-glass-border hover:bg-panel-bg/90 hover:text-text-primary'
+            className={`group relative flex items-center gap-3 overflow-hidden border transition-all duration-200 ease-standard ${spacingClass} ${childIndicatorClass} ${isActive
+                ? 'border-selection-border/90 bg-selection-bg text-selection-text shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_10px_24px_rgba(15,23,42,0.06)] backdrop-blur-sm'
+                : 'border-glass-border/45 bg-panel-bg/42 text-text-secondary shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] hover:border-glass-border/85 hover:bg-panel-bg/82 hover:text-text-primary'
                 }`}
         >
             <Icon
-                size={isChild ? 16 : 20}
+                size={isChild ? 16 : 19}
                 className={isActive ? 'text-accent' : 'text-text-tertiary group-hover:text-text-primary'}
             />
             <span className="font-medium text-body-sm">{label}</span>

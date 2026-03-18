@@ -67,7 +67,7 @@ export function PageHero({
               return (
                 <div
                   key={stat.label}
-                  className="rounded-[1.125rem] border border-glass-border/90 bg-panel-bg/88 px-3 py-3 shadow-sm backdrop-blur-xl"
+                  className="rounded-inner-card border border-glass-border/90 bg-panel-bg/88 px-3 py-3 shadow-sm backdrop-blur-xl"
                 >
                   <div className="text-caption text-text-secondary">{stat.label}</div>
                   <div className="mt-2 flex items-end justify-between gap-3">

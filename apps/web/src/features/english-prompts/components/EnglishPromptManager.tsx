@@ -181,7 +181,7 @@ export default function EnglishPromptManager() {
                             const options = templateOptionsByMode[meta.key] ?? [];
 
                             return (
-                                <div key={meta.key} className="rounded-[1.125rem] border border-glass-border bg-panel-bg/78 p-3 space-y-2 shadow-sm">
+                                <div key={meta.key} className="rounded-inner-card border border-glass-border bg-panel-bg/78 p-3 space-y-2 shadow-sm">
                                     <div>
                                         <p className="text-body-sm font-medium text-text-primary">{meta.label}</p>
                                         <p className="text-caption text-text-tertiary mt-1">{meta.description}</p>

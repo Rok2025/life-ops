@@ -5,7 +5,7 @@ import { TrendingUp } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { projectsApi } from '../api/projectsApi';
 import { AREA_CONFIG, type GrowthArea, type ProjectWithStats } from '../types';
-import { Card } from '@/components/ui';
+import { Badge, Card } from '@/components/ui';
 
 const AREAS: GrowthArea[] = ['ai', 'english', 'reading'];
 
@@ -41,7 +41,7 @@ export function GrowthAreaCard() {
                         </div>
                         <h3 className="text-body font-semibold text-text-primary">成长</h3>
                     </div>
-                    <span className={`pill pill-${status}`}>{statusLabel}</span>
+                    <Badge tone={status}>{statusLabel}</Badge>
                 </div>
                 <div className="space-y-2">
                     {AREAS.map(area => {

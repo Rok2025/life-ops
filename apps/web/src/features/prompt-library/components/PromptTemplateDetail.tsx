@@ -33,7 +33,7 @@ export default function PromptTemplateDetail({
         <Card className="p-card space-y-4">
             <div className="flex items-start justify-between gap-3">
                 <div>
-                    <h2 className="text-lg font-semibold text-text-primary">{template.title}</h2>
+                    <h2 className="text-h3 text-text-primary">{template.title}</h2>
                     {template.description && (
                         <p className="mt-1 text-body-sm text-text-secondary">{template.description}</p>
                     )}

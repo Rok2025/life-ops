@@ -9,7 +9,7 @@ export interface CardProps extends PropsWithChildren {
 
 export function Card({ className, variant = 'default', children }: CardProps) {
   const base =
-    'relative overflow-hidden rounded-card border border-glass-border bg-card-bg shadow-card backdrop-blur-xl before:pointer-events-none before:absolute before:inset-x-6 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/12 before:to-transparent';
+    'ui-card relative overflow-hidden rounded-card border border-glass-border bg-card-bg shadow-card backdrop-blur-xl before:pointer-events-none before:absolute before:inset-x-6 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/12 before:to-transparent';
   const subtle = 'bg-panel-bg shadow-none';
 
   return (

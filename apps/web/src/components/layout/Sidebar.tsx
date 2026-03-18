@@ -76,41 +76,43 @@ export default function Sidebar() {
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 p-3 overflow-y-auto">
-                <ul className="space-y-1.5">
-                    {navItems.map((item) => {
-                        if (item.children) {
-                            const hasActiveChild = item.children.some(c => pathname.startsWith(c.href));
-                            return (
-                                <NavGroup
-                                    key={item.label}
-                                    label={item.label}
-                                    icon={item.icon}
-                                    isExpanded={expandedGroups.includes(item.label)}
-                                    hasActiveChild={hasActiveChild}
-                                    pathname={pathname}
-                                    onToggle={() => toggleGroup(item.label)}
-                                >
-                                    {item.children}
-                                </NavGroup>
-                            );
-                        }
+            <nav className="flex-1 overflow-y-auto px-3 py-3">
+                <div className="rounded-nav-container border border-glass-border/70 bg-panel-bg/40 p-1.5 shadow-[var(--shadow-xs)] backdrop-blur-xl">
+                    <ul className="space-y-1">
+                        {navItems.map((item) => {
+                            if (item.children) {
+                                const hasActiveChild = item.children.some(c => pathname.startsWith(c.href));
+                                return (
+                                    <NavGroup
+                                        key={item.label}
+                                        label={item.label}
+                                        icon={item.icon}
+                                        isExpanded={expandedGroups.includes(item.label)}
+                                        hasActiveChild={hasActiveChild}
+                                        pathname={pathname}
+                                        onToggle={() => toggleGroup(item.label)}
+                                    >
+                                        {item.children}
+                                    </NavGroup>
+                                );
+                            }
 
-                        const href = item.href!;
-                        const isActive = pathname === href || (href !== '/' && pathname.startsWith(href));
-                        return (
-                            <li key={href}>
-                                <NavLink
-                                    href={href}
-                                    label={item.label}
-                                    icon={item.icon}
-                                    isActive={isActive}
-                                    disabled={item.disabled}
-                                />
-                            </li>
-                        );
-                    })}
-                </ul>
+                            const href = item.href!;
+                            const isActive = pathname === href || (href !== '/' && pathname.startsWith(href));
+                            return (
+                                <li key={href}>
+                                    <NavLink
+                                        href={href}
+                                        label={item.label}
+                                        icon={item.icon}
+                                        isActive={isActive}
+                                        disabled={item.disabled}
+                                    />
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </div>
             </nav>
 
             {/* Bottom Section */}

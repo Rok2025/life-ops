@@ -102,6 +102,10 @@
   --control-radius: var(--radius-md);
   --control-padding-x: var(--space-3);
   --control-padding-y: var(--space-2);
+  --inner-card-radius: 1.125rem;
+  --popover-radius: 1.375rem;
+  --nav-item-radius: var(--radius-xl);
+  --nav-container-radius: 1.75rem;
 
   /* ── Typography: foundation tokens (Apple-ish, compact) ── */
   --fs-11: 0.6875rem; /* 11px */
@@ -205,7 +209,7 @@
   --caption-fs: var(--fs-13);
 }
 
-.dark {
+:root.dark:not(.dracula) {
   /* Apple Dark Theme */
   --bg-primary: #17181c;
   --bg-secondary: #1d1f24;
@@ -241,6 +245,52 @@
   --shadow-md: 0 14px 30px rgb(0 0 0 / 22%), inset 0 1px 0 rgb(255 255 255 / 4%);
   --shadow-lg: 0 24px 52px rgb(0 0 0 / 26%), inset 0 1px 0 rgb(255 255 255 / 5%);
   --card-shadow-token: 0 14px 32px rgb(0 0 0 / 22%), inset 0 1px 0 rgb(255 255 255 / 5%);
+
+  color-scheme: dark;
+}
+
+:root.dracula {
+  /* Dracula Theme */
+  --bg-primary: #101119;
+  --bg-secondary: #181a24;
+  --bg-tertiary: #242736;
+  --text-primary: #f8f8f2;
+  --text-secondary: #d6d0e3;
+  --text-tertiary: #aca4c1;
+  --accent: #c7a2ff;
+  --accent-hover: #d7b8ff;
+  --success: #50fa7b;
+  --warning: #ffb86c;
+  --danger: #ff6e97;
+  --tone-blue: #8be9fd;
+  --tone-green: #50fa7b;
+  --tone-yellow: #f1fa8c;
+  --tone-purple: #bd93f9;
+  --tone-orange: #ffb86c;
+  --tone-cyan: #8be9fd;
+  --tone-sky: #6ee7ff;
+  --border: rgb(255 255 255 / 10%);
+  --glass-border: rgb(255 255 255 / 15%);
+  --card-bg: rgb(43 46 63 / 92%);
+  --panel-bg: rgb(53 57 78 / 84%);
+  --sidebar-bg: rgb(24 26 38 / 92%);
+  --selection-bg: rgb(189 147 249 / 24%);
+  --selection-border: rgb(255 121 198 / 38%);
+  --selection-text: #fff5ff;
+  --page-glow-1: rgb(189 147 249 / 20%);
+  --page-glow-2: rgb(255 121 198 / 16%);
+  --page-glow-3: rgb(139 233 253 / 13%);
+  --card-shadow: 0 22px 52px rgb(4 5 10 / 42%);
+  --shadow-sm: 0 12px 26px rgb(4 5 10 / 30%), inset 0 1px 0 rgb(255 255 255 / 7%);
+  --shadow-md: 0 18px 40px rgb(4 5 10 / 36%), inset 0 1px 0 rgb(255 255 255 / 7%);
+  --shadow-lg: 0 32px 70px rgb(4 5 10 / 46%), inset 0 1px 0 rgb(255 255 255 / 8%);
+  --card-shadow-token: 0 18px 42px rgb(4 5 10 / 38%), inset 0 1px 0 rgb(255 255 255 / 8%);
+  --card-radius: 1rem;
+  --control-radius: 0.95rem;
+  --inner-card-radius: 1.25rem;
+  --popover-radius: 1.5rem;
+  --nav-item-radius: 1.375rem;
+  --nav-container-radius: 2rem;
 
   color-scheme: dark;
 }
@@ -308,6 +358,10 @@
   --radius-xl: var(--radius-xl);
   --radius-card: var(--card-radius);
   --radius-control: var(--control-radius);
+  --radius-inner-card: var(--inner-card-radius);
+  --radius-popover: var(--popover-radius);
+  --radius-nav-item: var(--nav-item-radius);
+  --radius-nav-container: var(--nav-container-radius);
 
   /* Shadow tokens → Tailwind utilities */
   --shadow-sm: var(--shadow-sm);
@@ -374,7 +428,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not(.light) {
+  :root:not(.light, .dracula) {
     --bg-primary: #17181c;
     --bg-secondary: #1d1f24;
     --bg-tertiary: #2a2d34;
@@ -427,8 +481,15 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+html.dracula body {
+  background-image:
+    radial-gradient(circle at 12% -8%, rgb(189 147 249 / 10%), transparent 26%),
+    radial-gradient(circle at 88% -6%, rgb(139 233 253 / 6%), transparent 24%),
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-primary) 98%, black 2%), var(--bg-primary));
+}
+
 @media (prefers-color-scheme: dark) {
-  :root:not(.light) {
+  :root:not(.light, .dracula) {
     color-scheme: dark;
   }
 }
@@ -562,56 +623,86 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   backdrop-filter: blur(18px);
 }
 
-.card {
-  background: var(--card-bg);
-  border-radius: 12px;
-  box-shadow: var(--card-shadow);
-  border: 1px solid var(--glass-border);
-  backdrop-filter: blur(24px);
+
+
+html.dracula .ui-card {
+  backdrop-filter: none;
+  box-shadow: 0 18px 42px rgb(4 5 10 / 38%);
 }
 
-.btn-primary {
-  background: var(--accent);
-  color: white;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-weight: 500;
-  transition: background 0.2s;
+html.dracula .ui-card::before {
+  background: linear-gradient(90deg, transparent, rgb(189 147 249 / 16%), transparent);
 }
 
-.btn-primary:hover {
-  background: var(--accent-hover);
+html.dracula .glass-popover,
+html.dracula .glass-list-row,
+html.dracula .glass-filter-bar,
+html.dracula .glass-segmented,
+html.dracula .glass-icon-badge,
+html.dracula .glass-mini-chip,
+html.dracula .ui-button--secondary,
+html.dracula .ui-button--tinted {
+  backdrop-filter: none;
 }
 
-.pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.3125rem 0.6875rem;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 500;
-  border: 1px solid var(--glass-border);
-  background: var(--panel-bg);
-  backdrop-filter: blur(18px);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 6%);
+html.dracula .glass-popover {
+  background: color-mix(in srgb, var(--bg-secondary) 84%, var(--panel-bg) 16%);
+  border-color: color-mix(in srgb, var(--tone-purple) 16%, var(--glass-border));
+  box-shadow: 0 26px 58px rgb(4 5 10 / 52%);
 }
 
-.pill-success {
-  background: color-mix(in srgb, var(--success) 9%, var(--panel-bg));
-  border-color: color-mix(in srgb, var(--success) 18%, var(--glass-border));
-  color: var(--success);
+html.dracula .glass-list-row,
+html.dracula .glass-filter-bar,
+html.dracula .glass-segmented,
+html.dracula .glass-mini-chip {
+  background: color-mix(in srgb, var(--panel-bg) 94%, var(--bg-secondary));
+  border-color: color-mix(in srgb, var(--glass-border) 82%, var(--tone-purple) 18%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 4%);
 }
 
-.pill-warning {
-  background: color-mix(in srgb, var(--warning) 9%, var(--panel-bg));
-  border-color: color-mix(in srgb, var(--warning) 18%, var(--glass-border));
-  color: var(--warning);
+html.dracula .glass-list-row:hover,
+html.dracula .glass-filter-chip:hover,
+html.dracula .glass-segment-button:hover {
+  background: color-mix(in srgb, var(--bg-tertiary) 92%, var(--panel-bg));
 }
 
-.pill-danger {
-  background: color-mix(in srgb, var(--danger) 9%, var(--panel-bg));
-  border-color: color-mix(in srgb, var(--danger) 18%, var(--glass-border));
-  color: var(--danger);
+html.dracula .glass-filter-chip-active {
+  background: color-mix(in srgb, var(--accent) 16%, var(--bg-tertiary));
+  border-color: color-mix(in srgb, var(--tone-purple) 30%, var(--glass-border));
+  color: var(--text-primary);
+}
+
+html.dracula .ui-button--primary {
+  border-color: rgb(255 121 198 / 24%);
+  background: linear-gradient(180deg, rgb(189 147 249 / 96%), rgb(160 118 235 / 96%));
+  box-shadow: 0 12px 26px rgb(12 10 22 / 24%);
+}
+
+html.dracula .ui-button--primary:hover {
+  background: linear-gradient(180deg, rgb(205 170 255 / 96%), rgb(174 132 246 / 96%));
+}
+
+html.dracula .ui-button--secondary {
+  background: color-mix(in srgb, var(--panel-bg) 95%, var(--bg-secondary));
+  border-color: color-mix(in srgb, var(--glass-border) 82%, var(--tone-purple) 18%);
+}
+
+html.dracula .ui-button--tinted {
+  background: color-mix(in srgb, var(--accent) 18%, var(--bg-tertiary));
+  border-color: color-mix(in srgb, var(--tone-purple) 32%, var(--glass-border));
+  color: #f4eaff;
+  box-shadow: none;
+}
+
+html.dracula .ui-button--tinted:hover {
+  background: color-mix(in srgb, var(--accent) 24%, var(--bg-tertiary));
+  border-color: color-mix(in srgb, var(--tone-purple) 42%, var(--glass-border));
+}
+
+html.dracula .ui-badge {
+  background: color-mix(in srgb, var(--panel-bg) 94%, var(--bg-secondary));
+  border-color: color-mix(in srgb, var(--glass-border) 82%, var(--tone-purple) 18%);
+  box-shadow: none;
 }
 
 /* 隐藏 Next.js 开发指示器 ('N' 图标) */
