@@ -38,7 +38,7 @@ export default function HomeDashboard() {
     return (
         <div className="space-y-4 xl:space-y-[1.125rem]">
             <section className="relative isolate">
-                <div className="pointer-events-none absolute inset-x-10 top-3 -z-10 h-24 rounded-[2.25rem] bg-accent/5 blur-3xl dark:bg-accent/4" />
+                <div className="pointer-events-none absolute inset-x-10 top-3 -z-10 h-24 rounded-2xl bg-accent/5 blur-3xl dark:bg-accent/4" />
                 <div className="pointer-events-none absolute left-12 top-5 -z-10 h-20 w-44 rounded-full bg-white/8 blur-3xl dark:bg-white/4" />
                 <div className="pointer-events-none absolute right-16 top-10 -z-10 h-16 w-16 rounded-full bg-tone-sky/12 blur-3xl dark:bg-tone-sky/8" />
                 <WelcomeHeader

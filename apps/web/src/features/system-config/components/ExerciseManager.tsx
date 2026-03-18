@@ -354,7 +354,7 @@ export default function ExerciseManager({ initialCategories, initialExercises }:
                                     </div>
                                 ))}
                                 {displayCategories.length === 0 && (
-                                    <div className="rounded-[1rem] border border-dashed border-glass-border bg-panel-bg/65 px-4 py-5 text-center text-body-sm text-text-tertiary">
+                                    <div className="rounded-lg border border-dashed border-glass-border bg-panel-bg/65 px-4 py-5 text-center text-body-sm text-text-tertiary">
                                         暂无动作
                                     </div>
                                 )}
@@ -448,7 +448,7 @@ export default function ExerciseManager({ initialCategories, initialExercises }:
                                     </div>
                                 ))}
                                 {categories.length === 0 && (
-                                    <div className="rounded-[1rem] border border-dashed border-glass-border bg-panel-bg/65 px-4 py-5 text-center text-body-sm text-text-tertiary">
+                                    <div className="rounded-lg border border-dashed border-glass-border bg-panel-bg/65 px-4 py-5 text-center text-body-sm text-text-tertiary">
                                         暂无部位
                                     </div>
                                 )}

@@ -114,7 +114,7 @@ export function ConfigScopeSection({ meta, initialItems }: ConfigScopeSectionPro
                             />
                         ))}
                         {items.length === 0 && (
-                            <div className="rounded-[1rem] border border-dashed border-glass-border bg-panel-bg/65 px-4 py-5 text-center text-body-sm text-text-tertiary">
+                            <div className="rounded-lg border border-dashed border-glass-border bg-panel-bg/65 px-4 py-5 text-center text-body-sm text-text-tertiary">
                                 暂无配置项
                             </div>
                         )}

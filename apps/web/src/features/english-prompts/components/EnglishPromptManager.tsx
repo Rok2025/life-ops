@@ -221,11 +221,11 @@ export default function EnglishPromptManager() {
 
                     <div className="space-y-2">
                         {templatesQuery.isLoading ? (
-                            <div className="rounded-[1rem] border border-glass-border bg-panel-bg/70 px-4 py-5 text-body-sm text-text-secondary">
+                            <div className="rounded-lg border border-glass-border bg-panel-bg/70 px-4 py-5 text-body-sm text-text-secondary">
                                 加载英语提示词中...
                             </div>
                         ) : templates.length === 0 ? (
-                            <div className="rounded-[1rem] border border-dashed border-glass-border px-4 py-6 text-body-sm text-text-tertiary text-center">
+                            <div className="rounded-lg border border-dashed border-glass-border px-4 py-6 text-body-sm text-text-tertiary text-center">
                                 还没有英语提示词模板，先新建一个即可绑定到模式。
                             </div>
                         ) : (

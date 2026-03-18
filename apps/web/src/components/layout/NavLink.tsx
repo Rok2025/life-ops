@@ -21,7 +21,7 @@ export default function NavLink({ href, label, icon: Icon, isActive, isChild = f
 
     if (disabled) {
         return (
-            <div className={`relative flex items-center gap-3 border border-glass-border/60 bg-panel-bg/55 text-text-tertiary opacity-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-sm ${spacingClass} ${childIndicatorClass} cursor-not-allowed`}>
+            <div className={`relative flex items-center gap-3 border border-glass-border/60 bg-panel-bg/55 text-text-tertiary opacity-50 shadow-glass-idle backdrop-blur-sm ${spacingClass} ${childIndicatorClass} cursor-not-allowed`}>
                 <Icon size={isChild ? 16 : 20} />
                 <span className="font-medium text-body-sm">{label}</span>
             </div>
@@ -32,8 +32,8 @@ export default function NavLink({ href, label, icon: Icon, isActive, isChild = f
         <Link
             href={href}
             className={`group relative flex items-center gap-3 overflow-hidden border transition-all duration-200 ease-standard ${spacingClass} ${childIndicatorClass} ${isActive
-                ? 'border-selection-border/90 bg-selection-bg text-selection-text shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_10px_24px_rgba(15,23,42,0.06)] backdrop-blur-sm'
-                : 'border-glass-border/45 bg-panel-bg/42 text-text-secondary shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] hover:border-glass-border/85 hover:bg-panel-bg/82 hover:text-text-primary'
+                ? 'border-selection-border/90 bg-selection-bg text-selection-text shadow-glass-active backdrop-blur-sm'
+                : 'border-glass-border/45 bg-panel-bg/42 text-text-secondary shadow-glass-idle hover:border-glass-border/85 hover:bg-panel-bg/82 hover:text-text-primary'
                 }`}
         >
             <Icon

@@ -91,7 +91,16 @@ For TypeScript config maps (category/status/tag metadata), prefer reusing the sh
 - **Popovers / dropdowns**: `rounded-popover`
 - **Nav items**: `rounded-nav-item` (sidebar links), child items use `rounded-inner-card`
 - **Nav container**: `rounded-nav-container` (sidebar nav group wrapper)
+- **Large decorative elements**: `rounded-2xl` (glow blobs, hero sections)
+- **Empty-state / placeholder panels**: `rounded-lg` (1rem foundation radius)
 - **Layout**: `space-y-section`, `space-header-bottom`, `gap-2` / `gap-4` for local rhythm is fine; for page-level padding prefer `p-page-y` / `p-page-x` if you add new page wrappers
+
+### Shadows
+
+- **Cards**: `shadow-card` (token-driven, theme-aware)
+- **Elevated surfaces**: `shadow-sm`, `shadow-md`, `shadow-lg`
+- **Glass nav items (active)**: `shadow-glass-active` (inset highlight + outer glow)
+- **Glass nav items (idle)**: `shadow-glass-idle` (subtle inset highlight only)
 
 ### Components
 
@@ -108,6 +117,5 @@ For TypeScript config maps (category/status/tag metadata), prefer reusing the sh
 
 ### Optional future optimizations
 
-- **Colors**: Replace any remaining hardcoded hex/rgba or palette classes with semantic tokens when touching those files.
 - **Spacing**: Prefer token-based utilities (`p-card`, `space-y-section`) when adding new cards or sections; existing `p-4` / `gap-2` can stay until you refactor.
 - **Docs**: Keep this README and Storybook in sync when adding new tokens or primitives.

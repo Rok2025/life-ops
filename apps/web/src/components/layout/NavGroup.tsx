@@ -28,8 +28,8 @@ export default function NavGroup({
             <button
                 onClick={onToggle}
                 className={`group relative flex w-full items-center justify-between overflow-hidden rounded-nav-item border px-3.5 py-2.5 transition-all duration-200 ease-standard ${hasActiveChild
-                    ? 'border-selection-border/90 bg-selection-bg text-selection-text shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_10px_24px_rgba(15,23,42,0.06)] backdrop-blur-sm'
-                    : 'border-glass-border/45 bg-panel-bg/42 text-text-secondary shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] hover:border-glass-border/85 hover:bg-panel-bg/82 hover:text-text-primary'
+                    ? 'border-selection-border/90 bg-selection-bg text-selection-text shadow-glass-active backdrop-blur-sm'
+                    : 'border-glass-border/45 bg-panel-bg/42 text-text-secondary shadow-glass-idle hover:border-glass-border/85 hover:bg-panel-bg/82 hover:text-text-primary'
                     }`}
             >
                 <div className="flex items-center gap-3">

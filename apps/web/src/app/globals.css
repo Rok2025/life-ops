@@ -51,6 +51,10 @@
   --page-glow-2: rgb(255 196 221 / 22%);
   --page-glow-3: rgb(255 255 255 / 88%);
   --card-shadow: 0 22px 52px rgb(15 23 42 / 10%), 0 4px 10px rgb(15 23 42 / 4%);
+  --shadow-glass-active: inset 0 1px 0 rgb(255 255 255 / 18%), 0 10px 24px rgb(15 23 42 / 6%);
+  --shadow-glass-idle: inset 0 1px 0 rgb(255 255 255 / 5%);
+  --gradient-logo-start: #0071E3;
+  --gradient-logo-end: #00C7FF;
   --sidebar-width: 240px;
   --summary-width: 304px;
 
@@ -82,6 +86,7 @@
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
   --radius-xl: 1.25rem;
+  --radius-2xl: 2.25rem;
 
   /* ── Shadow (foundation) ── */
   --shadow-sm: 0 12px 28px rgb(15 23 42 / 7%), 0 2px 6px rgb(15 23 42 / 3%);
@@ -245,6 +250,10 @@
   --shadow-md: 0 14px 30px rgb(0 0 0 / 22%), inset 0 1px 0 rgb(255 255 255 / 4%);
   --shadow-lg: 0 24px 52px rgb(0 0 0 / 26%), inset 0 1px 0 rgb(255 255 255 / 5%);
   --card-shadow-token: 0 14px 32px rgb(0 0 0 / 22%), inset 0 1px 0 rgb(255 255 255 / 5%);
+  --shadow-glass-active: inset 0 1px 0 rgb(255 255 255 / 10%), 0 10px 24px rgb(0 0 0 / 18%);
+  --shadow-glass-idle: inset 0 1px 0 rgb(255 255 255 / 5%);
+  --gradient-logo-start: #0a84ff;
+  --gradient-logo-end: #3fd3f3;
 
   color-scheme: dark;
 }
@@ -285,6 +294,10 @@
   --shadow-md: 0 18px 40px rgb(4 5 10 / 36%), inset 0 1px 0 rgb(255 255 255 / 7%);
   --shadow-lg: 0 32px 70px rgb(4 5 10 / 46%), inset 0 1px 0 rgb(255 255 255 / 8%);
   --card-shadow-token: 0 18px 42px rgb(4 5 10 / 38%), inset 0 1px 0 rgb(255 255 255 / 8%);
+  --shadow-glass-active: inset 0 1px 0 rgb(255 255 255 / 10%), 0 10px 24px rgb(4 5 10 / 22%);
+  --shadow-glass-idle: inset 0 1px 0 rgb(255 255 255 / 5%);
+  --gradient-logo-start: #bd93f9;
+  --gradient-logo-end: #8be9fd;
   --card-radius: 1rem;
   --control-radius: 0.95rem;
   --inner-card-radius: 1.25rem;
@@ -362,12 +375,15 @@
   --radius-popover: var(--popover-radius);
   --radius-nav-item: var(--nav-item-radius);
   --radius-nav-container: var(--nav-container-radius);
+  --radius-2xl: var(--radius-2xl);
 
   /* Shadow tokens → Tailwind utilities */
   --shadow-sm: var(--shadow-sm);
   --shadow-md: var(--shadow-md);
   --shadow-lg: var(--shadow-lg);
   --shadow-card: var(--card-shadow-token);
+  --shadow-glass-active: var(--shadow-glass-active);
+  --shadow-glass-idle: var(--shadow-glass-idle);
 
   /* Motion tokens → Tailwind utilities */
   --duration-fast: var(--duration-fast);
@@ -463,6 +479,10 @@
     --shadow-md: 0 14px 30px rgb(0 0 0 / 22%), inset 0 1px 0 rgb(255 255 255 / 4%);
     --shadow-lg: 0 24px 52px rgb(0 0 0 / 26%), inset 0 1px 0 rgb(255 255 255 / 5%);
     --card-shadow-token: 0 14px 32px rgb(0 0 0 / 22%), inset 0 1px 0 rgb(255 255 255 / 5%);
+    --shadow-glass-active: inset 0 1px 0 rgb(255 255 255 / 10%), 0 10px 24px rgb(0 0 0 / 18%);
+    --shadow-glass-idle: inset 0 1px 0 rgb(255 255 255 / 5%);
+    --gradient-logo-start: #0a84ff;
+    --gradient-logo-end: #3fd3f3;
   }
 }
 

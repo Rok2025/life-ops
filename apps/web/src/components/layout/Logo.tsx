@@ -18,8 +18,8 @@ export default function Logo({ className = "w-8 h-8" }: { className?: string }) 
             />
             <defs>
                 <linearGradient id="paint0_linear" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-                    <stop stop-color="#0071E3" />
-                    <stop offset="1" stop-color="#00C7FF" />
+                    <stop style={{ stopColor: 'var(--gradient-logo-start)' }} />
+                    <stop offset="1" style={{ stopColor: 'var(--gradient-logo-end)' }} />
                 </linearGradient>
             </defs>
         </svg>

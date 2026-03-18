@@ -53,7 +53,7 @@ export default function WelcomeHeader({
                             <div className="h-5 w-28 rounded-full bg-white/8" />
                             <div className="h-8 w-44 rounded-full bg-white/10" />
                             <div className="h-4 w-64 rounded-full bg-white/7" />
-                            <div className="h-10 w-full max-w-xl rounded-[1rem] bg-white/6" />
+                            <div className="h-10 w-full max-w-xl rounded-lg bg-white/6" />
                         </div>
                         <div className="grid grid-cols-2 gap-3 animate-pulse">
                             {[0, 1, 2, 3].map((item) => (
@@ -126,7 +126,7 @@ export default function WelcomeHeader({
 
     return (
         <header>
-            <Card className="border-glass-border/90 bg-panel-bg/92 p-card shadow-[0_22px_48px_rgba(0,0,0,0.12)]">
+            <Card className="border-glass-border/90 bg-panel-bg/92 p-card shadow-lg">
                 <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white/7 to-transparent" />
                 <div className="absolute -left-10 top-4 h-20 w-36 rounded-full bg-white/7 blur-3xl dark:bg-white/4" />
                 <div className="absolute -right-12 top-6 h-28 w-28 rounded-full bg-accent/7 blur-3xl dark:bg-accent/6" />
