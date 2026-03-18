@@ -9,12 +9,9 @@ export interface BadgeProps extends PropsWithChildren {
 
 const toneStyles: Record<BadgeTone, string> = {
   default: '',
-  success:
-    'bg-[color-mix(in_srgb,var(--success)_9%,var(--panel-bg))] border-[color-mix(in_srgb,var(--success)_18%,var(--glass-border))] text-success',
-  warning:
-    'bg-[color-mix(in_srgb,var(--warning)_9%,var(--panel-bg))] border-[color-mix(in_srgb,var(--warning)_18%,var(--glass-border))] text-warning',
-  danger:
-    'bg-[color-mix(in_srgb,var(--danger)_9%,var(--panel-bg))] border-[color-mix(in_srgb,var(--danger)_18%,var(--glass-border))] text-danger',
+  success: 'bg-(--badge-success-bg) border-(--badge-success-border) text-success',
+  warning: 'bg-(--badge-warning-bg) border-(--badge-warning-border) text-warning',
+  danger: 'bg-(--badge-danger-bg) border-(--badge-danger-border) text-danger',
 };
 
 export function Badge({ tone = 'default', className, children }: BadgeProps) {

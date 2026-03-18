@@ -31,6 +31,7 @@ export default function NavLink({ href, label, icon: Icon, isActive, isChild = f
     return (
         <Link
             href={href}
+            aria-current={isActive ? 'page' : undefined}
             className={`group relative flex items-center gap-3 overflow-hidden border transition-all duration-200 ease-standard ${spacingClass} ${childIndicatorClass} ${isActive
                 ? 'border-selection-border/90 bg-selection-bg text-selection-text shadow-glass-active backdrop-blur-sm'
                 : 'border-glass-border/45 bg-panel-bg/42 text-text-secondary shadow-glass-idle hover:border-glass-border/85 hover:bg-panel-bg/82 hover:text-text-primary'

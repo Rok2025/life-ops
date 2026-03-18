@@ -55,6 +55,14 @@
   --shadow-glass-idle: inset 0 1px 0 rgb(255 255 255 / 5%);
   --gradient-logo-start: #0071E3;
   --gradient-logo-end: #00C7FF;
+  --badge-success-bg: color-mix(in srgb, var(--success) 9%, var(--panel-bg));
+  --badge-success-border: color-mix(in srgb, var(--success) 18%, var(--glass-border));
+  --badge-warning-bg: color-mix(in srgb, var(--warning) 9%, var(--panel-bg));
+  --badge-warning-border: color-mix(in srgb, var(--warning) 18%, var(--glass-border));
+  --badge-danger-bg: color-mix(in srgb, var(--danger) 9%, var(--panel-bg));
+  --badge-danger-border: color-mix(in srgb, var(--danger) 18%, var(--glass-border));
+  --z-popover: 70;
+  --z-overlay: 80;
   --sidebar-width: 240px;
   --summary-width: 304px;
 
@@ -254,6 +262,12 @@
   --shadow-glass-idle: inset 0 1px 0 rgb(255 255 255 / 5%);
   --gradient-logo-start: #0a84ff;
   --gradient-logo-end: #3fd3f3;
+  --badge-success-bg: color-mix(in srgb, var(--success) 9%, var(--panel-bg));
+  --badge-success-border: color-mix(in srgb, var(--success) 18%, var(--glass-border));
+  --badge-warning-bg: color-mix(in srgb, var(--warning) 9%, var(--panel-bg));
+  --badge-warning-border: color-mix(in srgb, var(--warning) 18%, var(--glass-border));
+  --badge-danger-bg: color-mix(in srgb, var(--danger) 9%, var(--panel-bg));
+  --badge-danger-border: color-mix(in srgb, var(--danger) 18%, var(--glass-border));
 
   color-scheme: dark;
 }
@@ -298,6 +312,12 @@
   --shadow-glass-idle: inset 0 1px 0 rgb(255 255 255 / 5%);
   --gradient-logo-start: #bd93f9;
   --gradient-logo-end: #8be9fd;
+  --badge-success-bg: color-mix(in srgb, var(--success) 9%, var(--panel-bg));
+  --badge-success-border: color-mix(in srgb, var(--success) 18%, var(--glass-border));
+  --badge-warning-bg: color-mix(in srgb, var(--warning) 9%, var(--panel-bg));
+  --badge-warning-border: color-mix(in srgb, var(--warning) 18%, var(--glass-border));
+  --badge-danger-bg: color-mix(in srgb, var(--danger) 9%, var(--panel-bg));
+  --badge-danger-border: color-mix(in srgb, var(--danger) 18%, var(--glass-border));
   --card-radius: 1rem;
   --control-radius: 0.95rem;
   --inner-card-radius: 1.25rem;
@@ -384,6 +404,10 @@
   --shadow-card: var(--card-shadow-token);
   --shadow-glass-active: var(--shadow-glass-active);
   --shadow-glass-idle: var(--shadow-glass-idle);
+
+  /* Z-index tokens → Tailwind utilities */
+  --z-popover: var(--z-popover);
+  --z-overlay: var(--z-overlay);
 
   /* Motion tokens → Tailwind utilities */
   --duration-fast: var(--duration-fast);
@@ -483,6 +507,12 @@
     --shadow-glass-idle: inset 0 1px 0 rgb(255 255 255 / 5%);
     --gradient-logo-start: #0a84ff;
     --gradient-logo-end: #3fd3f3;
+    --badge-success-bg: color-mix(in srgb, var(--success) 9%, var(--panel-bg));
+    --badge-success-border: color-mix(in srgb, var(--success) 18%, var(--glass-border));
+    --badge-warning-bg: color-mix(in srgb, var(--warning) 9%, var(--panel-bg));
+    --badge-warning-border: color-mix(in srgb, var(--warning) 18%, var(--glass-border));
+    --badge-danger-bg: color-mix(in srgb, var(--danger) 9%, var(--panel-bg));
+    --badge-danger-border: color-mix(in srgb, var(--danger) 18%, var(--glass-border));
   }
 }
 

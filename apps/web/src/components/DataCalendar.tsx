@@ -227,7 +227,7 @@ export default forwardRef<DataCalendarHandle, DataCalendarProps>(function DataCa
                 <div
                     ref={popoverRef}
                     style={popoverStyle}
-                    className="glass-popover z-[80] w-70 select-none rounded-card p-3"
+                    className="glass-popover z-overlay w-70 select-none rounded-card p-3"
                 >
                     {/* 月份导航 */}
                     <div className="flex items-center justify-between mb-3">

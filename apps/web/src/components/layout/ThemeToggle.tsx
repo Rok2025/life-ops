@@ -113,7 +113,7 @@ export default function ThemeToggle() {
                       ref={popoverRef}
                       role="menu"
                       aria-label="主题选择"
-                      className="glass-popover fixed z-[70] max-h-[min(26rem,calc(100vh-1.5rem))] overflow-y-auto rounded-popover border border-glass-border/90 p-2 shadow-[var(--shadow-lg)]"
+                      className="glass-popover fixed z-popover max-h-[min(26rem,calc(100vh-1.5rem))] overflow-y-auto rounded-popover border border-glass-border/90 p-2 shadow-lg"
                       style={popoverStyle}
                   >
                       <div className="mb-1 flex items-center justify-between gap-3 px-2 py-1.5">
@@ -149,7 +149,7 @@ export default function ThemeToggle() {
                                       onClick={() => handleThemeChange(option.id)}
                                       className={`glass-list-row flex w-full items-center gap-3 px-3 py-2.5 text-left ${
                                           isActive
-                                              ? 'border-selection-border bg-selection-bg shadow-[var(--shadow-sm)]'
+                                              ? 'border-selection-border bg-selection-bg shadow-sm'
                                               : 'hover:bg-bg-secondary/85'
                                       }`}
                                       >
@@ -205,7 +205,7 @@ export default function ThemeToggle() {
                 onClick={handleToggle}
                 aria-haspopup="menu"
                 aria-expanded={isOpen}
-                className="glass-list-row flex w-full items-center gap-3 rounded-popover px-3 py-2.5 text-left shadow-[var(--shadow-sm)]"
+                className="glass-list-row flex w-full items-center gap-3 rounded-popover px-3 py-2.5 text-left shadow-sm"
             >
                 <div className="glass-icon-badge h-8 w-8 shrink-0">
                     <Palette size={15} className="text-accent" />

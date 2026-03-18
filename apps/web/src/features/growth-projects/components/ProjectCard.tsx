@@ -41,7 +41,7 @@ export function ProjectCard({ project, area, selected, onSelect, onEdit }: Proje
         : 0;
 
     return (
-        <div onClick={() => onSelect(project)}>
+        <div role="button" tabIndex={0} onClick={() => onSelect(project)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(project); } }}>
             <Card
                 className={`p-3 cursor-pointer transition-all duration-normal ease-standard ${
                     selected ? 'border-selection-border bg-selection-bg shadow-sm' : 'bg-card-bg hover:-translate-y-0.5'
