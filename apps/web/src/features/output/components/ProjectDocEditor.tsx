@@ -32,7 +32,7 @@ import { OUTPUT_TYPE_CONFIG } from '../types';
 import { AREA_CONFIG, SCOPE_CONFIG, STATUS_CONFIG, type GrowthArea, type ProjectWithStats } from '@/features/growth-projects';
 import { MarkdownEditor } from './MarkdownEditor';
 import type { Output, OutputType } from '../types';
-import { Button, Card } from '@/components/ui';
+import { Button, Card, SegmentedControl } from '@/components/ui';
 
 interface ProjectDocEditorProps {
     project: ProjectWithStats;
@@ -226,6 +226,10 @@ export function ProjectDocEditor({ project, area, onClose }: ProjectDocEditorPro
 
     const hasContent = isNew || !!selectedDoc;
     const pct = project.todo_total > 0 ? Math.round((project.todo_completed / project.todo_total) * 100) : 0;
+    const inlineModeOptions = [
+        { value: 'edit', label: '编辑', icon: <Edit3 size={11} /> },
+        { value: 'preview', label: '预览', icon: <Eye size={11} /> },
+    ] as const;
 
     return (
         <Card variant="subtle" className="overflow-hidden border border-accent/30">
@@ -299,24 +303,12 @@ export function ProjectDocEditor({ project, area, onClose }: ProjectDocEditorPro
                                     placeholder="文档标题"
                                     className="flex-1 text-body font-medium bg-transparent text-text-primary outline-none placeholder:text-text-tertiary"
                                 />
-                                <div className="flex items-center bg-bg-tertiary rounded-control p-0.5">
-                                    <button
-                                        onClick={() => setInlineMode('edit')}
-                                        className={`flex items-center gap-1 px-2 py-0.5 rounded-control text-caption transition-colors duration-normal ease-standard ${
-                                            inlineMode === 'edit' ? 'bg-bg-primary text-text-primary shadow-sm' : 'text-text-tertiary'
-                                        }`}
-                                    >
-                                        <Edit3 size={11} /> 编辑
-                                    </button>
-                                    <button
-                                        onClick={() => setInlineMode('preview')}
-                                        className={`flex items-center gap-1 px-2 py-0.5 rounded-control text-caption transition-colors duration-normal ease-standard ${
-                                            inlineMode === 'preview' ? 'bg-bg-primary text-text-primary shadow-sm' : 'text-text-tertiary'
-                                        }`}
-                                    >
-                                        <Eye size={11} /> 预览
-                                    </button>
-                                </div>
+                                <SegmentedControl
+                                    value={inlineMode}
+                                    onChange={(next) => setInlineMode(next as InlineMode)}
+                                    options={inlineModeOptions}
+                                    aria-label="文档查看模式"
+                                />
                                 <button
                                     onClick={() => setShowFullscreen(true)}
                                     className="p-1 text-text-tertiary hover:text-text-primary hover:bg-bg-tertiary rounded-control transition-colors duration-normal ease-standard"

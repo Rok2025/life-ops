@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Life OPS Harness UI</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <aside class="sidebar-panel">
+        <div class="brand-block">
+          <div class="brand-kicker">Harness Incubator</div>
+          <h1>Life OPS Harness UI</h1>
+          <p>
+            独立于 <code>apps/web</code> 的本地调试面板，用来观察
+            <code>harness/api</code> 的最小运行闭环。
+          </p>
+        </div>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Connection</h2>
+          </div>
+          <label class="field">
+            <span>API Base</span>
+            <input id="apiBase" type="text" placeholder="http://127.0.0.1:4318" />
+          </label>
+          <div class="button-row">
+            <button id="checkHealthButton" class="button primary">Check Health</button>
+            <button id="loadToolsButton" class="button secondary">Load Tools</button>
+          </div>
+          <div id="healthCard" class="status-card muted">
+            <div class="status-label">API Status</div>
+            <div id="healthText">Waiting for check…</div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Tools</h2>
+          </div>
+          <div id="toolsList" class="tool-list empty">No tools loaded yet.</div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Recent Runs</h2>
+            <button id="refreshHistoryButton" class="button ghost button-small" type="button">
+              Refresh
+            </button>
+          </div>
+          <div class="meta-line">
+            来自 <code>harness/api</code> 的持久化历史，用来快速回看当前 session 的最近几次 run。
+          </div>
+          <div id="historyList" class="history-list empty">No runs yet.</div>
+        </section>
+      </aside>
+
+      <main class="main-panel">
+        <section class="hero-panel">
+          <div>
+            <div class="hero-kicker">Run Playground</div>
+            <h2>Deterministic Agent Loop</h2>
+            <p>
+              当前版本还没有接 LLM，这里是最小 scaffold：识别意图、命中工具、执行并返回 plan 和 tool trace。
+            </p>
+          </div>
+          <div class="hero-badge">
+            <span>Current Tools</span>
+            <strong>list_today_frogs</strong>
+            <strong style="margin-top: 4px;">list_today_til</strong>
+            <strong style="margin-top: 4px;">list_projects</strong>
+          </div>
+        </section>
+
+        <section class="panel run-panel">
+          <div class="panel-header">
+            <h2>Run Request</h2>
+          </div>
+
+          <div class="grid two-columns">
+            <label class="field">
+              <span>Session ID</span>
+              <input id="sessionId" type="text" value="demo-session" />
+            </label>
+            <label class="field">
+              <span>Tool Name (optional)</span>
+              <input id="toolName" type="text" placeholder="list_today_frogs | list_today_til | list_projects" />
+            </label>
+          </div>
+
+          <label class="field">
+            <span>Message</span>
+            <textarea id="message" rows="3">看看今天的青蛙</textarea>
+          </label>
+
+          <div class="grid two-columns">
+            <label class="field">
+              <span>Date (optional)</span>
+              <input id="inputDate" type="date" />
+            </label>
+            <label class="field">
+              <span>Timezone</span>
+              <input id="inputTimezone" type="text" value="Asia/Shanghai" />
+            </label>
+          </div>
+
+          <div class="grid two-columns">
+            <label class="field">
+              <span>Project Area (optional)</span>
+              <input id="projectArea" type="text" placeholder="ai | english | reading" />
+            </label>
+            <label class="field">
+              <span>Project Status (optional)</span>
+              <input id="projectStatus" type="text" placeholder="active | paused | completed | archived" />
+            </label>
+          </div>
+
+          <div class="grid two-columns">
+            <label class="field">
+              <span>Project Scope (optional)</span>
+              <input id="projectScope" type="text" placeholder="annual | quarterly | monthly" />
+            </label>
+            <label class="field">
+              <span>Project Limit (optional)</span>
+              <input id="projectLimit" type="number" min="1" max="100" placeholder="30" />
+            </label>
+          </div>
+
+          <div class="button-row">
+            <button id="runButton" class="button primary">Run Agent</button>
+            <button id="resetButton" class="button ghost">Reset</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Run Diagnostics</h2>
+          </div>
+          <div id="runFeedback" class="feedback-card muted">
+            <strong id="runFeedbackTitle">Ready to run</strong>
+            <div id="runFeedbackDetail" class="meta-line" style="margin-top: 8px;">
+              这里会显示当前 run 的状态摘要，以及失败时最直接的排查建议。
+            </div>
+            <div id="runMeta" class="meta-badges"></div>
+            <ul id="runHints" class="hint-list empty"></ul>
+          </div>
+        </section>
+
+        <section class="result-grid">
+          <section class="panel">
+            <div class="panel-header">
+              <h2>Assistant Message</h2>
+            </div>
+            <div id="assistantMessage" class="result-card empty">
+              Run a request to see assistant output.
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <h2>Plan</h2>
+            </div>
+            <div id="planSteps" class="timeline empty">No plan yet.</div>
+          </section>
+
+          <section class="panel panel-wide">
+            <div class="panel-header">
+              <h2>Tool Calls</h2>
+            </div>
+            <div id="toolCalls" class="tool-calls empty">No tool calls yet.</div>
+          </section>
+
+          <section class="panel panel-wide">
+            <div class="panel-header">
+              <h2>Raw JSON</h2>
+            </div>
+            <pre id="rawJson" class="raw-json">{}</pre>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+  </html>

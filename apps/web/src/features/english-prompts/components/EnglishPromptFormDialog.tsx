@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { ENGLISH_PROMPT_MODE_META } from '../types';
 import type { EnglishPromptMode, EnglishPromptTemplate, EnglishPromptTemplateFormValues } from '../types';
-import { Button, Dialog, Input } from '@/components/ui';
+import { Button, Checkbox, Dialog, Input } from '@/components/ui';
 
 interface EnglishPromptFormDialogProps {
     editingTemplate: EnglishPromptTemplate | null;
@@ -98,31 +98,23 @@ export default function EnglishPromptFormDialog({
                                     const checked = supportedModes.includes(item.key);
 
                                     return (
-                                        <label
+                                        <Checkbox
                                             key={item.key}
-                                            className={`rounded-card border px-3 py-3 text-body-sm transition-colors duration-normal ease-standard ${
+                                            checked={checked}
+                                            onChange={() => setSupportedModes(prev => (
+                                                checked
+                                                    ? prev.filter(mode => mode !== item.key)
+                                                    : [...prev, item.key]
+                                            ))}
+                                            label={item.label}
+                                            description={item.description}
+                                            containerClassName={`rounded-card border px-3 py-3 text-body-sm transition-colors duration-normal ease-standard ${
                                                 checked
                                                     ? 'border-accent bg-accent/10 text-text-primary'
                                                     : 'border-border bg-bg-tertiary text-text-secondary'
                                             }`}
-                                        >
-                                            <div className="flex items-start gap-2">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={checked}
-                                                    onChange={() => setSupportedModes(prev => (
-                                                        checked
-                                                            ? prev.filter(mode => mode !== item.key)
-                                                            : [...prev, item.key]
-                                                    ))}
-                                                    className="mt-0.5 h-4 w-4 rounded"
-                                                />
-                                                <div>
-                                                    <p className="font-medium">{item.label}</p>
-                                                    <p className="text-caption text-text-tertiary mt-1">{item.description}</p>
-                                                </div>
-                                            </div>
-                                        </label>
+                                            labelClassName="min-w-0"
+                                        />
                                     );
                                 })}
                             </div>
@@ -146,15 +138,11 @@ export default function EnglishPromptFormDialog({
                             />
                         </div>
 
-                        <label className="inline-flex items-center gap-2 text-body-sm text-text-secondary">
-                            <input
-                                type="checkbox"
-                                checked={isActive}
-                                onChange={event => setIsActive(event.target.checked)}
-                                className="h-4 w-4 rounded"
-                            />
-                            启用该提示词模板
-                        </label>
+                        <Checkbox
+                            checked={isActive}
+                            onChange={event => setIsActive(event.target.checked)}
+                            label="启用该提示词模板"
+                        />
                 </div>
 
                 <div className="flex justify-end gap-2 border-t border-border bg-bg-primary px-5 py-3">

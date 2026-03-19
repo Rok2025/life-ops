@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, StickyNote } from 'lucide-react';
+import { Plus, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, StickyNote, ListChecks } from 'lucide-react';
 import { getLocalDateStr, formatDisplayDate, offsetDate } from '@/lib/utils/date';
 import DataCalendar, { type DataCalendarHandle } from '@/components/DataCalendar';
 import { notesApi } from '../api/notesApi';
@@ -10,7 +10,7 @@ import { NoteCard } from './NoteCard';
 import { NoteFilter } from './NoteFilter';
 import { NoteForm } from './NoteForm';
 import { useNotesByDate } from '../hooks/useNotesByDate';
-import type { QuickNote, NoteType, FilterType } from '../types';
+import type { QuickNote, NoteType, FilterType, TodoPriority } from '../types';
 import { NOTE_TYPE_CONFIG, NOTE_TYPES } from '../types';
 import { Button, Card } from '@/components/ui';
 
@@ -28,6 +28,7 @@ export default function NotesWidget({ initialDate }: NotesWidgetProps) {
     const [showForm, setShowForm] = useState(false);
     const [editingNote, setEditingNote] = useState<QuickNote | null>(null);
     const [defaultFormType, setDefaultFormType] = useState<NoteType>('memo');
+    const [hideCompletedTodos, setHideCompletedTodos] = useState(false);
 
     const { data: notes = [], isLoading: loading } = useNotesByDate(selectedDate);
     const isToday = selectedDate === getLocalDateStr();
@@ -44,13 +45,14 @@ export default function NotesWidget({ initialDate }: NotesWidgetProps) {
     }, [selectedDate]);
 
     const saveMutation = useMutation({
-        mutationFn: async (data: { id?: string; type: NoteType; content: string; answer: string | null; date: string }) => {
+        mutationFn: async (data: { id?: string; type: NoteType; content: string; answer: string | null; date: string; priority: TodoPriority | null }) => {
             const noteData = {
                 note_date: data.date,
                 type: data.type,
                 content: data.content,
                 answer: null,
                 is_answered: false,
+                priority: data.priority,
             };
             if (data.id) {
                 await notesApi.update(data.id, noteData);
@@ -72,6 +74,16 @@ export default function NotesWidget({ initialDate }: NotesWidgetProps) {
         onSuccess: () => refreshDateData(selectedDate),
     });
 
+    const toggleMutation = useMutation({
+        mutationFn: ({ id, completed }: { id: string; completed: boolean }) =>
+            notesApi.toggleCompleted(id, completed),
+        onSuccess: () => refreshDateData(selectedDate),
+    });
+
+    const handleToggleCompleted = useCallback((id: string, completed: boolean) => {
+        toggleMutation.mutate({ id, completed });
+    }, [toggleMutation]);
+
     const handleEdit = useCallback((note: QuickNote) => {
         setEditingNote(note);
         setShowForm(true);
@@ -88,7 +100,7 @@ export default function NotesWidget({ initialDate }: NotesWidgetProps) {
         setShowForm(true);
     }, []);
 
-    const handleSave = useCallback((data: { type: NoteType; content: string; answer: string | null; date: string }) => {
+    const handleSave = useCallback((data: { type: NoteType; content: string; answer: string | null; date: string; priority: TodoPriority | null }) => {
         saveMutation.mutate({ id: editingNote?.id, ...data });
     }, [saveMutation, editingNote]);
 
@@ -97,9 +109,16 @@ export default function NotesWidget({ initialDate }: NotesWidgetProps) {
         setEditingNote(null);
     }, []);
 
-    const filteredNotes = filter === 'all' ? notes : notes.filter(n => n.type === filter);
-    const displayNotes = showAll ? filteredNotes : filteredNotes.slice(0, 4);
-    const hasMore = filteredNotes.length > 4;
+    const TYPE_ORDER: Record<NoteType, number> = { todo: 0, idea: 1, memo: 2 };
+    const sortedNotes = [...notes].sort((a, b) => TYPE_ORDER[a.type] - TYPE_ORDER[b.type]);
+    const filteredNotes = filter === 'all' ? sortedNotes : sortedNotes.filter(n => n.type === filter);
+    const visibleNotes = hideCompletedTodos
+        ? filteredNotes.filter(n => !(n.type === 'todo' && n.is_completed))
+        : filteredNotes;
+    const displayNotes = showAll ? visibleNotes : visibleNotes.slice(0, 4);
+    const hasMore = visibleNotes.length > 4;
+
+    const incompleteTodoCount = notes.filter(n => n.type === 'todo' && !n.is_completed).length;
 
     const counts: Record<FilterType, number> = {
         all: notes.length,
@@ -145,7 +164,26 @@ export default function NotesWidget({ initialDate }: NotesWidgetProps) {
                 </Button>
             </div>
 
-            {notes.length > 0 && <NoteFilter filter={filter} counts={counts} onFilterChange={setFilter} />}
+            {notes.length > 0 && (
+                <div className="flex items-center gap-2 mb-4">
+                    <div className="flex-1">
+                        <NoteFilter filter={filter} counts={counts} onFilterChange={setFilter} />
+                    </div>
+                    {incompleteTodoCount > 0 && (
+                        <button
+                            onClick={() => setHideCompletedTodos(v => !v)}
+                            className={`shrink-0 flex items-center gap-1.5 rounded-control px-2.5 py-1.5 text-caption transition-colors duration-normal ease-standard ${
+                                hideCompletedTodos
+                                    ? 'bg-accent/14 text-accent'
+                                    : 'text-text-secondary hover:bg-bg-tertiary'
+                            }`}
+                        >
+                            <ListChecks size={14} />
+                            <span>待办 {incompleteTodoCount}</span>
+                        </button>
+                    )}
+                </div>
+            )}
 
             {loading ? (
                 <div className="text-center py-4 text-text-secondary">加载中...</div>
@@ -181,6 +219,10 @@ export default function NotesWidget({ initialDate }: NotesWidgetProps) {
                 <div className="text-center py-4 text-text-secondary text-body-sm">
                     无{filter !== 'all' ? NOTE_TYPE_CONFIG[filter].label : ''}记录
                 </div>
+            ) : visibleNotes.length === 0 ? (
+                <div className="text-center py-4 text-text-secondary text-body-sm">
+                    所有待办已完成 🎉
+                </div>
             ) : (
                 <>
                     <div className="space-y-1">
@@ -190,6 +232,7 @@ export default function NotesWidget({ initialDate }: NotesWidgetProps) {
                                 note={note}
                                 onEdit={handleEdit}
                                 onDelete={handleDelete}
+                                onToggleCompleted={handleToggleCompleted}
                             />
                         ))}
                     </div>
@@ -201,7 +244,7 @@ export default function NotesWidget({ initialDate }: NotesWidgetProps) {
                             {showAll ? (
                                 <>收起 <ChevronUp size={16} /></>
                             ) : (
-                                <>展开更多 ({filteredNotes.length - 4} 条) <ChevronDown size={16} /></>
+                                <>展开更多 ({visibleNotes.length - 4} 条) <ChevronDown size={16} /></>
                             )}
                         </button>
                     )}

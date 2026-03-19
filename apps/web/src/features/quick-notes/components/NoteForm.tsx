@@ -2,23 +2,35 @@
 
 import { useState, useCallback } from 'react';
 import { getLocalDateStr } from '@/lib/utils/date';
-import type { QuickNote, NoteType } from '../types';
-import { NOTE_TYPE_CONFIG, NOTE_TYPES } from '../types';
-import { Button, Dialog, Input } from '@/components/ui';
+import type { QuickNote, NoteType, TodoPriority } from '../types';
+import { NOTE_TYPE_CONFIG, NOTE_TYPES, PRIORITY_CONFIG, TODO_PRIORITIES } from '../types';
+import { ChipGroup, Dialog, FormActions, Input } from '@/components/ui';
+import type { ChipOption } from '@/components/ui';
 
 interface NoteFormProps {
     editingNote: QuickNote | null;
     defaultDate: string;
     defaultType?: NoteType;
     saving: boolean;
-    onSave: (data: { type: NoteType; content: string; answer: string | null; date: string }) => void;
+    onSave: (data: { type: NoteType; content: string; answer: string | null; date: string; priority: TodoPriority | null }) => void;
     onCancel: () => void;
 }
+
+const NOTE_TYPE_OPTIONS: ChipOption<NoteType>[] = NOTE_TYPES.map((t) => ({
+    value: t,
+    label: `${NOTE_TYPE_CONFIG[t].emoji} ${NOTE_TYPE_CONFIG[t].label}`,
+}));
+
+const PRIORITY_OPTIONS: ChipOption<TodoPriority>[] = TODO_PRIORITIES.map((p) => {
+    const cfg = PRIORITY_CONFIG[p];
+    return { value: p, label: cfg.emoji ? `${cfg.emoji} ${cfg.label}` : cfg.label };
+});
 
 export function NoteForm({ editingNote, defaultDate, defaultType, saving, onSave, onCancel }: NoteFormProps) {
     const [type, setType] = useState<NoteType>(editingNote?.type ?? defaultType ?? 'memo');
     const [content, setContent] = useState(editingNote?.content ?? '');
     const [date, setDate] = useState(editingNote?.note_date ?? defaultDate);
+    const [priority, setPriority] = useState<TodoPriority>(editingNote?.priority ?? 'normal');
 
     const handleSubmit = useCallback(() => {
         if (!content.trim()) return;
@@ -27,8 +39,9 @@ export function NoteForm({ editingNote, defaultDate, defaultType, saving, onSave
             content: content.trim(),
             answer: null,
             date,
+            priority: type === 'todo' ? priority : null,
         });
-    }, [type, content, date, onSave]);
+    }, [type, content, date, priority, onSave]);
 
     return (
         <Dialog
@@ -48,25 +61,14 @@ export function NoteForm({ editingNote, defaultDate, defaultType, saving, onSave
                 <div className="space-y-3 px-5 py-4">
                     {/* 类型选择 */}
                     <div>
-                        <label className="block text-caption text-text-secondary mb-2">类型</label>
-                        <div className="flex gap-2">
-                            {NOTE_TYPES.map(t => {
-                                const config = NOTE_TYPE_CONFIG[t];
-                                return (
-                                    <button
-                                        type="button"
-                                        key={t}
-                                        onClick={() => setType(t)}
-                                        className={`flex-1 px-3 py-2 rounded-control text-body-sm border transition-colors duration-normal ease-standard ${type === t
-                                                ? `${config.bg} ${config.color} border-transparent font-medium`
-                                                : 'border-border text-text-secondary hover:bg-bg-tertiary'
-                                            }`}
-                                    >
-                                        {config.emoji} {config.label}
-                                    </button>
-                                );
-                            })}
-                        </div>
+                        <label className="block text-caption text-text-secondary mb-1">类型</label>
+                        <ChipGroup<NoteType>
+                            label="记录类型"
+                            name="note-type"
+                            value={type}
+                            options={NOTE_TYPE_OPTIONS}
+                            onChange={setType}
+                        />
                     </div>
 
                     {/* 日期 */}
@@ -79,6 +81,20 @@ export function NoteForm({ editingNote, defaultDate, defaultType, saving, onSave
                             max={getLocalDateStr()}
                         />
                     </div>
+
+                    {/* 待办优先级 */}
+                    {type === 'todo' && (
+                        <div>
+                            <label className="block text-caption text-text-secondary mb-1">优先级</label>
+                            <ChipGroup<TodoPriority>
+                                label="待办优先级"
+                                name="todo-priority"
+                                value={priority}
+                                options={PRIORITY_OPTIONS}
+                                onChange={setPriority}
+                            />
+                        </div>
+                    )}
 
                     {/* 内容 */}
                     <div>
@@ -93,22 +109,12 @@ export function NoteForm({ editingNote, defaultDate, defaultType, saving, onSave
                             rows={3}
                             className="resize-none"
                             autoFocus
+                            onCmdEnter={handleSubmit}
                         />
                     </div>
                 </div>
 
-                <div className="flex gap-2 border-t border-border bg-bg-primary px-5 py-3">
-                    <Button type="button" onClick={onCancel} variant="ghost" className="flex-1">
-                        取消
-                    </Button>
-                    <Button
-                        type="submit"
-                        disabled={!content.trim() || saving}
-                        className="flex-1"
-                    >
-                        {saving ? '保存中...' : '确定'}
-                    </Button>
-                </div>
+                <FormActions onCancel={onCancel} disabled={!content.trim()} saving={saving} />
             </form>
         </Dialog>
     );

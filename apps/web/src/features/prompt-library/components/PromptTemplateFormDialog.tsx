@@ -5,7 +5,7 @@ import { Columns2, Edit3, Eye } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { PromptTemplate, PromptTemplateFormValues } from '../types';
-import { Button, Dialog, Input } from '@/components/ui';
+import { Button, Checkbox, Dialog, Input, SegmentedControl } from '@/components/ui';
 
 interface PromptTemplateFormDialogProps {
     editingTemplate: PromptTemplate | null;
@@ -55,6 +55,14 @@ export default function PromptTemplateFormDialog({
     }, [content, description, isFavorite, onSubmit, tagsInput, title]);
 
     const tagsPreview = useMemo(() => parseTags(tagsInput), [tagsInput]);
+    const editorOptions = useMemo(
+        () => [
+            { value: 'edit', label: '编辑', icon: <Edit3 size={12} /> },
+            { value: 'split', label: '分栏', icon: <Columns2 size={12} /> },
+            { value: 'preview', label: '预览', icon: <Eye size={12} /> },
+        ],
+        [],
+    );
 
     return (
         <Dialog
@@ -117,44 +125,12 @@ export default function PromptTemplateFormDialog({
                         <div>
                             <div className="mb-1 flex items-center justify-between">
                                 <label className="block text-caption text-text-secondary">模板内容 *</label>
-                                <div className="inline-flex items-center rounded-control bg-bg-tertiary p-0.5">
-                                    <button
-                                        type="button"
-                                        onClick={() => setEditorMode('edit')}
-                                        className={`inline-flex items-center gap-1 rounded-control px-2 py-1 text-caption transition-colors duration-normal ease-standard ${
-                                            editorMode === 'edit'
-                                                ? 'bg-bg-primary text-text-primary shadow-sm'
-                                                : 'text-text-tertiary hover:text-text-secondary'
-                                        }`}
-                                    >
-                                        <Edit3 size={12} />
-                                        编辑
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setEditorMode('split')}
-                                        className={`inline-flex items-center gap-1 rounded-control px-2 py-1 text-caption transition-colors duration-normal ease-standard ${
-                                            editorMode === 'split'
-                                                ? 'bg-bg-primary text-text-primary shadow-sm'
-                                                : 'text-text-tertiary hover:text-text-secondary'
-                                        }`}
-                                    >
-                                        <Columns2 size={12} />
-                                        分栏
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setEditorMode('preview')}
-                                        className={`inline-flex items-center gap-1 rounded-control px-2 py-1 text-caption transition-colors duration-normal ease-standard ${
-                                            editorMode === 'preview'
-                                                ? 'bg-bg-primary text-text-primary shadow-sm'
-                                                : 'text-text-tertiary hover:text-text-secondary'
-                                        }`}
-                                    >
-                                        <Eye size={12} />
-                                        预览
-                                    </button>
-                                </div>
+                                <SegmentedControl
+                                    value={editorMode}
+                                    onChange={(next) => setEditorMode(next as EditorMode)}
+                                    options={editorOptions}
+                                    aria-label="模板编辑模式"
+                                />
                             </div>
 
                             <div className="overflow-hidden rounded-card border border-border bg-bg-tertiary">
@@ -189,15 +165,11 @@ export default function PromptTemplateFormDialog({
                             </div>
                         </div>
 
-                        <label className="inline-flex items-center gap-2 text-body-sm text-text-secondary">
-                            <input
-                                type="checkbox"
-                                checked={isFavorite}
-                                onChange={event => setIsFavorite(event.target.checked)}
-                                className="h-4 w-4 rounded"
-                            />
-                            默认收藏
-                        </label>
+                        <Checkbox
+                            checked={isFavorite}
+                            onChange={event => setIsFavorite(event.target.checked)}
+                            label="默认收藏"
+                        />
                 </div>
 
                 <div className="flex justify-end gap-2 border-t border-border bg-bg-primary px-5 py-3">

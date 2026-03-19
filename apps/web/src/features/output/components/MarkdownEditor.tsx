@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Button } from '@/components/ui';
+import { Button, SegmentedControl } from '@/components/ui';
 
 type EditorMode = 'edit' | 'preview' | 'split';
 
@@ -156,11 +156,11 @@ export function MarkdownEditor({
 
     if (!open) return null;
 
-    const modeButtons: { key: EditorMode; icon: React.ComponentType<{ size?: number }>; label: string }[] = [
-        { key: 'edit', icon: Edit3, label: '编辑' },
-        { key: 'split', icon: Maximize2, label: '分栏' },
-        { key: 'preview', icon: Eye, label: '预览' },
-    ];
+    const modeOptions = [
+        { value: 'edit', label: '编辑', icon: <Edit3 size={13} /> },
+        { value: 'split', label: '分栏', icon: <Maximize2 size={13} /> },
+        { value: 'preview', label: '预览', icon: <Eye size={13} /> },
+    ] as const;
 
     return (
         <div className="fixed inset-0 z-60 flex flex-col bg-bg-primary">
@@ -178,23 +178,12 @@ export function MarkdownEditor({
 
                 <div className="flex items-center gap-2">
                     {/* 模式切换 */}
-                    <div className="flex items-center bg-bg-tertiary rounded-control p-0.5">
-                        {modeButtons.map(({ key, icon: Icon, label }) => (
-                            <button
-                                key={key}
-                                onClick={() => setMode(key)}
-                                title={label}
-                                className={`flex items-center gap-1 px-2.5 py-1 rounded-control text-caption transition-colors duration-normal ease-standard ${
-                                    mode === key
-                                        ? 'bg-bg-primary text-text-primary shadow-sm'
-                                        : 'text-text-tertiary hover:text-text-secondary'
-                                }`}
-                            >
-                                <Icon size={13} />
-                                <span className="hidden sm:inline">{label}</span>
-                            </button>
-                        ))}
-                    </div>
+                    <SegmentedControl
+                        value={mode}
+                        onChange={(next) => setMode(next as EditorMode)}
+                        options={modeOptions}
+                        aria-label="Markdown 编辑模式"
+                    />
 
                     {/* 保存 */}
                     <Button onClick={onSave} disabled={saving} size="sm">

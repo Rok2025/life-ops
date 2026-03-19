@@ -11,7 +11,7 @@ import { useQueryHistory } from '../hooks/useQueryHistory';
 import type { PromptMode, AIQueryResponse } from '../types';
 import QueryResultCard from './QueryResultCard';
 import PromptModeSelector from './PromptModeSelector';
-import { Button, Card, SectionHeader } from '@/components/ui';
+import { Button, Card, Input, SectionHeader } from '@/components/ui';
 
 export default function EnglishQueryPanel() {
     const today = getLocalDateStr();
@@ -83,13 +83,14 @@ export default function EnglishQueryPanel() {
                         description="输入单词、短语或句子，立刻得到解析，并能顺手保存到学习记录里。"
                     />
                     <div className="relative">
-                        <textarea
+                        <Input
+                            multiline
                             value={inputText}
                             onChange={e => setInputText(e.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder="输入英文单词、短语或句子..."
                             rows={2}
-                            className="w-full resize-none rounded-card border border-glass-border bg-panel-bg px-4 py-3 pr-14 text-text-primary placeholder:text-text-tertiary shadow-sm outline-none transition-colors duration-normal ease-standard focus:border-accent focus:ring-2 focus:ring-accent/20"
+                            className="resize-none pr-14"
                         />
                         <Button
                             onClick={handleQuery}

@@ -1,0 +1,11 @@
+{
+  "name": "@life-ops/harness-dev",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node start.mjs",
+    "dev": "node start.mjs",
+    "check": "node --check start.mjs"
+  }
+}

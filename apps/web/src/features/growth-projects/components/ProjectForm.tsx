@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { projectsApi } from '../api/projectsApi';
 import { SCOPE_CONFIG, STATUS_CONFIG } from '../types';
 import type { GrowthArea, ProjectWithStats, ProjectScope, ProjectStatus, CreateProjectInput, UpdateProjectInput } from '../types';
-import { Button, Dialog, Input, Select } from '@/components/ui';
+import { Button, Dialog, Input, SegmentedControl, Select } from '@/components/ui';
 
 interface ProjectFormProps {
     open: boolean;
@@ -92,6 +92,10 @@ export function ProjectForm({ open, onClose, area, editingProject }: ProjectForm
     if (!open) return null;
 
     const saving = createMutation.isPending || updateMutation.isPending;
+    const scopeOptions = (Object.keys(SCOPE_CONFIG) as ProjectScope[]).map((scopeKey) => ({
+        value: scopeKey,
+        label: SCOPE_CONFIG[scopeKey].label,
+    }));
 
     return (
         <Dialog
@@ -133,22 +137,13 @@ export function ProjectForm({ open, onClose, area, editingProject }: ProjectForm
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className="block text-caption text-text-secondary mb-1">项目范围 *</label>
-                            <div className="flex items-center gap-1.5">
-                                {(Object.keys(SCOPE_CONFIG) as ProjectScope[]).map(s => (
-                                    <button
-                                        key={s}
-                                        type="button"
-                                        onClick={() => setScope(s)}
-                                        className={`flex-1 px-2 py-1.5 text-caption rounded-control border transition-colors duration-normal ease-standard ${
-                                            scope === s
-                                                ? 'border-accent bg-accent/15 text-accent font-medium'
-                                                : 'border-border bg-bg-tertiary text-text-secondary hover:border-text-tertiary'
-                                        }`}
-                                    >
-                                        {SCOPE_CONFIG[s].label}
-                                    </button>
-                                ))}
-                            </div>
+                            <SegmentedControl
+                                value={scope}
+                                onChange={(next) => setScope(next as ProjectScope)}
+                                options={scopeOptions}
+                                fullWidth
+                                aria-label="项目范围"
+                            />
                         </div>
                         {isEditing && (
                             <div>

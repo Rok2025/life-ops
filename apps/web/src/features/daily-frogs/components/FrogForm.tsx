@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { getLocalDateStr } from '@/lib/utils/date';
 import type { Frog } from '../types';
-import { Button, Dialog, Input } from '@/components/ui';
+import { Dialog, FormActions, Input } from '@/components/ui';
 
 interface FrogFormProps {
     editingFrog: Frog | null;
@@ -61,18 +61,7 @@ export function FrogForm({ editingFrog, defaultDate, saving, onSave, onCancel }:
                         />
                     </div>
                 </div>
-                <div className="flex gap-2 border-t border-border bg-bg-primary px-5 py-3">
-                    <Button type="button" onClick={onCancel} variant="ghost" className="flex-1">
-                        取消
-                    </Button>
-                    <Button
-                        type="submit"
-                        disabled={!title.trim() || saving}
-                        className="flex-1"
-                    >
-                        {saving ? '保存中...' : '确定'}
-                    </Button>
-                </div>
+                <FormActions onCancel={onCancel} disabled={!title.trim()} saving={saving} />
             </form>
         </Dialog>
     );

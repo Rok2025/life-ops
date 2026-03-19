@@ -77,7 +77,7 @@ export default function Sidebar() {
 
             {/* Navigation */}
             <nav className="flex-1 overflow-y-auto px-3 py-3">
-                <div className="rounded-nav-container border border-glass-border/70 bg-panel-bg/40 p-1.5 shadow-[var(--shadow-xs)] backdrop-blur-xl">
+                <div className="rounded-nav-container border border-glass-border/70 bg-panel-bg/40 p-1.5 shadow-glass-idle backdrop-blur-xl">
                     <ul className="space-y-1">
                         {navItems.map((item) => {
                             if (item.children) {

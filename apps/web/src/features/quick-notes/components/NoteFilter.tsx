@@ -11,7 +11,7 @@ interface NoteFilterProps {
 
 export function NoteFilter({ filter, counts, onFilterChange }: NoteFilterProps) {
     return (
-        <div className="glass-filter-bar mb-4 flex items-center">
+        <div className="glass-filter-bar flex items-center">
             <button
                 onClick={() => onFilterChange('all')}
                 className={`glass-filter-chip text-body-sm ${filter === 'all'

@@ -11,8 +11,10 @@ Use these instead of ad‑hoc markup so styles stay consistent:
 | **Badge** | Status pills / labels. Tones: `default`, `success`, `warning`, `danger`. |
 | **Button** | Primary / secondary / ghost / danger actions. Sizes: `sm`, `md`. |
 | **Card** | Content panels, list containers. Variants: `default`, `subtle`. |
+| **Checkbox** | Boolean toggles and lightweight multi-select rows. |
 | **Input** | Text fields and textareas. Sizes: `sm`, `md`. Supports `error`, `multiline`, `rows`. |
 | **Dialog** | Modal overlay + panel. Props: `open`, `onClose`, `title?`, `maxWidth?`, `children`. Handles ESC, body scroll lock, and focus. |
+| **SegmentedControl** | View mode switchers, compact mutually-exclusive option groups. |
 | **SectionHeader** | Page/section titles with optional actions. |
 
 Import from `@/components/ui` (e.g. `import { Button, Card, Input, Dialog } from '@/components/ui'`).
@@ -108,6 +110,8 @@ For TypeScript config maps (category/status/tag metadata), prefer reusing the sh
 - **Actions**: `<Button variant="primary">`
 - **Status labels**: `<Badge tone="success">` (not `.pill` class)
 - **Forms**: `<Input>`, `<Input multiline>` (not raw `<input>` / `<textarea>` with repeated styles)
+- **Boolean toggles**: `<Checkbox>` for favorites, enabled flags, simple multi-select rows
+- **Mode / scope switchers**: `<SegmentedControl>` instead of hand-rolled edit/preview tabs or scope pills
 
 ### Theming and density
 

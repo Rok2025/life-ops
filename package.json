@@ -2,7 +2,7 @@
     "name": "life-ops",
     "private": true,
     "scripts": {
-        "dev": "turbo dev",
+        "dev": "turbo dev --filter=web --filter=@life-ops/harness-dev",
         "build": "turbo build",
         "lint": "turbo lint",
         "test": "turbo test"

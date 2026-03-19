@@ -1,0 +1,11 @@
+{
+  "name": "@life-ops/harness-api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/server.mjs",
+    "start": "node src/server.mjs",
+    "check": "node --check src/server.mjs && node --check src/runtime/run-agent.mjs && node --check src/runtime/store/file-store.mjs && node --check src/runtime/tools/list-today-frogs.mjs && node --check src/runtime/tools/list-today-til.mjs && node --check src/runtime/tools/list-projects.mjs"
+  }
+}

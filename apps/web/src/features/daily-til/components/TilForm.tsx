@@ -3,7 +3,8 @@
 import { useState, useCallback } from 'react';
 import { getLocalDateStr } from '@/lib/utils/date';
 import type { TIL } from '../types';
-import { Button, Dialog, Input } from '@/components/ui';
+import { ChipGroup, Dialog, FormActions, Input } from '@/components/ui';
+import type { ChipOption } from '@/components/ui';
 
 interface TilFormProps {
     editingTil: TIL | null;
@@ -14,10 +15,16 @@ interface TilFormProps {
     onCancel: () => void;
 }
 
+const buildCategoryOptions = (categories: string[]): ChipOption[] => [
+    { value: '', label: '不分类' },
+    ...categories.map((c) => ({ value: c, label: c })),
+];
+
 export function TilForm({ editingTil, defaultDate, saving, categories, onSave, onCancel }: TilFormProps) {
     const [content, setContent] = useState(editingTil?.content ?? '');
     const [category, setCategory] = useState(editingTil?.category ?? '');
     const [date, setDate] = useState(editingTil?.til_date ?? defaultDate);
+    const categoryOptions = buildCategoryOptions(categories);
 
     const handleSubmit = useCallback(() => {
         if (!content.trim()) return;
@@ -51,45 +58,13 @@ export function TilForm({ editingTil, defaultDate, saving, categories, onSave, o
                     </div>
                     <div>
                         <label className="block text-caption text-text-secondary mb-1">分类（可选）</label>
-                        <div className="flex flex-wrap gap-2">
-                            <label
-                                className={`inline-flex items-center px-3 py-1.5 rounded-control border cursor-pointer transition-colors duration-normal ease-standard text-body-sm ${
-                                    category === ''
-                                        ? 'border-accent bg-accent/10 text-accent'
-                                        : 'border-border text-text-secondary hover:bg-bg-tertiary'
-                                }`}
-                            >
-                                <input
-                                    type="radio"
-                                    name="til-category"
-                                    value=""
-                                    checked={category === ''}
-                                    onChange={() => setCategory('')}
-                                    className="sr-only"
-                                />
-                                不分类
-                            </label>
-                            {categories.map(cat => (
-                                <label
-                                    key={cat}
-                                    className={`inline-flex items-center px-3 py-1.5 rounded-control border cursor-pointer transition-colors duration-normal ease-standard text-body-sm ${
-                                        category === cat
-                                            ? 'border-accent bg-accent/10 text-accent'
-                                            : 'border-border text-text-secondary hover:bg-bg-tertiary'
-                                    }`}
-                                >
-                                    <input
-                                        type="radio"
-                                        name="til-category"
-                                        value={cat}
-                                        checked={category === cat}
-                                        onChange={() => setCategory(cat)}
-                                        className="sr-only"
-                                    />
-                                    {cat}
-                                </label>
-                            ))}
-                        </div>
+                        <ChipGroup
+                            label="TIL 分类"
+                            name="til-category"
+                            value={category}
+                            options={categoryOptions}
+                            onChange={setCategory}
+                        />
                     </div>
                     <div>
                         <label className="block text-caption text-text-secondary mb-1">学到了什么</label>
@@ -101,21 +76,11 @@ export function TilForm({ editingTil, defaultDate, saving, categories, onSave, o
                             rows={3}
                             className="resize-none"
                             autoFocus
+                            onCmdEnter={handleSubmit}
                         />
                     </div>
                 </div>
-                <div className="flex gap-2 border-t border-border bg-bg-primary px-5 py-3">
-                    <Button type="button" onClick={onCancel} variant="ghost" className="flex-1">
-                        取消
-                    </Button>
-                    <Button
-                        type="submit"
-                        disabled={!content.trim() || saving}
-                        className="flex-1"
-                    >
-                        {saving ? '保存中...' : '确定'}
-                    </Button>
-                </div>
+                <FormActions onCancel={onCancel} disabled={!content.trim()} saving={saving} />
             </form>
         </Dialog>
     );

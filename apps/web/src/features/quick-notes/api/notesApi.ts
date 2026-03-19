@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import type { QuickNote, CreateNoteInput, UpdateNoteInput } from '../types';
+import type { TodoPriority } from '../types';
 
 export const notesApi = {
     /** 按日期获取笔记列表 */
@@ -53,6 +54,31 @@ export const notesApi = {
             .delete()
             .eq('id', id);
         if (error) throw error;
+    },
+
+    /** 切换待办完成状态 */
+    toggleCompleted: async (id: string, isCompleted: boolean): Promise<QuickNote> => {
+        const { data, error } = await supabase
+            .from('quick_notes')
+            .update({ is_completed: isCompleted, updated_at: new Date().toISOString() })
+            .eq('id', id)
+            .select()
+            .single();
+        if (error) throw error;
+        return data;
+    },
+
+    /** 获取所有未完成的待办 */
+    getIncompleteTodos: async (): Promise<QuickNote[]> => {
+        const { data, error } = await supabase
+            .from('quick_notes')
+            .select('*')
+            .eq('type', 'todo')
+            .eq('is_completed', false)
+            .order('priority', { ascending: true, nullsFirst: false })
+            .order('note_date', { ascending: false });
+        if (error) throw error;
+        return data ?? [];
     },
 
     /** 获取日期范围内有数据的日期列表 */
