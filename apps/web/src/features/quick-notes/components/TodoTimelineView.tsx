@@ -7,6 +7,7 @@ import { formatDisplayDate, formatFullDate, getLocalDateStr } from '@/lib/utils/
 import { useTodos } from '../hooks/useTodos';
 import type { QuickNote, TodoPriority } from '../types';
 import { PRIORITY_CONFIG } from '../types';
+import { OverflowTooltipText } from './OverflowTooltipText';
 
 interface TodoTimelineViewProps {
     embedded?: boolean;
@@ -165,7 +166,7 @@ function TodoTimelineRow({ todo, today }: { todo: QuickNote; today: string }) {
     return (
         <div
             className={[
-                'glass-list-row grid grid-cols-[10px_minmax(0,1fr)_auto] items-center gap-2 px-2.5 py-1.5 md:grid-cols-[10px_minmax(0,1.25fr)_minmax(0,0.9fr)_auto]',
+                'glass-list-row relative z-0 grid grid-cols-[10px_minmax(0,1fr)_auto] items-center gap-2 px-2.5 py-1.5 hover:z-20 focus-within:z-20 md:grid-cols-[10px_minmax(0,1.25fr)_minmax(0,0.9fr)_auto]',
                 isOverdue ? 'border-warning/18' : 'border-white/5',
             ].filter(Boolean).join(' ')}
         >
@@ -183,12 +184,13 @@ function TodoTimelineRow({ todo, today }: { todo: QuickNote; today: string }) {
                 ].join(' ')}
             />
 
-            <div className={[
-                'truncate text-body-sm font-medium',
-                todo.is_completed ? 'text-text-secondary line-through' : 'text-text-primary',
-            ].join(' ')}>
-                {todo.content}
-            </div>
+            <OverflowTooltipText
+                text={todo.content}
+                className={[
+                    'truncate text-body-sm font-medium',
+                    todo.is_completed ? 'text-text-secondary line-through' : 'text-text-primary',
+                ].join(' ')}
+            />
 
             <div className="hidden truncate text-caption text-text-tertiary md:block">
                 {summary}

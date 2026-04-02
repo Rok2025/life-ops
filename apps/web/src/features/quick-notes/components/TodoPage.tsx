@@ -20,6 +20,7 @@ import { notesApi } from '../api/notesApi';
 import { useTodos } from '../hooks/useTodos';
 import type { QuickNote, TodoPriority } from '../types';
 import { PRIORITY_CONFIG } from '../types';
+import { OverflowTooltipText } from './OverflowTooltipText';
 import { TodoFormDialog, type TodoFormValues } from './TodoFormDialog';
 import { TodoTimelineView } from './TodoTimelineView';
 
@@ -281,7 +282,7 @@ function TodoListRow({
     return (
         <div
             className={[
-                'glass-list-row grid grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-3 px-3 py-2.5',
+                'glass-list-row relative z-0 grid grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-3 px-3 py-2.5 hover:z-20 focus-within:z-20',
                 'md:grid-cols-[36px_minmax(0,1fr)_110px_110px_84px_56px]',
                 todo.is_completed ? 'opacity-75' : '',
                 isOverdue ? 'border-warning/30' : '',
@@ -302,12 +303,13 @@ function TodoListRow({
             </button>
 
             <div className="min-w-0">
-                <div className={[
-                    'truncate text-body-sm font-medium',
-                    todo.is_completed ? 'text-text-secondary line-through' : 'text-text-primary',
-                ].join(' ')}>
-                    {todo.content}
-                </div>
+                <OverflowTooltipText
+                    text={todo.content}
+                    className={[
+                        'truncate text-body-sm font-medium',
+                        todo.is_completed ? 'text-text-secondary line-through' : 'text-text-primary',
+                    ].join(' ')}
+                />
                 <div className="mt-1 flex flex-wrap items-center gap-2 text-caption text-text-secondary md:hidden">
                     <span className={dateInfo.className}>{dateInfo.label}</span>
                     <span className={`rounded-full px-2 py-0.5 ${priorityCfg.bg} ${priorityCfg.color}`}>
@@ -712,10 +714,11 @@ export default function TodoPage() {
                         <Button
                             variant="secondary"
                             size="sm"
-                            className="gap-2"
+                            className="gap-1.5 rounded-full border-white/70 bg-white/82 px-3 shadow-[0_10px_24px_rgb(15_23_42/8%)] backdrop-blur-xl hover:-translate-y-px hover:bg-white/92"
                             onClick={() => setTimelineDialogOpen(true)}
+                            title="查看全部待办记录"
                         >
-                            <History size={16} />
+                            <History size={15} className="text-accent" />
                             全部记录
                         </Button>
 
