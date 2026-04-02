@@ -26,8 +26,8 @@ export default function HomeDashboard() {
     });
 
     const { data: notesCount } = useQuery({
-        queryKey: ['notes-count', today],
-        queryFn: () => notesApi.getCount(today),
+        queryKey: ['notes-count', today, 'notes-only'],
+        queryFn: () => notesApi.getCount(today, { includeTodos: false }),
     });
 
     const { data: weeklyWorkoutDays } = useQuery({

@@ -14,20 +14,35 @@ interface NoteFormProps {
     saving: boolean;
     onSave: (data: { type: NoteType; content: string; answer: string | null; date: string; priority: TodoPriority | null }) => void;
     onCancel: () => void;
+    allowedTypes?: readonly NoteType[];
 }
-
-const NOTE_TYPE_OPTIONS: ChipOption<NoteType>[] = NOTE_TYPES.map((t) => ({
-    value: t,
-    label: `${NOTE_TYPE_CONFIG[t].emoji} ${NOTE_TYPE_CONFIG[t].label}`,
-}));
 
 const PRIORITY_OPTIONS: ChipOption<TodoPriority>[] = TODO_PRIORITIES.map((p) => {
     const cfg = PRIORITY_CONFIG[p];
     return { value: p, label: cfg.emoji ? `${cfg.emoji} ${cfg.label}` : cfg.label };
 });
 
-export function NoteForm({ editingNote, defaultDate, defaultType, saving, onSave, onCancel }: NoteFormProps) {
-    const [type, setType] = useState<NoteType>(editingNote?.type ?? defaultType ?? 'memo');
+export function NoteForm({
+    editingNote,
+    defaultDate,
+    defaultType,
+    saving,
+    onSave,
+    onCancel,
+    allowedTypes = NOTE_TYPES,
+}: NoteFormProps) {
+    const resolvedDefaultType = (() => {
+        if (editingNote?.type && allowedTypes.includes(editingNote.type)) return editingNote.type;
+        if (defaultType && allowedTypes.includes(defaultType)) return defaultType;
+        return allowedTypes[0] ?? 'memo';
+    })();
+
+    const noteTypeOptions: ChipOption<NoteType>[] = allowedTypes.map((typeOption) => ({
+        value: typeOption,
+        label: `${NOTE_TYPE_CONFIG[typeOption].emoji} ${NOTE_TYPE_CONFIG[typeOption].label}`,
+    }));
+
+    const [type, setType] = useState<NoteType>(resolvedDefaultType);
     const [content, setContent] = useState(editingNote?.content ?? '');
     const [date, setDate] = useState(editingNote?.note_date ?? defaultDate);
     const [priority, setPriority] = useState<TodoPriority>(editingNote?.priority ?? 'normal');
@@ -60,16 +75,18 @@ export function NoteForm({ editingNote, defaultDate, defaultType, saving, onSave
             >
                 <div className="space-y-3 px-5 py-4">
                     {/* 类型选择 */}
-                    <div>
-                        <label className="block text-caption text-text-secondary mb-1">类型</label>
-                        <ChipGroup<NoteType>
-                            label="记录类型"
-                            name="note-type"
-                            value={type}
-                            options={NOTE_TYPE_OPTIONS}
-                            onChange={setType}
-                        />
-                    </div>
+                    {allowedTypes.length > 1 && (
+                        <div>
+                            <label className="block text-caption text-text-secondary mb-1">类型</label>
+                            <ChipGroup<NoteType>
+                                label="记录类型"
+                                name="note-type"
+                                value={type}
+                                options={noteTypeOptions}
+                                onChange={setType}
+                            />
+                        </div>
+                    )}
 
                     {/* 日期 */}
                     <div>

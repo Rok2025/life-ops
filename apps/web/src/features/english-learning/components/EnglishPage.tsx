@@ -12,6 +12,7 @@ import EnglishQueryPanel from './EnglishQueryPanel';
 import FlashcardReview from './FlashcardReview';
 import CardListView from './CardListView';
 import LearningStats from './LearningStats';
+import DailyVocabularyPanel from './DailyVocabularyPanel';
 import { PageHero } from '@/components/ui';
 
 export default function EnglishPage() {
@@ -64,7 +65,12 @@ export default function EnglishPage() {
 
             {/* Tab Content */}
             {tab === 'projects' && <ProjectList area="english" />}
-            {tab === 'learning' && <EnglishQueryPanel />}
+            {tab === 'learning' && (
+                <div className="space-y-section">
+                    <DailyVocabularyPanel />
+                    <EnglishQueryPanel />
+                </div>
+            )}
             {tab === 'cards' && (
                 <div className="space-y-section">
                     <FlashcardReview />

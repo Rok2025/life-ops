@@ -6,14 +6,20 @@ import { Card } from '@/components/ui';
 import { getLocalDateStr } from '@/lib/utils/date';
 import { useQueryCount, useRecentQueries } from '../hooks/useQueryHistory';
 import { useCardReviewCount } from '../hooks/useEnglishCards';
+import { useDailyAssignments, useWordBankStats } from '../hooks/useDailyVocabulary';
 
 export default function EnglishDailyWidget() {
     const today = getLocalDateStr();
     const { data: queryCount = 0 } = useQueryCount(today);
     const { data: reviewCount = 0 } = useCardReviewCount();
     const { data: recentQueries = [] } = useRecentQueries(3);
+    const { data: wordBankStats } = useWordBankStats();
+    const { data: assignments = [] } = useDailyAssignments(today);
 
-    const isEmpty = queryCount === 0 && reviewCount === 0;
+    const hasDailyPlan = assignments.length > 0;
+    const completedWords = assignments.filter((assignment) => assignment.status === 'completed').length;
+    const currentWord = assignments.find((assignment) => !['completed', 'skipped'].includes(assignment.status))?.word.term;
+    const isEmpty = queryCount === 0 && reviewCount === 0 && completedWords === 0 && !hasDailyPlan;
     const totalActivity = queryCount + reviewCount;
 
     return (
@@ -30,7 +36,13 @@ export default function EnglishDailyWidget() {
                         <div className="min-w-0">
                             <h3 className="text-h3 font-semibold text-text-primary">今日英语</h3>
                             <p className="text-caption text-text-secondary">
-                                {isEmpty ? '从一个单词开始' : `今日 ${totalActivity} 次英语动作`}
+                                {(wordBankStats?.total ?? 0) === 0
+                                    ? '先导入 Longman 3000'
+                                    : hasDailyPlan
+                                        ? `词单 ${completedWords}/${assignments.length} · 查询 ${queryCount} · 复习 ${reviewCount}`
+                                    : isEmpty
+                                        ? '从一个单词开始'
+                                        : `今日 ${totalActivity} 次英语动作`}
                             </p>
                         </div>
                     </div>
@@ -47,8 +59,14 @@ export default function EnglishDailyWidget() {
                 {isEmpty ? (
                     <div className="glass-list-row flex items-center justify-between gap-3 px-4 py-3">
                         <div className="min-w-0">
-                            <div className="text-body-sm font-medium text-text-primary">还没有开始</div>
-                            <div className="text-caption text-text-secondary">查一个词，或者开一组复习卡片。</div>
+                            <div className="text-body-sm font-medium text-text-primary">
+                                {(wordBankStats?.total ?? 0) === 0 ? '词库还没导入' : '还没有开始'}
+                            </div>
+                            <div className="text-caption text-text-secondary">
+                                {(wordBankStats?.total ?? 0) === 0
+                                    ? '去英语页上传 Longman 词库文件，然后系统会自动生成今日词单。'
+                                    : '查一个词，或者开一组复习卡片。'}
+                            </div>
                         </div>
                         <Link
                             href="/growth/english"
@@ -62,13 +80,15 @@ export default function EnglishDailyWidget() {
                         <div className="grid gap-2 sm:grid-cols-2">
                             <div className="glass-list-row px-4 py-3">
                                 <div className="flex items-center justify-between text-caption text-text-tertiary">
-                                    <span>查询</span>
-                                    <Search size={14} />
+                                    <span>词单进度</span>
+                                    <BookOpen size={14} />
                                 </div>
                                 <div className="mt-2 flex items-end justify-between gap-2">
-                                    <span className="text-h2 font-semibold text-text-primary">{queryCount}</span>
+                                    <span className="text-h2 font-semibold text-text-primary">
+                                        {completedWords}/{assignments.length}
+                                    </span>
                                     <span className="text-caption text-text-secondary">
-                                        {queryCount > 0 ? '保持输入' : '等待开始'}
+                                        {currentWord ? `当前 ${currentWord}` : '今日已完成'}
                                     </span>
                                 </div>
                             </div>
@@ -84,6 +104,19 @@ export default function EnglishDailyWidget() {
                                         {reviewCount > 0 ? '该回顾了' : '已清空'}
                                     </span>
                                 </div>
+                            </div>
+                        </div>
+
+                        <div className="glass-list-row px-4 py-3">
+                            <div className="flex items-center justify-between text-caption text-text-tertiary">
+                                <span>即时查询</span>
+                                <Search size={14} />
+                            </div>
+                            <div className="mt-2 flex items-end justify-between gap-2">
+                                <span className="text-h2 font-semibold text-text-primary">{queryCount}</span>
+                                <span className="text-caption text-text-secondary">
+                                    {queryCount > 0 ? '保持输入' : '等待开始'}
+                                </span>
                             </div>
                         </div>
 

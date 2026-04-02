@@ -1,4 +1,11 @@
-import type { PromptMode, EnglishTab, Difficulty, Familiarity } from './types';
+import type {
+    PromptMode,
+    EnglishTab,
+    Difficulty,
+    Familiarity,
+    DailyAssignmentStatus,
+    DailyAssignmentType,
+} from './types';
 
 // ---------- Prompt Mode Config ----------
 
@@ -45,4 +52,36 @@ export const REVIEW_INTERVALS: Record<Familiarity, number> = {
     3: 7,    // 1 week
     4: 14,   // 2 weeks
     5: 30,   // 1 month
+};
+
+export const ASSIGNMENT_TYPE_CONFIG: Record<DailyAssignmentType, { label: string }> = {
+    new: { label: '今日新词' },
+    review: { label: '回捞复习' },
+    manual: { label: '手动加入' },
+};
+
+export const ASSIGNMENT_STATUS_CONFIG: Record<
+    DailyAssignmentStatus,
+    { label: string; pillClass: string; softClass: string }
+> = {
+    pending: {
+        label: '待学习',
+        pillClass: 'bg-bg-tertiary text-text-secondary',
+        softClass: 'hover:bg-card-bg',
+    },
+    in_progress: {
+        label: '学习中',
+        pillClass: 'bg-warning/10 text-warning',
+        softClass: 'hover:bg-warning/6',
+    },
+    completed: {
+        label: '已完成',
+        pillClass: 'bg-success/10 text-success',
+        softClass: 'hover:bg-success/6',
+    },
+    skipped: {
+        label: '已跳过',
+        pillClass: 'bg-text-tertiary/10 text-text-tertiary',
+        softClass: 'hover:bg-panel-bg',
+    },
 };

@@ -12,7 +12,7 @@ export interface DialogProps {
   /** Optional title in the header */
   title?: ReactNode;
   /** Panel max width (default: max-w-2xl) */
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '4xl' | '5xl';
   /** Panel content; header (title + close) is always rendered when title is set */
   children: ReactNode;
   /** Optional class for the panel Card */
@@ -31,6 +31,8 @@ const maxWidthClass: Record<NonNullable<DialogProps['maxWidth']>, string> = {
   lg: 'max-w-lg',
   xl: 'max-w-xl',
   '2xl': 'max-w-2xl',
+  '4xl': 'max-w-4xl',
+  '5xl': 'max-w-5xl',
 };
 
 export function Dialog({

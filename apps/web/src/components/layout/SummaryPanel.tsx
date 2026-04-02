@@ -1,11 +1,13 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { formatHorizons, getMonthProgress } from '@/lib/horizons';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePathname } from 'next/navigation';
-import { BookOpen, Dumbbell, Hourglass, PenLine } from 'lucide-react';
+import { BookOpen, Dumbbell, Hourglass, ListTodo, PenLine } from 'lucide-react';
 import Link from 'next/link';
 import { Card, SectionHeader, getButtonClassName } from '@/components/ui';
+import { notesApi } from '@/features/quick-notes';
 
 export default function SummaryPanel() {
     const horizons = formatHorizons();
@@ -13,6 +15,10 @@ export default function SummaryPanel() {
     const weekDays = ['一', '二', '三', '四', '五', '六', '日'];
     const { user, loading } = useAuth();
     const pathname = usePathname();
+    const { data: incompleteTodoCount = 0 } = useQuery({
+        queryKey: ['incomplete-todo-count'],
+        queryFn: () => notesApi.getIncompleteTodoCount(),
+    });
 
     if (!user && !loading && pathname === '/login') return null;
 
@@ -114,6 +120,21 @@ export default function SummaryPanel() {
             <section>
                 <SectionHeader title="快捷操作" className="mb-3" />
                 <div className="space-y-2">
+                    <Link
+                        href="/todos"
+                        className={getButtonClassName({
+                            variant: 'secondary',
+                            size: 'sm',
+                            className: 'w-full justify-between gap-2 text-left',
+                        })}
+                    >
+                        <span className="flex items-center gap-2">
+                            <ListTodo size={15} />
+                            待办清单
+                        </span>
+                        <span className="glass-mini-chip text-caption">{incompleteTodoCount} 未完成</span>
+                    </Link>
+
                     <Link
                         href="/fitness/workout/new"
                         className={getButtonClassName({

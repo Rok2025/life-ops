@@ -9,6 +9,7 @@ interface PromptModeSelectorProps {
     onModeChange: (mode: PromptMode) => void;
     customInstruction: string;
     onCustomInstructionChange: (value: string) => void;
+    disabled?: boolean;
 }
 
 export default function PromptModeSelector({
@@ -16,11 +17,13 @@ export default function PromptModeSelector({
     onModeChange,
     customInstruction,
     onCustomInstructionChange,
+    disabled = false,
 }: PromptModeSelectorProps) {
     const options = PROMPT_MODES.map(({ key, label, description }) => ({
         value: key,
         label,
         title: description,
+        disabled,
     }));
 
     return (
@@ -38,6 +41,7 @@ export default function PromptModeSelector({
                 value={customInstruction}
                 onChange={e => onCustomInstructionChange(e.target.value)}
                 placeholder="追加自定义指令（可选，如：给出更多例句、分析词根...）"
+                disabled={disabled}
             />
         </div>
     );

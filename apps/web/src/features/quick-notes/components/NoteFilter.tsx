@@ -2,14 +2,16 @@
 
 import type { FilterType } from '../types';
 import { NOTE_TYPE_CONFIG, NOTE_TYPES } from '../types';
+import type { NoteType } from '../types';
 
 interface NoteFilterProps {
     filter: FilterType;
     counts: Record<FilterType, number>;
     onFilterChange: (filter: FilterType) => void;
+    types?: readonly NoteType[];
 }
 
-export function NoteFilter({ filter, counts, onFilterChange }: NoteFilterProps) {
+export function NoteFilter({ filter, counts, onFilterChange, types = NOTE_TYPES }: NoteFilterProps) {
     return (
         <div className="glass-filter-bar flex items-center">
             <button
@@ -21,7 +23,7 @@ export function NoteFilter({ filter, counts, onFilterChange }: NoteFilterProps) 
             >
                 全部 {counts.all > 0 && <span className="ml-1 text-caption opacity-70">{counts.all}</span>}
             </button>
-            {NOTE_TYPES.map(type => {
+            {types.map(type => {
                 const config = NOTE_TYPE_CONFIG[type];
                 return (
                     <button

@@ -45,19 +45,29 @@ export default function EnglishQueryPanel() {
             const response = normalizeAIQueryResponse(result.data, trimmed);
             let queryId: string | null = null;
 
-            try {
-                const saved = await createQueryMutation.mutateAsync({
-                    input_text: trimmed,
-                    input_type: response.type,
-                    prompt_mode: promptMode,
-                    custom_instruction: customInstruction.trim() || null,
-                    ai_response: response,
-                    ai_provider: result.provider,
-                    query_date: today,
-                });
-                queryId = saved.id;
-            } catch (error) {
-                setSaveWarning(`查询结果已生成，但保存记录失败：${getErrorMessage(error)}`);
+            // Only save if we got a meaningful result and no duplicate exists
+            const hasResult = !response.parse_error && (response.definitions.length > 0 || response.examples.length > 0 || response.grammar_notes || response.raw_text);
+            const isDuplicate = todayQueries.some(q => q.input_text.toLowerCase() === trimmed.toLowerCase());
+
+            if (hasResult && !isDuplicate) {
+                try {
+                    const saved = await createQueryMutation.mutateAsync({
+                        input_text: trimmed,
+                        input_type: response.type,
+                        prompt_mode: promptMode,
+                        custom_instruction: customInstruction.trim() || null,
+                        ai_response: response,
+                        ai_provider: result.provider,
+                        query_date: today,
+                    });
+                    queryId = saved.id;
+                } catch (error) {
+                    setSaveWarning(`查询结果已生成，但保存记录失败：${getErrorMessage(error)}`);
+                }
+            } else if (isDuplicate) {
+                // Find existing query id for duplicate
+                const existing = todayQueries.find(q => q.input_text.toLowerCase() === trimmed.toLowerCase());
+                queryId = existing?.id ?? null;
             }
 
             setLastResult({ response, queryId, resultId: crypto.randomUUID() });
@@ -65,7 +75,7 @@ export default function EnglishQueryPanel() {
             setSaveWarning(null);
             console.error('English quick query failed', error);
         }
-    }, [inputText, promptMode, customInstruction, today, aiQuery, createQueryMutation, selectedPrompt]);
+    }, [inputText, promptMode, customInstruction, today, aiQuery, createQueryMutation, selectedPrompt, todayQueries]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
@@ -91,6 +101,7 @@ export default function EnglishQueryPanel() {
                             placeholder="输入英文单词、短语或句子..."
                             rows={2}
                             className="resize-none pr-14"
+                            disabled={aiQuery.isPending}
                         />
                         <Button
                             onClick={handleQuery}
@@ -113,6 +124,7 @@ export default function EnglishQueryPanel() {
                         onModeChange={setPromptMode}
                         customInstruction={customInstruction}
                         onCustomInstructionChange={setCustomInstruction}
+                        disabled={aiQuery.isPending}
                     />
 
                     <p className="text-caption text-text-tertiary">
@@ -157,12 +169,18 @@ export default function EnglishQueryPanel() {
                         {todayQueries.map(q => (
                             <button
                                 key={q.id}
-                                onClick={() => setLastResult({
-                                    response: normalizeAIQueryResponse(q.ai_response, q.input_text),
-                                    queryId: q.id,
-                                    resultId: crypto.randomUUID(),
-                                })}
-                                className="glass-list-row flex w-full items-center justify-between px-3 py-2 text-left"
+                                disabled={aiQuery.isPending}
+                                onClick={() => {
+                                    setInputText(q.input_text);
+                                    setPromptMode(q.prompt_mode);
+                                    setCustomInstruction(q.custom_instruction ?? '');
+                                    setLastResult({
+                                        response: normalizeAIQueryResponse(q.ai_response, q.input_text),
+                                        queryId: q.id,
+                                        resultId: crypto.randomUUID(),
+                                    });
+                                }}
+                                className="glass-list-row flex w-full items-center justify-between px-3 py-2 text-left disabled:pointer-events-none disabled:opacity-50"
                             >
                                 <span className="text-body-sm text-text-primary font-medium">{q.input_text}</span>
                                 <div className="flex items-center gap-2">

@@ -5,6 +5,10 @@ export type PromptMode = 'concise' | 'detailed' | 'grammar';
 export type Difficulty = 'easy' | 'medium' | 'hard';
 export type Familiarity = 0 | 1 | 2 | 3 | 4 | 5;
 export type EnglishTab = 'projects' | 'learning' | 'cards' | 'stats';
+export type LongmanLevel = 'S1' | 'S2' | 'S3' | 'W1' | 'W2' | 'W3';
+export type DailyAssignmentType = 'new' | 'review' | 'manual';
+export type DailyAssignmentStatus = 'pending' | 'in_progress' | 'completed' | 'skipped';
+export type LearningLogAction = 'progress' | 'completed' | 'skipped';
 
 // ---------- AI Response ----------
 
@@ -62,6 +66,7 @@ export type EnglishQuery = {
 export type EnglishCard = {
     id: string;
     query_id: string | null;
+    word_id?: string | null;
     front_text: string;
     back_text: string;
     phonetic: string | null;
@@ -87,6 +92,58 @@ export type DailySummary = {
     updated_at: string;
 };
 
+export type WordBankEntry = {
+    id: string;
+    term: string;
+    pos: string;
+    levels: LongmanLevel[];
+    initial: string;
+    source: string;
+    created_at: string;
+    updated_at: string;
+};
+
+export type WordBankImportResult = {
+    total: number;
+    initials: string[];
+};
+
+export type DailyAssignment = {
+    id: string;
+    assignment_date: string;
+    word_id: string;
+    queue_order: number;
+    assignment_type: DailyAssignmentType;
+    status: DailyAssignmentStatus;
+    familiarity: Familiarity | null;
+    study_note: string | null;
+    example_sentence: string | null;
+    reflection: string | null;
+    card_id: string | null;
+    started_at: string | null;
+    completed_at: string | null;
+    created_at: string;
+    updated_at: string;
+    word: WordBankEntry;
+};
+
+export type LearningLog = {
+    id: string;
+    assignment_id: string | null;
+    word_id: string;
+    log_date: string;
+    action: LearningLogAction;
+    familiarity: Familiarity | null;
+    note: string | null;
+    example_sentence: string | null;
+    reflection: string | null;
+    created_at: string;
+};
+
+export type WordBankStats = {
+    total: number;
+};
+
 // ---------- Input Types ----------
 
 export type CreateQueryInput = {
@@ -101,6 +158,7 @@ export type CreateQueryInput = {
 
 export type CreateCardInput = {
     query_id?: string | null;
+    word_id?: string | null;
     front_text: string;
     back_text: string;
     phonetic?: string | null;
@@ -118,6 +176,15 @@ export type CardFilters = {
     difficulty?: Difficulty;
     familiarity?: Familiarity;
     tag?: string;
+};
+
+export type SaveAssignmentRecordInput = {
+    assignmentId: string;
+    familiarity?: Familiarity | null;
+    studyNote?: string;
+    exampleSentence?: string;
+    reflection?: string;
+    action: Exclude<LearningLogAction, 'skipped'>;
 };
 
 // ---------- AI Summary Response ----------

@@ -57,7 +57,7 @@ async function fetchDatesWithData(
         case 'til':
             return tilApi.getDatesInRange(start, end);
         case 'notes':
-            return notesApi.getDatesInRange(start, end);
+            return notesApi.getDatesInRange(start, end, { includeTodos: false });
     }
 }
 
