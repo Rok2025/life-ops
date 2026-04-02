@@ -80,6 +80,20 @@ life-ops/
 
 - [设计总览](docs/DESIGN.md) - 项目设计理念、功能规划、技术决策
 
+## 💾 数据备份
+
+数据库备份已独立到 `~/Documents/06-Back/supabase_bak/`，通过 macOS launchd 每天中午 12:00 自动执行，同时备份 life-ops 和 yoyo 两个 Supabase 数据库。
+
+手动触发：
+
+```bash
+bash ~/Documents/06-Back/supabase_bak/backup.sh
+```
+
+备份文件输出到 `~/Documents/06-Back/supabase_bak/dumps/`，超过 14 天的自动清理。
+
+详见 [备份文档](docs/supabase-backup.md)。
+
 ## 📝 License
 
 MIT

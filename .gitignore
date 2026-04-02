@@ -40,3 +40,4 @@ coverage/
 *.pem
 *.tsbuildinfo
 harness/.runtime/
+backups/
