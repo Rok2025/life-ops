@@ -3,12 +3,11 @@
 import { useState } from 'react';
 import { Plus, Users } from 'lucide-react';
 import { PageHero, Button } from '@/components/ui';
-import { ActiveMemberProvider, useActiveMember } from '../contexts/ActiveMemberContext';
+import { ActiveMemberProvider } from '../contexts/ActiveMemberContext';
 import { useFamilyMembers } from '../hooks/useFamilyMembers';
 import { useFamilyTasks } from '../hooks/useFamilyTasks';
 import { useFamilyStats } from '../hooks/useFamilyStats';
 import { useFamilyCategories } from '../hooks/useFamilyCategories';
-import { MemberSwitcher } from './MemberSwitcher';
 import { TaskFilterBar } from './TaskFilter';
 import { TaskBoard } from './TaskBoard';
 import { TaskFormDialog } from './TaskFormDialog';
@@ -25,18 +24,17 @@ export default function FamilyOverview() {
 }
 
 function FamilyOverviewInner() {
-    const { activeMemberId } = useActiveMember();
     const { members } = useFamilyMembers();
     const { categories } = useFamilyCategories();
     const { stats } = useFamilyStats();
 
     const [filter, setFilter] = useState<TaskFilter>({
         status: 'all',
-        assignee: activeMemberId ? 'mine' : 'all',
+        assignee: 'all',
         category: 'all',
     });
 
-    const { tasks, loading } = useFamilyTasks(filter, activeMemberId);
+    const { tasks, loading } = useFamilyTasks(filter);
 
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingTask, setEditingTask] = useState<FamilyTask | null>(null);
@@ -62,7 +60,6 @@ function FamilyOverviewInner() {
                 eyebrow="生活 / 家庭"
                 icon={<Users size={18} className="text-accent" />}
                 title="家庭事务"
-                description="把家庭事务统一管理，每件事都有人负责。"
                 action={
                     <Button onClick={handleNewTask} size="sm">
                         <Plus size={16} />
@@ -70,22 +67,19 @@ function FamilyOverviewInner() {
                     </Button>
                 }
                 stats={[
-                    { label: '待办', value: stats.todo, tone: 'blue' },
-                    { label: '进行中', value: stats.inProgress, tone: 'warning' },
-                    { label: '已完成', value: stats.done, tone: 'success' },
+                    { label: '待处理', value: stats.todo + stats.inProgress, meta: `${stats.todo} 待办 · ${stats.inProgress} 进行中`, tone: 'blue' },
+                    { label: '已逾期', value: stats.overdue, tone: stats.overdue > 0 ? 'danger' : 'accent' },
+                    { label: '本周完成', value: stats.doneThisWeek, tone: 'success' },
                 ]}
             />
 
-            {/* Identity switcher + filter */}
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <TaskFilterBar
-                    filter={filter}
-                    onChange={setFilter}
-                    members={members}
-                    categories={categories}
-                />
-                <MemberSwitcher members={members} />
-            </div>
+            {/* Filter bar (includes identity switcher) */}
+            <TaskFilterBar
+                filter={filter}
+                onChange={setFilter}
+                members={members}
+                categories={categories}
+            />
 
             {/* Board */}
             {loading ? (

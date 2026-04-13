@@ -162,11 +162,11 @@ function DroppableColumn({
             </div>
 
             {/* Cards */}
-            <div className="space-y-2 min-h-15">
+            <div className="space-y-2 min-h-8">
                 {tasks.length === 0 ? (
                     <div
                         className={[
-                            'rounded-inner-card border border-dashed p-4 text-center text-caption text-text-tertiary transition-colors',
+                            'rounded-inner-card border border-dashed px-4 py-3 text-center text-caption text-text-tertiary transition-colors',
                             columnIsOver
                                 ? 'border-accent/40 bg-accent/5'
                                 : 'border-glass-border/50',

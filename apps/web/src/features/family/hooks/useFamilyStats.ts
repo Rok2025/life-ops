@@ -10,7 +10,7 @@ export function useFamilyStats() {
     });
 
     return {
-        stats: query.data ?? { total: 0, todo: 0, inProgress: 0, done: 0 },
+        stats: query.data ?? { total: 0, todo: 0, inProgress: 0, done: 0, overdue: 0, doneThisWeek: 0 },
         loading: query.isLoading,
     };
 }

@@ -230,22 +230,36 @@ export const familyApi = {
         todo: number;
         inProgress: number;
         done: number;
+        overdue: number;
+        doneThisWeek: number;
     }> => {
         const { data, error } = await supabase
             .from('family_tasks')
-            .select('status');
+            .select('status, due_date, completed_at');
 
         if (error) {
             console.error('获取任务统计失败:', error);
-            return { total: 0, todo: 0, inProgress: 0, done: 0 };
+            return { total: 0, todo: 0, inProgress: 0, done: 0, overdue: 0, doneThisWeek: 0 };
         }
 
         const tasks = data ?? [];
+        const today = new Date(new Date().toDateString());
+
+        // Monday of this week
+        const weekStart = new Date(today);
+        weekStart.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+
         return {
             total: tasks.length,
             todo: tasks.filter((t) => t.status === 'todo').length,
             inProgress: tasks.filter((t) => t.status === 'in_progress').length,
             done: tasks.filter((t) => t.status === 'done').length,
+            overdue: tasks.filter(
+                (t) => t.status !== 'done' && t.due_date && new Date(t.due_date) < today,
+            ).length,
+            doneThisWeek: tasks.filter(
+                (t) => t.status === 'done' && t.completed_at && new Date(t.completed_at) >= weekStart,
+            ).length,
         };
     },
 };

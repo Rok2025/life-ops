@@ -13,10 +13,9 @@ interface TaskFilterBarProps {
 type AssigneeOption = { value: AssigneeFilter; label: string; color?: string };
 
 export function TaskFilterBar({ filter, onChange, members, categories }: TaskFilterBarProps) {
-    const { activeMemberId } = useActiveMember();
+    const { activeMemberId, setActiveMember } = useActiveMember();
 
     const assigneeOptions: AssigneeOption[] = [
-        ...(activeMemberId ? [{ value: 'mine' as const, label: '我的' }] : []),
         { value: 'all' as const, label: '全部' },
         ...members.map((m) => ({
             value: m.id,
@@ -69,6 +68,39 @@ export function TaskFilterBar({ filter, onChange, members, categories }: TaskFil
                     </option>
                 ))}
             </select>
+
+            {/* Divider + Identity switcher (merged from MemberSwitcher) */}
+            {members.length > 0 && (
+                <>
+                    <span className="h-4 w-px bg-glass-border/60" />
+                    <div className="flex items-center gap-1">
+                        <span className="text-caption text-text-tertiary mr-0.5">身份</span>
+                        {members.map((m) => {
+                            const isMe = m.id === activeMemberId;
+                            return (
+                                <button
+                                    key={m.id}
+                                    type="button"
+                                    onClick={() => setActiveMember(m)}
+                                    title={m.name}
+                                    className={[
+                                        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-caption font-medium transition-all duration-150',
+                                        isMe
+                                            ? 'bg-white/15 text-text-primary shadow-sm ring-1 ring-white/10'
+                                            : 'text-text-tertiary hover:text-text-secondary hover:bg-white/8',
+                                    ].join(' ')}
+                                >
+                                    <span
+                                        className="inline-block w-2.5 h-2.5 rounded-full shrink-0 shadow-sm"
+                                        style={{ backgroundColor: m.avatar_color }}
+                                    />
+                                    {m.name}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </>
+            )}
         </div>
     );
 }
