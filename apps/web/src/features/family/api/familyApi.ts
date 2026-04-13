@@ -79,7 +79,7 @@ export const familyApi = {
         let query = supabase
             .from('family_tasks')
             .select('*')
-            .order('created_at', { ascending: false });
+            .order('created_at', { ascending: true });
 
         if (options?.status && options.status !== 'all') {
             query = query.eq('status', options.status);

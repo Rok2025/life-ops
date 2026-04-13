@@ -162,7 +162,7 @@ function DroppableColumn({
             </div>
 
             {/* Cards */}
-            <div className="space-y-2 min-h-8">
+            <div className="space-y-2 min-h-8 max-h-[calc(100vh-320px)] overflow-y-auto scrollbar-thin">
                 {tasks.length === 0 ? (
                     <div
                         className={[

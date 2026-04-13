@@ -94,6 +94,7 @@ function FamilyOverviewInner() {
 
             {/* Form dialog */}
             <TaskFormDialog
+                key={editingTask?.id ?? 'new'}
                 open={dialogOpen}
                 onClose={handleCloseDialog}
                 task={editingTask}
