@@ -9,6 +9,16 @@ export type ProjectScope = 'annual' | 'quarterly' | 'monthly';
 /** 项目状态 */
 export type ProjectStatus = 'active' | 'completed' | 'paused' | 'archived';
 
+/** 项目前端展示状态 */
+export type ProjectDisplayStatus =
+    | 'not_started'
+    | 'active'
+    | 'near_due'
+    | 'overdue'
+    | 'completed'
+    | 'paused'
+    | 'archived';
+
 /** 项目灵感/成果类型 */
 export type ProjectNoteType = 'idea' | 'achievement' | 'note';
 
@@ -36,8 +46,69 @@ export const SCOPE_CONFIG: Record<ProjectScope, { label: string } & ToneTokenCla
 export const STATUS_CONFIG: Record<ProjectStatus, { label: string; dot: string } & ToneTokenClasses> = {
     active: { label: '进行中', dot: 'bg-accent', ...TONES.accent },
     completed: { label: '已完成', dot: 'bg-success', ...TONES.success },
-    paused: { label: '暂停', dot: 'bg-warning', ...TONES.warning },
+    paused: { label: '暂停', dot: 'bg-tone-orange', ...TONES.orange },
     archived: { label: '归档', dot: 'bg-text-tertiary', ...TONES.muted },
+};
+
+/** 展示状态配置 */
+export const DISPLAY_STATUS_CONFIG: Record<
+    ProjectDisplayStatus,
+    {
+        label: string;
+        dot: string;
+        progressBar: string;
+        cardClassName: string;
+    } & ToneTokenClasses
+> = {
+    not_started: {
+        label: '未开始',
+        dot: 'bg-tone-blue',
+        progressBar: 'bg-tone-blue/78',
+        cardClassName: 'border-tone-blue/20 bg-tone-blue/6',
+        ...TONES.blue,
+    },
+    active: {
+        label: '进行中',
+        dot: 'bg-accent',
+        progressBar: 'bg-accent/80',
+        cardClassName: 'border-border bg-card-bg',
+        ...TONES.accent,
+    },
+    near_due: {
+        label: '临期',
+        dot: 'bg-warning',
+        progressBar: 'bg-warning/80',
+        cardClassName: 'border-warning/24 bg-warning/6',
+        ...TONES.warning,
+    },
+    overdue: {
+        label: '已逾期',
+        dot: 'bg-danger',
+        progressBar: 'bg-danger/82',
+        cardClassName: 'border-danger/24 bg-danger/7',
+        ...TONES.danger,
+    },
+    completed: {
+        label: '已完成',
+        dot: 'bg-success',
+        progressBar: 'bg-success/80',
+        cardClassName: 'border-success/22 bg-success/6',
+        ...TONES.success,
+    },
+    paused: {
+        label: '已暂停',
+        dot: 'bg-tone-orange',
+        progressBar: 'bg-tone-orange/78',
+        cardClassName: 'border-tone-orange/22 bg-tone-orange/6',
+        ...TONES.orange,
+    },
+    archived: {
+        label: '已归档',
+        dot: 'bg-text-tertiary',
+        progressBar: 'bg-text-tertiary/55',
+        cardClassName: 'border-border bg-card-bg/90',
+        ...TONES.muted,
+    },
 };
 
 /** 项目灵感/成果类型配置 */

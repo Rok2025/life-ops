@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Calendar, ArrowLeft } from 'lucide-react';
+import { Calendar, ArrowLeft, Target } from 'lucide-react';
 import { useProjectTodos } from '../hooks/useProjectTodos';
 import { useProjectNotes } from '../hooks/useProjectNotes';
 import { TodoList } from './TodoList';
 import { NoteList } from './NoteList';
-import { SCOPE_CONFIG, STATUS_CONFIG } from '../types';
+import { DISPLAY_STATUS_CONFIG, SCOPE_CONFIG } from '../types';
 import type { ProjectWithStats } from '../types';
+import { getProjectProgressMetrics } from '../utils/projectProgress';
 
 interface ProjectDetailPanelProps {
     project: ProjectWithStats;
@@ -18,28 +18,10 @@ interface ProjectDetailPanelProps {
 export function ProjectDetailPanel({ project, onBack }: ProjectDetailPanelProps) {
     const { data: todos = [], isLoading: todosLoading } = useProjectTodos(project.id);
     const { data: notes = [], isLoading: notesLoading } = useProjectNotes(project.id);
-    const [now, setNow] = useState(() => Date.now());
-
-    useEffect(() => {
-        const t = setInterval(() => setNow(Date.now()), 1000);
-        return () => clearInterval(t);
-    }, []);
 
     const scopeConfig = SCOPE_CONFIG[project.scope];
-    const statusConfig = STATUS_CONFIG[project.status];
-
-    const timeProgress = (() => {
-        if (!project.start_date || !project.end_date) return null;
-        const start = new Date(project.start_date).getTime();
-        const end = new Date(project.end_date).getTime();
-        if (now < start) return 0;
-        if (now > end) return 100;
-        return Math.round(((now - start) / (end - start)) * 100);
-    })();
-
-    const todoProgress = project.todo_total > 0
-        ? Math.round((project.todo_completed / project.todo_total) * 100)
-        : 0;
+    const metrics = getProjectProgressMetrics(project);
+    const displayStatusConfig = DISPLAY_STATUS_CONFIG[metrics.displayStatus];
 
     return (
         <div className="h-full flex flex-col">
@@ -60,9 +42,9 @@ export function ProjectDetailPanel({ project, onBack }: ProjectDetailPanelProps)
                             <span className={`text-caption px-1.5 py-0.5 rounded-control border ${scopeConfig.bg} ${scopeConfig.border} ${scopeConfig.color} shrink-0`}>
                                 {scopeConfig.label}
                             </span>
-                            <span className={`inline-flex items-center gap-1 text-caption px-1.5 py-0.5 rounded-control border ${statusConfig.bg} ${statusConfig.border} ${statusConfig.color} shrink-0`}>
-                                <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`} />
-                                {statusConfig.label}
+                            <span className={`inline-flex items-center gap-1 text-caption px-1.5 py-0.5 rounded-control border ${displayStatusConfig.bg} ${displayStatusConfig.border} ${displayStatusConfig.color} shrink-0`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${displayStatusConfig.dot}`} />
+                                {metrics.statusLabel}
                             </span>
                         </div>
                         <h2 className="text-h3 text-text-primary mt-1">{project.title}</h2>
@@ -71,30 +53,52 @@ export function ProjectDetailPanel({ project, onBack }: ProjectDetailPanelProps)
 
                 {/* 日期 + 进度 */}
                 <div className="space-y-1.5">
-                    {(project.start_date || project.end_date) && (
+                    {metrics.dateRangeLabel && (
                         <div className="flex items-center gap-1 text-caption text-text-secondary">
                             <Calendar size={12} />
-                            <span>{project.start_date ?? '?'} ~ {project.end_date ?? '?'}</span>
+                            <span>{metrics.dateRangeLabel}</span>
+                        </div>
+                    )}
+
+                    {metrics.isTrackedByDate && (
+                        <div>
+                            <div className="mb-1 flex items-center justify-between text-caption">
+                                <span className={displayStatusConfig.color}>时间进度 {metrics.scheduleProgress}%</span>
+                                <span className={metrics.displayStatus === 'overdue' ? 'text-danger' : 'text-text-secondary'}>
+                                    {metrics.scheduleLabel}
+                                </span>
+                            </div>
+                            <div className="h-1.5 bg-bg-tertiary rounded-full overflow-hidden">
+                                <div
+                                    className={`h-full rounded-full transition-all duration-normal ease-standard ${displayStatusConfig.progressBar}`}
+                                    style={{ width: `${metrics.scheduleProgress}%` }}
+                                />
+                            </div>
                         </div>
                     )}
 
                     {project.todo_total > 0 && (
                         <div>
                             <div className="flex items-center justify-between text-caption text-text-secondary mb-1">
-                                <span>任务进度 {project.todo_completed}/{project.todo_total}</span>
-                                <span>{todoProgress}%</span>
+                                <span className="inline-flex items-center gap-1">
+                                    <Target size={12} />
+                                    任务进度 {project.todo_completed}/{project.todo_total}
+                                </span>
+                                <span>{metrics.todoProgress}%</span>
                             </div>
                             <div className="h-1.5 bg-bg-tertiary rounded-full overflow-hidden">
                                 <div
                                     className="h-full bg-accent rounded-full transition-all duration-normal ease-standard"
-                                    style={{ width: `${todoProgress}%` }}
+                                    style={{ width: `${metrics.todoProgress}%` }}
                                 />
                             </div>
-                            {timeProgress !== null && (
+                            {metrics.isTrackedByDate && (
                                 <div className="flex justify-between mt-0.5">
-                                    <span className="text-caption text-text-tertiary">任务 {todoProgress}%</span>
-                                    <span className={`text-caption ${timeProgress > todoProgress ? 'text-warning' : 'text-text-tertiary'}`}>
-                                        时间 {timeProgress}%
+                                    <span className={`text-caption ${metrics.isTodoLagging ? 'text-warning' : 'text-text-tertiary'}`}>
+                                        {metrics.isTodoLagging ? '任务推进落后于时间节奏' : '任务推进与时间节奏基本一致'}
+                                    </span>
+                                    <span className="text-caption text-text-tertiary">
+                                        时间 {metrics.scheduleProgress}%
                                     </span>
                                 </div>
                             )}

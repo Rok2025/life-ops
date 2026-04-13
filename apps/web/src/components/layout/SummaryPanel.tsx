@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { formatHorizons, getMonthProgress } from '@/lib/horizons';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePathname } from 'next/navigation';
-import { BookOpen, Dumbbell, Hourglass, ListTodo, PenLine } from 'lucide-react';
+import { BarChart3, BookOpen, Dumbbell, Hourglass, ListTodo, PenLine } from 'lucide-react';
 import Link from 'next/link';
 import { Card, SectionHeader, getButtonClassName } from '@/components/ui';
 import { notesApi } from '@/features/quick-notes';
@@ -120,6 +120,21 @@ export default function SummaryPanel() {
             <section>
                 <SectionHeader title="快捷操作" className="mb-3" />
                 <div className="space-y-2">
+                    <Link
+                        href="/insights"
+                        className={getButtonClassName({
+                            variant: 'secondary',
+                            size: 'sm',
+                            className: 'w-full justify-between gap-2 text-left',
+                        })}
+                    >
+                        <span className="flex items-center gap-2">
+                            <BarChart3 size={15} />
+                            洞察总览
+                        </span>
+                        <span className="glass-mini-chip text-caption">全局视角</span>
+                    </Link>
+
                     <Link
                         href="/todos"
                         className={getButtonClassName({

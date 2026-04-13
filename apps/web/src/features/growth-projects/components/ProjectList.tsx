@@ -8,6 +8,7 @@ import { ProjectForm } from './ProjectForm';
 import { ProjectDetailPanel, ProjectDetailEmpty } from './ProjectDetailPanel';
 import { AREA_CONFIG, SCOPE_CONFIG } from '../types';
 import type { GrowthArea, ProjectScope, ProjectWithStats } from '../types';
+import { compareProjectsByDisplayStatus } from '../utils/projectProgress';
 import { Button, Card, PageHero } from '@/components/ui';
 
 interface ProjectListProps {
@@ -26,8 +27,10 @@ export default function ProjectList({ area }: ProjectListProps) {
 
     const { data: projects = [], isLoading } = useProjects(area, scopeFilter ? { scope: scopeFilter } : undefined);
 
-    const activeProjects = projects.filter(p => p.status === 'active' || p.status === 'paused');
-    const archivedProjects = projects.filter(p => p.status === 'completed' || p.status === 'archived');
+    const activeProjects = [...projects.filter(p => p.status === 'active' || p.status === 'paused')]
+        .sort(compareProjectsByDisplayStatus);
+    const archivedProjects = [...projects.filter(p => p.status === 'completed' || p.status === 'archived')]
+        .sort(compareProjectsByDisplayStatus);
 
     const selectedProject = projects.find(p => p.id === selectedId) ?? null;
 

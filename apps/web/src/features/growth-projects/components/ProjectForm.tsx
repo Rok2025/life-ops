@@ -45,6 +45,8 @@ export function ProjectForm({ open, onClose, area, editingProject }: ProjectForm
         });
     }, [editingProject]);
 
+    const dateRangeInvalid = Boolean(startDate && endDate && startDate > endDate);
+
     const createMutation = useMutation({
         mutationFn: (input: CreateProjectInput) => projectsApi.create(input),
         onSuccess: () => {
@@ -66,7 +68,7 @@ export function ProjectForm({ open, onClose, area, editingProject }: ProjectForm
     const handleSubmit = useCallback((e: React.FormEvent) => {
         e.preventDefault();
         const trimmed = title.trim();
-        if (!trimmed) return;
+        if (!trimmed || dateRangeInvalid) return;
 
         if (isEditing) {
             updateMutation.mutate({
@@ -87,7 +89,7 @@ export function ProjectForm({ open, onClose, area, editingProject }: ProjectForm
                 end_date: endDate || undefined,
             });
         }
-    }, [title, description, scope, startDate, endDate, status, area, isEditing, createMutation, updateMutation]);
+    }, [title, description, scope, startDate, endDate, status, area, isEditing, createMutation, updateMutation, dateRangeInvalid]);
 
     if (!open) return null;
 
@@ -179,6 +181,11 @@ export function ProjectForm({ open, onClose, area, editingProject }: ProjectForm
                             />
                         </div>
                     </div>
+                    {dateRangeInvalid ? (
+                        <div className="rounded-card border border-danger/25 bg-danger/8 px-3 py-2 text-body-sm text-danger">
+                            开始日期不能晚于结束日期，请先调整时间范围。
+                        </div>
+                    ) : null}
                 </div>
 
                 {/* 按钮 */}
@@ -186,7 +193,7 @@ export function ProjectForm({ open, onClose, area, editingProject }: ProjectForm
                     <Button type="button" onClick={onClose} variant="ghost" size="sm">
                         取消
                     </Button>
-                    <Button type="submit" disabled={saving || !title.trim()} size="sm">
+                    <Button type="submit" disabled={saving || !title.trim() || dateRangeInvalid} size="sm">
                         {saving ? '保存中...' : isEditing ? '保存' : '创建'}
                     </Button>
                 </div>

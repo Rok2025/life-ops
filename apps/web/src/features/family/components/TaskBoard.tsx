@@ -13,7 +13,7 @@ import {
 } from '@dnd-kit/core';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { FamilyTask, TaskStatus, TaskCategoryConfig } from '../types';
 import { STATUS_CONFIG, TASK_STATUSES } from '../types';
 import { TaskCard } from './TaskCard';
@@ -29,6 +29,11 @@ export function TaskBoard({ tasks, categories, onEditTask }: TaskBoardProps) {
     const categoryMap = new Map(categories.map((c) => [c.value, c.label]));
     const queryClient = useQueryClient();
     const [activeTask, setActiveTask] = useState<FamilyTask | null>(null);
+
+    const { data: archivedCount = 0 } = useQuery({
+        queryKey: ['family-archived-done-count'],
+        queryFn: () => familyApi.getArchivedDoneCount(7),
+    });
 
     // Require 8px movement before starting drag → allows click-to-edit
     const sensors = useSensors(
@@ -94,6 +99,7 @@ export function TaskBoard({ tasks, categories, onEditTask }: TaskBoardProps) {
                         categoryMap={categoryMap}
                         onEditTask={onEditTask}
                         isOver={false}
+                        archivedCount={col.status === 'done' ? archivedCount : 0}
                     />
                 ))}
             </div>
@@ -127,6 +133,7 @@ function DroppableColumn({
     tasks,
     categoryMap,
     onEditTask,
+    archivedCount,
 }: {
     status: TaskStatus;
     label: string;
@@ -135,6 +142,7 @@ function DroppableColumn({
     categoryMap: Map<string, string>;
     onEditTask: (task: FamilyTask) => void;
     isOver: boolean;
+    archivedCount?: number;
 }) {
     const { setNodeRef, isOver: columnIsOver } = useDroppable({ id: status });
     const statusCfg = STATUS_CONFIG[status];
@@ -187,6 +195,13 @@ function DroppableColumn({
                     ))
                 )}
             </div>
+
+            {/* Archived hint for done column */}
+            {(archivedCount ?? 0) > 0 && (
+                <div className="text-center text-caption text-text-tertiary py-1">
+                    还有 {archivedCount} 条已完成任务已归档（7 天前）
+                </div>
+            )}
         </div>
     );
 }

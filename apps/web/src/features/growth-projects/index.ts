@@ -11,6 +11,7 @@ export { useProjectTodos } from './hooks/useProjectTodos';
 export { useProjectNotes } from './hooks/useProjectNotes';
 export type {
     GrowthArea,
+    ProjectDisplayStatus,
     ProjectScope,
     ProjectStatus,
     ProjectNoteType,
@@ -23,4 +24,5 @@ export type {
     ProjectNote,
     CreateNoteInput,
 } from './types';
-export { AREA_CONFIG, SCOPE_CONFIG, STATUS_CONFIG, NOTE_TYPE_CONFIG } from './types';
+export { AREA_CONFIG, DISPLAY_STATUS_CONFIG, SCOPE_CONFIG, STATUS_CONFIG, NOTE_TYPE_CONFIG } from './types';
+export { compareProjectsByDisplayStatus, getProjectProgressMetrics } from './utils/projectProgress';

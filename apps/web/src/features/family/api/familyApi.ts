@@ -75,6 +75,8 @@ export const familyApi = {
         status?: string;
         assignee?: string;
         category?: string;
+        /** Only return done tasks completed within N days (default 7). 0 = no limit */
+        doneWithinDays?: number;
     }): Promise<FamilyTask[]> => {
         let query = supabase
             .from('family_tasks')
@@ -107,6 +109,16 @@ export const familyApi = {
                     t.assignees.some((a) => a.id === options.assignee),
                 );
             }
+        }
+
+        // Trim old done tasks — keep only recent N days (default 7)
+        const doneWithin = options?.doneWithinDays ?? 7;
+        if (doneWithin > 0) {
+            const cutoff = new Date();
+            cutoff.setDate(cutoff.getDate() - doneWithin);
+            tasks = tasks.filter(
+                (t) => t.status !== 'done' || (t.completed_at && new Date(t.completed_at) >= cutoff),
+            );
         }
 
         return tasks;
@@ -233,33 +245,47 @@ export const familyApi = {
         overdue: number;
         doneThisWeek: number;
     }> => {
-        const { data, error } = await supabase
-            .from('family_tasks')
-            .select('status, due_date, completed_at');
-
-        if (error) {
-            console.error('获取任务统计失败:', error);
-            return { total: 0, todo: 0, inProgress: 0, done: 0, overdue: 0, doneThisWeek: 0 };
-        }
-
-        const tasks = data ?? [];
         const today = new Date(new Date().toDateString());
-
-        // Monday of this week
         const weekStart = new Date(today);
         weekStart.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+        const todayStr = today.toISOString();
+        const weekStartStr = weekStart.toISOString();
+
+        const [
+            { count: total },
+            { count: todo },
+            { count: inProgress },
+            { count: done },
+            { count: overdue },
+            { count: doneThisWeek },
+        ] = await Promise.all([
+            supabase.from('family_tasks').select('*', { count: 'exact', head: true }),
+            supabase.from('family_tasks').select('*', { count: 'exact', head: true }).eq('status', 'todo'),
+            supabase.from('family_tasks').select('*', { count: 'exact', head: true }).eq('status', 'in_progress'),
+            supabase.from('family_tasks').select('*', { count: 'exact', head: true }).eq('status', 'done'),
+            supabase.from('family_tasks').select('*', { count: 'exact', head: true }).neq('status', 'done').not('due_date', 'is', null).lt('due_date', todayStr),
+            supabase.from('family_tasks').select('*', { count: 'exact', head: true }).eq('status', 'done').gte('completed_at', weekStartStr),
+        ]);
 
         return {
-            total: tasks.length,
-            todo: tasks.filter((t) => t.status === 'todo').length,
-            inProgress: tasks.filter((t) => t.status === 'in_progress').length,
-            done: tasks.filter((t) => t.status === 'done').length,
-            overdue: tasks.filter(
-                (t) => t.status !== 'done' && t.due_date && new Date(t.due_date) < today,
-            ).length,
-            doneThisWeek: tasks.filter(
-                (t) => t.status === 'done' && t.completed_at && new Date(t.completed_at) >= weekStart,
-            ).length,
+            total: total ?? 0,
+            todo: todo ?? 0,
+            inProgress: inProgress ?? 0,
+            done: done ?? 0,
+            overdue: overdue ?? 0,
+            doneThisWeek: doneThisWeek ?? 0,
         };
+    },
+
+    /** Count done tasks older than N days (for archive hint) */
+    getArchivedDoneCount: async (olderThanDays = 7): Promise<number> => {
+        const cutoff = new Date();
+        cutoff.setDate(cutoff.getDate() - olderThanDays);
+        const { count } = await supabase
+            .from('family_tasks')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'done')
+            .lt('completed_at', cutoff.toISOString());
+        return count ?? 0;
     },
 };
