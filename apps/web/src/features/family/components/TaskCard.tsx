@@ -1,11 +1,13 @@
 'use client';
 
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Circle, Loader2 } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { FamilyTask } from '../types';
 import { PRIORITY_CONFIG, STATUS_CONFIG } from '../types';
 import { MemberAvatarGroup } from './MemberAvatar';
 import { familyApi } from '../api/familyApi';
+
+const STATUS_HINT = { todo: '开始执行', in_progress: '标记完成', done: '重新打开' } as const;
 
 interface TaskCardProps {
     task: FamilyTask;
@@ -16,11 +18,8 @@ interface TaskCardProps {
 export function TaskCard({ task, categoryLabel, onEdit }: TaskCardProps) {
     const queryClient = useQueryClient();
 
-    const toggleMutation = useMutation({
-        mutationFn: () =>
-            task.status === 'done'
-                ? familyApi.reopenTask(task.id)
-                : familyApi.completeTask(task.id),
+    const advanceMutation = useMutation({
+        mutationFn: () => familyApi.advanceStatus(task.id, task.status),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['family-tasks'] });
             queryClient.invalidateQueries({ queryKey: ['family-stats'] });
@@ -48,20 +47,24 @@ export function TaskCard({ task, categoryLabel, onEdit }: TaskCardProps) {
                     type="button"
                     onClick={(e) => {
                         e.stopPropagation();
-                        toggleMutation.mutate();
+                        advanceMutation.mutate();
                     }}
                     className={[
                         'mt-0.5 shrink-0 rounded-full p-0.5 transition-colors',
                         isDone
                             ? 'text-success hover:text-text-secondary'
-                            : 'text-text-tertiary hover:text-success',
+                            : task.status === 'in_progress'
+                              ? 'text-warning hover:text-success'
+                              : 'text-text-tertiary hover:text-warning',
                     ].join(' ')}
-                    title={isDone ? '重新打开' : '标记完成'}
+                    title={STATUS_HINT[task.status]}
                 >
                     {isDone ? (
                         <CheckCircle2 size={16} />
+                    ) : task.status === 'in_progress' ? (
+                        <Loader2 size={16} />
                     ) : (
-                        <div className="w-4 h-4 rounded-full border-2 border-current" />
+                        <Circle size={16} />
                     )}
                 </button>
                 <span

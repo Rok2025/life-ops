@@ -190,6 +190,16 @@ export const familyApi = {
         return task;
     },
 
+    /** Advance status: todo → in_progress → done → todo */
+    advanceStatus: async (id: string, currentStatus: string): Promise<FamilyTask> => {
+        const next = { todo: 'in_progress', in_progress: 'done', done: 'todo' } as const;
+        const nextStatus = next[currentStatus as keyof typeof next] ?? 'todo';
+        return familyApi.updateTask(id, {
+            status: nextStatus,
+            completed_at: nextStatus === 'done' ? new Date().toISOString() : null,
+        });
+    },
+
     completeTask: async (id: string): Promise<FamilyTask> => {
         return familyApi.updateTask(id, {
             status: 'done',

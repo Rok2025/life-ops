@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Plus, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { configApi } from '../api/configApi';
 import { ConfigItemRow } from './ConfigItemRow';
 import type { ConfigItem, ScopeMeta } from '../types';
@@ -15,7 +15,6 @@ interface ConfigScopeSectionProps {
 
 export function ConfigScopeSection({ meta, initialItems }: ConfigScopeSectionProps) {
     const [items, setItems] = useState<ConfigItem[]>(initialItems);
-    const [expanded, setExpanded] = useState(true);
     const [newLabel, setNewLabel] = useState('');
 
     const reload = useCallback(async () => {
@@ -83,60 +82,52 @@ export function ConfigScopeSection({ meta, initialItems }: ConfigScopeSectionPro
     const activeCount = items.filter(i => i.is_active).length;
 
     return (
-        <Card variant="subtle" className="overflow-hidden p-0">
-            {/* Header */}
-            <button
-                onClick={() => setExpanded(v => !v)}
-                className="flex w-full items-center justify-between p-4 transition-colors duration-normal ease-standard hover:bg-panel-bg/90"
-            >
-                <div className="flex items-center gap-3">
-                    <h3 className="text-body font-semibold text-text-primary">{meta.label}</h3>
-                    <span className="glass-mini-chip text-caption">
-                        {activeCount} / {items.length}
-                    </span>
-                </div>
-                {expanded ? <ChevronUp size={18} className="text-text-secondary" /> : <ChevronDown size={18} className="text-text-secondary" />}
-            </button>
-
-            {expanded && (
-                <div className="space-y-3 px-4 pb-4">
+        <Card variant="subtle" className="p-4">
+            <div className="space-y-3">
+                <div>
+                    <div className="flex items-center gap-3 mb-1">
+                        <h3 className="text-body font-semibold text-text-primary">{meta.label}</h3>
+                        <span className="glass-mini-chip text-caption">
+                            {activeCount} / {items.length}
+                        </span>
+                    </div>
                     <p className="text-body-sm text-text-tertiary">{meta.description}</p>
-
-                    {/* Items list */}
-                    <div className="space-y-1.5">
-                        {items.map(item => (
-                            <ConfigItemRow
-                                key={item.id}
-                                item={item}
-                                onToggle={handleToggle}
-                                onDelete={handleDelete}
-                                deleting={deleteMutation.isPending}
-                            />
-                        ))}
-                        {items.length === 0 && (
-                            <div className="rounded-lg border border-dashed border-glass-border bg-panel-bg/65 px-4 py-5 text-center text-body-sm text-text-tertiary">
-                                暂无配置项
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Add new */}
-                    <div className="flex gap-2">
-                        <Input
-                            type="text"
-                            value={newLabel}
-                            onChange={e => setNewLabel(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            placeholder="输入新配置项名称..."
-                            className="flex-1"
-                        />
-                        <Button onClick={handleAdd} disabled={!newLabel.trim() || addMutation.isPending} variant="tinted" size="sm" className="gap-1">
-                            <Plus size={14} />
-                            添加
-                        </Button>
-                    </div>
                 </div>
-            )}
+
+                {/* Items list */}
+                <div className="space-y-1.5">
+                    {items.map(item => (
+                        <ConfigItemRow
+                            key={item.id}
+                            item={item}
+                            onToggle={handleToggle}
+                            onDelete={handleDelete}
+                            deleting={deleteMutation.isPending}
+                        />
+                    ))}
+                    {items.length === 0 && (
+                        <div className="rounded-lg border border-dashed border-glass-border bg-panel-bg/65 px-4 py-5 text-center text-body-sm text-text-tertiary">
+                            暂无配置项
+                        </div>
+                    )}
+                </div>
+
+                {/* Add new */}
+                <div className="flex gap-2">
+                    <Input
+                        type="text"
+                        value={newLabel}
+                        onChange={e => setNewLabel(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder="输入新配置项名称..."
+                        className="flex-1"
+                    />
+                    <Button onClick={handleAdd} disabled={!newLabel.trim() || addMutation.isPending} variant="tinted" size="sm" className="gap-1">
+                        <Plus size={14} />
+                        添加
+                    </Button>
+                </div>
+            </div>
         </Card>
     );
 }

@@ -10,9 +10,10 @@ import type {
     FamilyMember,
     TaskCategoryConfig,
     TaskPriority,
+    TaskStatus,
     CreateTaskInput,
 } from '../types';
-import { TASK_PRIORITIES, PRIORITY_CONFIG } from '../types';
+import { TASK_PRIORITIES, PRIORITY_CONFIG, TASK_STATUSES, STATUS_CONFIG } from '../types';
 
 interface TaskFormDialogProps {
     open: boolean;
@@ -37,6 +38,7 @@ export function TaskFormDialog({
     const [description, setDescription] = useState(task?.description ?? '');
     const [category, setCategory] = useState(task?.category ?? '');
     const [priority, setPriority] = useState<TaskPriority>(task?.priority ?? 'normal');
+    const [status, setStatus] = useState<TaskStatus>(task?.status ?? 'todo');
     const [dueDate, setDueDate] = useState(task?.due_date ?? '');
     const [assigneeIds, setAssigneeIds] = useState<string[]>(
         task?.assignees.map((a) => a.id) ?? (activeMemberId ? [activeMemberId] : []),
@@ -68,8 +70,10 @@ export function TaskFormDialog({
                 description: description || null,
                 category: category || null,
                 priority,
+                status,
                 due_date: dueDate || null,
                 assignee_ids: assigneeIds,
+                completed_at: status === 'done' ? (task!.completed_at ?? new Date().toISOString()) : null,
             }),
         onSuccess: () => {
             invalidate();
@@ -136,6 +140,20 @@ export function TaskFormDialog({
                         placeholder="补充说明（可选）"
                     />
                 </div>
+
+                {/* Status (edit only) + Category + Priority */}
+                {isEdit && (
+                    <div>
+                        <label className="text-caption text-text-secondary mb-1 block">状态</label>
+                        <Select value={status} onChange={(e) => setStatus(e.target.value as TaskStatus)}>
+                            {TASK_STATUSES.map((s) => (
+                                <option key={s} value={s}>
+                                    {STATUS_CONFIG[s].emoji} {STATUS_CONFIG[s].label}
+                                </option>
+                            ))}
+                        </Select>
+                    </div>
+                )}
 
                 {/* Category + Priority row */}
                 <div className="grid grid-cols-2 gap-3">
