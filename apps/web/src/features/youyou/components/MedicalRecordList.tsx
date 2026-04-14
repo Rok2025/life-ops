@@ -57,7 +57,7 @@ export function MedicalRecordList() {
                 stats={[
                     { label: '总记录', value: records.length, tone: 'accent' },
                 ]}
-                actions={
+                action={
                     <Button size="sm" onClick={() => setShowForm(true)}>
                         <Plus size={14} />
                         新增记录

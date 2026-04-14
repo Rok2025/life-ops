@@ -83,7 +83,7 @@ export function VaccinationList() {
                         tone: 'success',
                     },
                 ]}
-                actions={
+                action={
                     <Button size="sm" onClick={() => setShowForm(true)}>
                         <Plus size={14} />
                         添加疫苗
