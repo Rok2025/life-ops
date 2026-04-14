@@ -16,13 +16,16 @@ const NAV_ITEMS = [
 ];
 
 export function YouyouSubNav() {
-    const pathname = usePathname();
+    const raw = usePathname();
+    const pathname = raw.replace(/\/+$/, ''); // strip trailing slash
 
     return (
         <nav className="flex items-center gap-1 rounded-control border border-glass-border bg-bg-tertiary/88 p-0.5 shadow-sm backdrop-blur-xl mb-4 xl:mb-5 overflow-x-auto">
             {NAV_ITEMS.map(item => {
                 const Icon = item.icon;
-                const isActive = pathname === item.href;
+                const isActive = item.href === '/growth/youyou'
+                    ? pathname === '/growth/youyou'
+                    : pathname.startsWith(item.href);
                 return (
                     <Link
                         key={item.href}
@@ -30,8 +33,8 @@ export function YouyouSubNav() {
                         className={[
                             'inline-flex items-center justify-center gap-1.5 rounded-control px-3 py-1.5 text-body-sm font-medium transition-colors duration-normal ease-standard whitespace-nowrap',
                             isActive
-                                ? 'bg-bg-primary text-text-primary shadow-sm'
-                                : 'text-text-tertiary hover:bg-card-bg/72 hover:text-text-secondary',
+                                ? 'bg-accent/15 text-accent shadow-sm border border-accent/25'
+                                : 'text-text-tertiary hover:bg-card-bg/72 hover:text-text-secondary border border-transparent',
                         ].join(' ')}
                     >
                         <Icon size={14} className="shrink-0" />

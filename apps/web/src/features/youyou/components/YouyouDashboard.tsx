@@ -7,6 +7,7 @@ import { useDiaryEntries } from '../hooks/useDiary';
 import { useMilestones } from '../hooks/useMilestones';
 import { useGrowthLatest } from '../hooks/useGrowthRecords';
 import { useVaccinationStats, useMedicalStats } from '../hooks/useHealth';
+import { useYouyouPhoto, usePhotoTransform } from '../hooks/usePhoto';
 import { YOUYOU_BIRTHDAY, MOOD_CONFIG, MILESTONE_CATEGORY_CONFIG } from '../types';
 import type { MilestoneCategory } from '../types';
 import { Card, PageHero } from '@/components/ui';
@@ -15,12 +16,23 @@ import { Card, PageHero } from '@/components/ui';
 function calcAge(birthday: string): string {
     const born = new Date(birthday);
     const now = new Date();
-    const months = (now.getFullYear() - born.getFullYear()) * 12 + (now.getMonth() - born.getMonth());
-    const years = Math.floor(months / 12);
-    const remainMonths = months % 12;
-    if (years === 0) return `${remainMonths} 个月`;
-    if (remainMonths === 0) return `${years} 岁`;
-    return `${years} 岁 ${remainMonths} 个月`;
+    let years = now.getFullYear() - born.getFullYear();
+    let months = now.getMonth() - born.getMonth();
+    let days = now.getDate() - born.getDate();
+    if (days < 0) {
+        months--;
+        const prev = new Date(now.getFullYear(), now.getMonth(), 0);
+        days += prev.getDate();
+    }
+    if (months < 0) {
+        years--;
+        months += 12;
+    }
+    const parts: string[] = [];
+    if (years > 0) parts.push(`${years} 岁`);
+    if (months > 0) parts.push(`${months} 个月`);
+    parts.push(`${days} 天`);
+    return parts.join(' ');
 }
 
 export default function YouyouDashboard() {
@@ -31,6 +43,11 @@ export default function YouyouDashboard() {
     const { data: latestGrowth } = useGrowthLatest();
     const { data: vacStats } = useVaccinationStats();
     const { data: medStats } = useMedicalStats();
+    const { data: photoUrl } = useYouyouPhoto();
+    const { data: photoTransform } = usePhotoTransform();
+    const px = photoTransform?.x ?? 50;
+    const py = photoTransform?.y ?? 50;
+    const pz = photoTransform?.zoom ?? 100;
 
     const recentAchieved = allMilestones
         .filter(m => m.achieved_at)
@@ -44,32 +61,58 @@ export default function YouyouDashboard() {
     return (
         <div className="space-y-4 xl:space-y-5">
             {/* Hero */}
-            <PageHero
-                eyebrow="成长 / 又又"
-                icon={<Baby size={18} />}
-                title="又又"
-                description={`${calcAge(YOUYOU_BIRTHDAY)}，记录又又成长的每一个精彩瞬间。`}
-                stats={[
-                    {
-                        label: '成长日记',
-                        value: diaryStats?.total ?? 0,
-                        meta: `本月 ${diaryStats?.thisMonth ?? 0} 篇`,
-                        tone: 'accent',
-                    },
-                    {
-                        label: '里程碑',
-                        value: `${achievedCount}/${totalMilestones}`,
-                        meta: totalMilestones > 0 ? `${Math.round((achievedCount / totalMilestones) * 100)}% 达成` : '暂无',
-                        tone: 'success',
-                    },
-                    {
-                        label: '疫苗接种',
-                        value: `${vacStats?.completed ?? 0}/${vacStats?.total ?? 0}`,
-                        meta: (vacStats?.total ?? 0) > 0 ? `${Math.round(((vacStats?.completed ?? 0) / (vacStats?.total ?? 1)) * 100)}%` : '',
-                        tone: 'warning',
-                    },
-                ]}
-            />
+            <div className={`relative overflow-hidden rounded-card ${photoUrl ? 'youyou-hero-photo' : ''}`}>
+                {photoUrl && (
+                    <>
+                        <img
+                            src={photoUrl}
+                            alt=""
+                            className="absolute inset-0 h-full w-full object-cover"
+                            style={{
+                                objectPosition: `${px}% ${py}%`,
+                                transform: `scale(${pz / 100})`,
+                            }}
+                        />
+                        {/* 渐变模糊：左侧模糊渐变到中间清晰 */}
+                        <div
+                            className="absolute inset-0 backdrop-blur-lg"
+                            style={{ maskImage: 'linear-gradient(to right, black 15%, transparent 45%, transparent 65%, black 90%)' }}
+                        />
+                        {/* 渐变底色：左侧较深保证文字可读，右侧轻微 */}
+                        <div
+                            className="absolute inset-0"
+                            style={{ background: 'linear-gradient(to right, var(--bg-primary) 0%, color-mix(in srgb, var(--bg-primary) 60%, transparent) 20%, transparent 45%, transparent 65%, color-mix(in srgb, var(--bg-primary) 40%, transparent) 85%, color-mix(in srgb, var(--bg-primary) 50%, transparent) 100%)' }}
+                        />
+                    </>
+                )}
+                <PageHero
+                    eyebrow="成长 / 又又"
+                    icon={<Baby size={18} />}
+                    title="又又"
+                    description={`${calcAge(YOUYOU_BIRTHDAY)}，记录又又成长的每一个精彩瞬间。`}
+                    className={photoUrl ? 'bg-transparent! shadow-none! border-0! backdrop-blur-none!' : undefined}
+                    stats={[
+                        {
+                            label: '成长日记',
+                            value: diaryStats?.total ?? 0,
+                            meta: `本月 ${diaryStats?.thisMonth ?? 0} 篇`,
+                            tone: 'accent',
+                        },
+                        {
+                            label: '里程碑',
+                            value: `${achievedCount}/${totalMilestones}`,
+                            meta: totalMilestones > 0 ? `${Math.round((achievedCount / totalMilestones) * 100)}% 达成` : '暂无',
+                            tone: 'success',
+                        },
+                        {
+                            label: '疫苗接种',
+                            value: `${vacStats?.completed ?? 0}/${vacStats?.total ?? 0}`,
+                            meta: (vacStats?.total ?? 0) > 0 ? `${Math.round(((vacStats?.completed ?? 0) / (vacStats?.total ?? 1)) * 100)}%` : '',
+                            tone: 'warning',
+                        },
+                    ]}
+                />
+            </div>
 
             <div className="grid gap-4 xl:gap-5 md:grid-cols-2">
                 {/* 近期日记 */}

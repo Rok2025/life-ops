@@ -48,7 +48,8 @@ export const CONFIG_SCOPES: ScopeMeta[] = [
 export type SettingsSection =
     | { type: 'scope'; scope: ConfigScope }
     | { type: 'exercise' }
-    | { type: 'english-prompts' };
+    | { type: 'english-prompts' }
+    | { type: 'youyou-photo' };
 
 export type SettingsNavItem = {
     id: string;
@@ -88,6 +89,12 @@ export const SETTINGS_NAV: SettingsNavGroup[] = [
         label: '英语',
         items: [
             { id: 'english-prompts', label: '提示词模板', section: { type: 'english-prompts' }, group: '英语' },
+        ],
+    },
+    {
+        label: '又又',
+        items: [
+            { id: 'youyou-photo', label: '封面照片', section: { type: 'youyou-photo' }, group: '又又' },
         ],
     },
 ];

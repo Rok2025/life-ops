@@ -6,6 +6,7 @@ import { Settings } from 'lucide-react';
 import { ConfigScopeSection } from './ConfigScopeSection';
 import ExerciseManager from './ExerciseManager';
 import { EnglishPromptManager } from '@/features/english-prompts';
+import { YouyouPhotoSettings } from './YouyouPhotoSettings';
 import { configApi } from '../api/configApi';
 import { exerciseTypesApi } from '../api/exerciseTypesApi';
 import { CONFIG_SCOPES, SETTINGS_NAV } from '../types';
@@ -164,6 +165,10 @@ function SettingsContent({
 
     if (section.type === 'english-prompts') {
         return <EnglishPromptManager />;
+    }
+
+    if (section.type === 'youyou-photo') {
+        return <YouyouPhotoSettings />;
     }
 
     return null;

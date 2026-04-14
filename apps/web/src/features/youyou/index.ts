@@ -1,6 +1,7 @@
 export { youyouApi } from './api/youyouApi';
 export { growthApi } from './api/growthApi';
 export { healthApi } from './api/healthApi';
+export { youyouPhotoApi } from './api/photoApi';
 
 export { default as YouyouDashboard } from './components/YouyouDashboard';
 export { YouyouSubNav } from './components/YouyouSubNav';
@@ -21,6 +22,8 @@ export { useDiaryEntries, useDiaryByDate, useDiaryStats } from './hooks/useDiary
 export { useMilestones, useMilestoneStats } from './hooks/useMilestones';
 export { useGrowthRecords, useGrowthLatest, useGrowthStats } from './hooks/useGrowthRecords';
 export { useVaccinations, useVaccinationStats, useMedicalRecords, useMedicalStats } from './hooks/useHealth';
+export { useYouyouPhoto, useUploadYouyouPhoto, useDeleteYouyouPhoto, usePhotoTransform, useSavePhotoTransform } from './hooks/usePhoto';
+export type { PhotoTransform } from './api/photoApi';
 
 export type {
     DiaryMood,

@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { formatHorizons, getMonthProgress } from '@/lib/horizons';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePathname } from 'next/navigation';
-import { BarChart3, BookOpen, Dumbbell, Hourglass, ListTodo, PenLine } from 'lucide-react';
+import { BarChart3, BookOpen, Dumbbell, Hourglass, ListTodo, PenLine, Users } from 'lucide-react';
 import Link from 'next/link';
 import { Card, SectionHeader, getButtonClassName } from '@/components/ui';
 import { notesApi } from '@/features/quick-notes';
@@ -148,6 +148,20 @@ export default function SummaryPanel() {
                             待办清单
                         </span>
                         <span className="glass-mini-chip text-caption">{incompleteTodoCount} 未完成</span>
+                    </Link>
+
+                    <Link
+                        href="/family"
+                        className={getButtonClassName({
+                            variant: 'secondary',
+                            size: 'sm',
+                            className: 'w-full justify-between gap-2 text-left',
+                        })}
+                    >
+                        <span className="flex items-center gap-2">
+                            <Users size={15} />
+                            家庭待办
+                        </span>
                     </Link>
 
                     <Link
