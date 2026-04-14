@@ -6,7 +6,7 @@ import { Card, Button } from '@/components/ui';
 import { useYouyouPhoto, useUploadYouyouPhoto, useDeleteYouyouPhoto, usePhotoTransform, useSavePhotoTransform } from '../../youyou/hooks/usePhoto';
 import type { PhotoTransform } from '../../youyou/api/photoApi';
 
-const DEFAULT: PhotoTransform = { x: 50, y: 50, zoom: 100, opacity: 50 };
+const DEFAULT: PhotoTransform = { x: 50, y: 50, zoom: 100, blurL: 12, blurC: 1, blurR: 8 };
 
 function SliderRow({ label, min, max, step, value, unit, leftLabel, rightLabel, onChange }: {
     label: string; min: number; max: number; step?: number;
@@ -54,7 +54,7 @@ export function YouyouPhotoSettings() {
         e.target.value = '';
     };
 
-    const isDirty = saved && (t.x !== saved.x || t.y !== saved.y || t.zoom !== saved.zoom || t.opacity !== saved.opacity);
+    const isDirty = saved && (t.x !== saved.x || t.y !== saved.y || t.zoom !== saved.zoom || t.blurL !== saved.blurL || t.blurC !== saved.blurC || t.blurR !== saved.blurR);
 
     return (
         <Card className="p-card space-y-4">
@@ -79,18 +79,36 @@ export function YouyouPhotoSettings() {
                                 transform: `translate(${(t.x - 50) * 0.5}%, ${(t.y - 50) * 0.5}%) scale(${t.zoom / 100})`,
                             }}
                         />
-                        {/* 与 dashboard 一致的渐变模糊 */}
-                        <div
-                            className="absolute inset-0 backdrop-blur-md pointer-events-none"
-                            style={{ maskImage: 'linear-gradient(to right, black 0%, transparent 35%, transparent 65%, black 100%)' }}
-                        />
-                        <div
-                            className="absolute inset-0 backdrop-blur-[1px] pointer-events-none"
-                        />
+                        {/* 与 dashboard 一致的模糊层 */}
+                        {t.blurC > 0 && (
+                            <div
+                                className="absolute inset-0 pointer-events-none"
+                                style={{ backdropFilter: `blur(${t.blurC}px)` }}
+                            />
+                        )}
+                        {t.blurL > 0 && (
+                            <div
+                                className="absolute inset-0 pointer-events-none"
+                                style={{
+                                    backdropFilter: `blur(${t.blurL}px)`,
+                                    maskImage: 'linear-gradient(to right, black 0%, black 15%, transparent 45%)',
+                                }}
+                            />
+                        )}
+                        {t.blurR > 0 && (
+                            <div
+                                className="absolute inset-0 pointer-events-none"
+                                style={{
+                                    backdropFilter: `blur(${t.blurR}px)`,
+                                    maskImage: 'linear-gradient(to right, transparent 55%, black 85%, black 100%)',
+                                }}
+                            />
+                        )}
+                        {/* 左侧文字区底色 */}
                         <div
                             className="absolute inset-0 pointer-events-none"
                             style={{
-                                background: `linear-gradient(to right, color-mix(in srgb, var(--bg-primary) ${Math.round(70 + t.opacity * 0.3)}%, transparent) 0%, color-mix(in srgb, var(--bg-primary) ${Math.round(30 + t.opacity * 0.4)}%, transparent) 40%, color-mix(in srgb, var(--bg-primary) ${Math.round(12 + t.opacity * 0.3)}%, transparent) 60%, color-mix(in srgb, var(--bg-primary) ${Math.round(25 + t.opacity * 0.4)}%, transparent) 100%)`,
+                                background: 'linear-gradient(to right, color-mix(in srgb, var(--bg-primary) 50%, transparent) 0%, color-mix(in srgb, var(--bg-primary) 25%, transparent) 30%, transparent 50%)',
                             }}
                         />
                         <div className="absolute bottom-2 left-3 text-white/90 text-caption pointer-events-none">预览效果</div>
@@ -145,9 +163,19 @@ export function YouyouPhotoSettings() {
                             onChange={zoom => setT(p => ({ ...p, zoom }))}
                         />
                         <SliderRow
-                            label="遮罩强度" min={0} max={80} step={5} value={t.opacity} unit="%"
-                            leftLabel="弱" rightLabel="强"
-                            onChange={opacity => setT(p => ({ ...p, opacity }))}
+                            label="左侧模糊" min={0} max={20} step={1} value={t.blurL} unit="px"
+                            leftLabel="清" rightLabel="糊"
+                            onChange={blurL => setT(p => ({ ...p, blurL }))}
+                        />
+                        <SliderRow
+                            label="中间模糊" min={0} max={10} step={1} value={t.blurC} unit="px"
+                            leftLabel="清" rightLabel="糊"
+                            onChange={blurC => setT(p => ({ ...p, blurC }))}
+                        />
+                        <SliderRow
+                            label="右侧模糊" min={0} max={20} step={1} value={t.blurR} unit="px"
+                            leftLabel="清" rightLabel="糊"
+                            onChange={blurR => setT(p => ({ ...p, blurR }))}
                         />
                         <Button
                             variant="primary"

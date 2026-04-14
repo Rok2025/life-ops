@@ -48,7 +48,9 @@ export default function YouyouDashboard() {
     const px = photoTransform?.x ?? 50;
     const py = photoTransform?.y ?? 50;
     const pz = photoTransform?.zoom ?? 100;
-    const po = photoTransform?.opacity ?? 50;
+    const bL = photoTransform?.blurL ?? 12;
+    const bC = photoTransform?.blurC ?? 1;
+    const bR = photoTransform?.blurR ?? 8;
 
     const recentAchieved = allMilestones
         .filter(m => m.achieved_at)
@@ -73,19 +75,38 @@ export default function YouyouDashboard() {
                                 transform: `translate(${(px - 50) * 0.5}%, ${(py - 50) * 0.5}%) scale(${pz / 100})`,
                             }}
                         />
-                        {/* 两侧较强模糊，渐变到中间清晰 */}
-                        <div
-                            className="absolute inset-0 backdrop-blur-md"
-                            style={{ maskImage: 'linear-gradient(to right, black 0%, transparent 35%, transparent 65%, black 100%)' }}
-                        />
-                        <div
-                            className="absolute inset-0 backdrop-blur-[1px]"
-                        />
-                        {/* 渐进遮罩：左侧深色保证文字可读，中间浅，右侧中等保证卡片可读 */}
+                        {/* 基础全局轻模糊 */}
+                        {bC > 0 && (
+                            <div
+                                className="absolute inset-0"
+                                style={{ backdropFilter: `blur(${bC}px)` }}
+                            />
+                        )}
+                        {/* 左侧额外模糊 - 渐变遮罩 */}
+                        {bL > 0 && (
+                            <div
+                                className="absolute inset-0"
+                                style={{
+                                    backdropFilter: `blur(${bL}px)`,
+                                    maskImage: 'linear-gradient(to right, black 0%, black 15%, transparent 45%)',
+                                }}
+                            />
+                        )}
+                        {/* 右侧额外模糊 - 渐变遮罩 */}
+                        {bR > 0 && (
+                            <div
+                                className="absolute inset-0"
+                                style={{
+                                    backdropFilter: `blur(${bR}px)`,
+                                    maskImage: 'linear-gradient(to right, transparent 55%, black 85%, black 100%)',
+                                }}
+                            />
+                        )}
+                        {/* 左侧文字区淡色底詧提升可读性 */}
                         <div
                             className="absolute inset-0"
                             style={{
-                                background: `linear-gradient(to right, color-mix(in srgb, var(--bg-primary) ${Math.round(70 + po * 0.3)}%, transparent) 0%, color-mix(in srgb, var(--bg-primary) ${Math.round(30 + po * 0.4)}%, transparent) 40%, color-mix(in srgb, var(--bg-primary) ${Math.round(12 + po * 0.3)}%, transparent) 60%, color-mix(in srgb, var(--bg-primary) ${Math.round(25 + po * 0.4)}%, transparent) 100%)`,
+                                background: 'linear-gradient(to right, color-mix(in srgb, var(--bg-primary) 50%, transparent) 0%, color-mix(in srgb, var(--bg-primary) 25%, transparent) 30%, transparent 50%)',
                             }}
                         />
                     </>

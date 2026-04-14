@@ -954,7 +954,10 @@ nextjs-portal {
 .youyou-hero-photo h1,
 .youyou-hero-photo p,
 .youyou-hero-photo span {
-  text-shadow: 0 1px 3px rgb(0 0 0 / 0.15);
+  text-shadow:
+    0 1px 2px rgb(0 0 0 / 0.4),
+    0 2px 8px rgb(0 0 0 / 0.2),
+    0 0 20px rgb(255 255 255 / 0.3);
 }
 .youyou-hero-photo .rounded-inner-card {
   background: rgb(255 255 255 / 0.88) !important;

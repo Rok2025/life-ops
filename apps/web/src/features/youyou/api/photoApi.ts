@@ -5,9 +5,9 @@ const PHOTO_PATH = 'youyou/cover.jpg';
 const POSITION_SCOPE = 'youyou-photo';
 const TRANSFORM_KEY = 'transform';
 
-export type PhotoTransform = { x: number; y: number; zoom: number; opacity: number };
+export type PhotoTransform = { x: number; y: number; zoom: number; blurL: number; blurC: number; blurR: number };
 
-const DEFAULT_TRANSFORM: PhotoTransform = { x: 50, y: 50, zoom: 100, opacity: 50 };
+const DEFAULT_TRANSFORM: PhotoTransform = { x: 50, y: 50, zoom: 100, blurL: 12, blurC: 1, blurR: 8 };
 
 export const youyouPhotoApi = {
     /** Get the public URL for the cover photo (or null) */
