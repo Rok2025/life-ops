@@ -21,11 +21,11 @@ function getVaccineStatus(v: Vaccination): 'completed' | 'overdue' | 'upcoming' 
     return 'future';
 }
 
-const STATUS_BADGE: Record<string, { label: string; tone: 'success' | 'warning' | 'accent' | 'muted' }> = {
+const STATUS_BADGE: Record<string, { label: string; tone: 'success' | 'warning' | 'danger' | 'default' }> = {
     completed: { label: '已接种', tone: 'success' },
     overdue:   { label: '已逾期', tone: 'warning' },
-    upcoming:  { label: '即将到期', tone: 'accent' },
-    future:    { label: '未到期', tone: 'muted' },
+    upcoming:  { label: '即将到期', tone: 'default' },
+    future:    { label: '未到期', tone: 'default' },
 };
 
 export function VaccinationList() {
@@ -117,7 +117,7 @@ export function VaccinationList() {
                                                     第{v.dose_number}剂
                                                 </span>
                                             )}
-                                            <Badge tone={badge.tone} size="sm">{badge.label}</Badge>
+                                            <Badge tone={badge.tone}>{badge.label}</Badge>
                                         </div>
                                         {v.scheduled_date && (
                                             <p className="text-caption text-text-tertiary mt-0.5">

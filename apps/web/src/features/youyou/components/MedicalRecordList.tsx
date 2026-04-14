@@ -95,7 +95,7 @@ export function MedicalRecordList() {
                                             <span className="text-body font-semibold text-text-primary">
                                                 {record.title}
                                             </span>
-                                            <Badge tone={cfg.color.includes('blue') ? 'accent' : cfg.color.includes('warning') ? 'warning' : cfg.color.includes('danger') ? 'danger' : 'muted'} size="sm">
+                                            <Badge tone={cfg.color.includes('warning') ? 'warning' : cfg.color.includes('danger') ? 'danger' : 'default'}>
                                                 {cfg.label}
                                             </Badge>
                                             <span className="text-caption text-text-tertiary ml-auto shrink-0">
