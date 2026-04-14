@@ -54,7 +54,7 @@ export function GrowthRecordList() {
                 stats={[
                     { label: '记录次数', value: records.length, tone: 'accent' },
                 ]}
-                actions={
+                action={
                     <Button size="sm" onClick={() => setShowForm(true)}>
                         <Plus size={14} />
                         记录
