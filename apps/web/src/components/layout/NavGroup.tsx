@@ -45,7 +45,7 @@ export default function NavGroup({
                     className={`text-text-tertiary transition-transform duration-200 ease-standard ${isExpanded ? 'rotate-180' : ''}`}
                 />
             </button>
-            <ul className={`overflow-hidden transition-[max-height,opacity,margin] duration-200 ease-standard ${isExpanded ? 'mt-1 max-h-56 opacity-100' : 'max-h-0 opacity-0'}`}>
+            <ul className={`overflow-hidden transition-[max-height,opacity,margin] duration-200 ease-standard ${isExpanded ? 'mt-1 max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
                 {children.map((child) => {
                     const isActive = pathname === child.href || pathname.startsWith(child.href);
                     return (

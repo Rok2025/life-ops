@@ -1,10 +1,12 @@
 'use client';
 
-import { Baby, BookHeart, Trophy, Calendar, Sparkles } from 'lucide-react';
+import { Baby, BookHeart, Trophy, Calendar, Sparkles, Ruler, Syringe, Stethoscope } from 'lucide-react';
 import { useDiaryStats } from '../hooks/useDiary';
 import { useMilestoneStats } from '../hooks/useMilestones';
 import { useDiaryEntries } from '../hooks/useDiary';
 import { useMilestones } from '../hooks/useMilestones';
+import { useGrowthLatest } from '../hooks/useGrowthRecords';
+import { useVaccinationStats, useMedicalStats } from '../hooks/useHealth';
 import { YOUYOU_BIRTHDAY, MOOD_CONFIG, MILESTONE_CATEGORY_CONFIG } from '../types';
 import type { MilestoneCategory } from '../types';
 import { Card, PageHero } from '@/components/ui';
@@ -26,6 +28,9 @@ export default function YouyouDashboard() {
     const { data: milestoneStats } = useMilestoneStats();
     const { data: recentDiary = [] } = useDiaryEntries(5);
     const { data: allMilestones = [] } = useMilestones();
+    const { data: latestGrowth } = useGrowthLatest();
+    const { data: vacStats } = useVaccinationStats();
+    const { data: medStats } = useMedicalStats();
 
     const recentAchieved = allMilestones
         .filter(m => m.achieved_at)
@@ -56,6 +61,12 @@ export default function YouyouDashboard() {
                         value: `${achievedCount}/${totalMilestones}`,
                         meta: totalMilestones > 0 ? `${Math.round((achievedCount / totalMilestones) * 100)}% 达成` : '暂无',
                         tone: 'success',
+                    },
+                    {
+                        label: '疫苗接种',
+                        value: `${vacStats?.completed ?? 0}/${vacStats?.total ?? 0}`,
+                        meta: (vacStats?.total ?? 0) > 0 ? `${Math.round(((vacStats?.completed ?? 0) / (vacStats?.total ?? 1)) * 100)}%` : '',
+                        tone: 'warning',
                     },
                 ]}
             />
@@ -222,6 +233,79 @@ export default function YouyouDashboard() {
                             )}
                         </div>
                     )}
+                </Card>
+            </div>
+
+            {/* 身体发育 & 健康概况 */}
+            <div className="grid gap-4 xl:gap-5 md:grid-cols-2">
+                {/* 最近发育数据 */}
+                <Card className="p-card">
+                    <div className="flex items-center gap-2 mb-widget-header">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full border border-glass-border bg-panel-bg">
+                            <Ruler size={16} className="text-tone-blue" />
+                        </div>
+                        <h3 className="text-body font-semibold text-text-primary">最近发育数据</h3>
+                    </div>
+                    {latestGrowth ? (
+                        <div className="space-y-2">
+                            <p className="text-caption text-text-tertiary">测量日期: {latestGrowth.date}</p>
+                            <div className="grid grid-cols-3 gap-3">
+                                <div className="rounded-inner-card border border-glass-border/60 bg-panel-bg/60 p-2.5 text-center">
+                                    <p className="text-caption text-text-tertiary">身高</p>
+                                    <p className="text-h3 text-text-primary">
+                                        {latestGrowth.height_cm ?? '-'}
+                                        <span className="text-caption text-text-tertiary ml-0.5">cm</span>
+                                    </p>
+                                </div>
+                                <div className="rounded-inner-card border border-glass-border/60 bg-panel-bg/60 p-2.5 text-center">
+                                    <p className="text-caption text-text-tertiary">体重</p>
+                                    <p className="text-h3 text-text-primary">
+                                        {latestGrowth.weight_kg ?? '-'}
+                                        <span className="text-caption text-text-tertiary ml-0.5">kg</span>
+                                    </p>
+                                </div>
+                                <div className="rounded-inner-card border border-glass-border/60 bg-panel-bg/60 p-2.5 text-center">
+                                    <p className="text-caption text-text-tertiary">头围</p>
+                                    <p className="text-h3 text-text-primary">
+                                        {latestGrowth.head_cm ?? '-'}
+                                        <span className="text-caption text-text-tertiary ml-0.5">cm</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <p className="text-body-sm text-text-tertiary">还没有发育记录，去添加第一条吧！</p>
+                    )}
+                </Card>
+
+                {/* 健康概况 */}
+                <Card className="p-card">
+                    <div className="flex items-center gap-2 mb-widget-header">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full border border-glass-border bg-panel-bg">
+                            <Stethoscope size={16} className="text-tone-orange" />
+                        </div>
+                        <h3 className="text-body font-semibold text-text-primary">健康概况</h3>
+                    </div>
+                    <div className="space-y-2.5">
+                        <div className="flex items-center justify-between rounded-inner-card border border-glass-border/60 bg-panel-bg/60 px-3 py-2.5">
+                            <span className="flex items-center gap-2 text-body-sm text-text-secondary">
+                                <Syringe size={14} />
+                                疫苗接种
+                            </span>
+                            <span className="text-body-sm font-medium text-text-primary">
+                                {vacStats?.completed ?? 0}/{vacStats?.total ?? 0}
+                            </span>
+                        </div>
+                        <div className="flex items-center justify-between rounded-inner-card border border-glass-border/60 bg-panel-bg/60 px-3 py-2.5">
+                            <span className="flex items-center gap-2 text-body-sm text-text-secondary">
+                                <Stethoscope size={14} />
+                                就医记录
+                            </span>
+                            <span className="text-body-sm font-medium text-text-primary">
+                                {medStats?.total ?? 0} 次
+                            </span>
+                        </div>
+                    </div>
                 </Card>
             </div>
         </div>
