@@ -48,6 +48,7 @@ export default function YouyouDashboard() {
     const px = photoTransform?.x ?? 50;
     const py = photoTransform?.y ?? 50;
     const pz = photoTransform?.zoom ?? 100;
+    const po = photoTransform?.opacity ?? 50;
 
     const recentAchieved = allMilestones
         .filter(m => m.achieved_at)
@@ -69,19 +70,23 @@ export default function YouyouDashboard() {
                             alt=""
                             className="absolute inset-0 h-full w-full object-cover"
                             style={{
-                                objectPosition: `${px}% ${py}%`,
-                                transform: `scale(${pz / 100})`,
+                                transform: `translate(${(px - 50) * 0.5}%, ${(py - 50) * 0.5}%) scale(${pz / 100})`,
                             }}
                         />
-                        {/* 渐变模糊：左侧模糊渐变到中间清晰 */}
+                        {/* 两侧较强模糊，渐变到中间清晰 */}
                         <div
-                            className="absolute inset-0 backdrop-blur-lg"
-                            style={{ maskImage: 'linear-gradient(to right, black 15%, transparent 45%, transparent 65%, black 90%)' }}
+                            className="absolute inset-0 backdrop-blur-md"
+                            style={{ maskImage: 'linear-gradient(to right, black 0%, transparent 35%, transparent 65%, black 100%)' }}
                         />
-                        {/* 渐变底色：左侧较深保证文字可读，右侧轻微 */}
+                        <div
+                            className="absolute inset-0 backdrop-blur-[1px]"
+                        />
+                        {/* 渐进遮罩：左侧深色保证文字可读，中间浅，右侧中等保证卡片可读 */}
                         <div
                             className="absolute inset-0"
-                            style={{ background: 'linear-gradient(to right, var(--bg-primary) 0%, color-mix(in srgb, var(--bg-primary) 60%, transparent) 20%, transparent 45%, transparent 65%, color-mix(in srgb, var(--bg-primary) 40%, transparent) 85%, color-mix(in srgb, var(--bg-primary) 50%, transparent) 100%)' }}
+                            style={{
+                                background: `linear-gradient(to right, color-mix(in srgb, var(--bg-primary) ${Math.round(70 + po * 0.3)}%, transparent) 0%, color-mix(in srgb, var(--bg-primary) ${Math.round(30 + po * 0.4)}%, transparent) 40%, color-mix(in srgb, var(--bg-primary) ${Math.round(12 + po * 0.3)}%, transparent) 60%, color-mix(in srgb, var(--bg-primary) ${Math.round(25 + po * 0.4)}%, transparent) 100%)`,
+                            }}
                         />
                     </>
                 )}

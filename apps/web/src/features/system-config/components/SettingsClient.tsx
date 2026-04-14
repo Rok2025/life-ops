@@ -71,10 +71,10 @@ export default function SettingsClient() {
             <div className="flex gap-4 xl:gap-5">
                 {/* Left navigation sidebar */}
                 <Card variant="subtle" className="w-48 shrink-0 p-3 self-start sticky top-4">
-                    <nav className="space-y-4">
-                        {SETTINGS_NAV.map((group) => (
-                            <div key={group.label}>
-                                <h4 className="text-caption font-semibold text-text-tertiary uppercase tracking-wider mb-1.5 px-2">
+                    <nav className="space-y-1">
+                        {SETTINGS_NAV.map((group, gi) => (
+                            <div key={group.label} className={gi > 0 ? 'border-t border-glass-border/60 pt-2.5 mt-2.5' : ''}>
+                                <h4 className="text-body-sm font-semibold text-text-primary mb-1 px-2">
                                     {group.label}
                                 </h4>
                                 <ul className="space-y-0.5">

@@ -6,7 +6,7 @@ import { Card, Button } from '@/components/ui';
 import { useYouyouPhoto, useUploadYouyouPhoto, useDeleteYouyouPhoto, usePhotoTransform, useSavePhotoTransform } from '../../youyou/hooks/usePhoto';
 import type { PhotoTransform } from '../../youyou/api/photoApi';
 
-const DEFAULT: PhotoTransform = { x: 50, y: 50, zoom: 100 };
+const DEFAULT: PhotoTransform = { x: 50, y: 50, zoom: 100, opacity: 50 };
 
 function SliderRow({ label, min, max, step, value, unit, leftLabel, rightLabel, onChange }: {
     label: string; min: number; max: number; step?: number;
@@ -54,7 +54,7 @@ export function YouyouPhotoSettings() {
         e.target.value = '';
     };
 
-    const isDirty = saved && (t.x !== saved.x || t.y !== saved.y || t.zoom !== saved.zoom);
+    const isDirty = saved && (t.x !== saved.x || t.y !== saved.y || t.zoom !== saved.zoom || t.opacity !== saved.opacity);
 
     return (
         <Card className="p-card space-y-4">
@@ -76,11 +76,23 @@ export function YouyouPhotoSettings() {
                             alt="又又封面"
                             className="absolute inset-0 h-full w-full object-cover transition-all duration-150"
                             style={{
-                                objectPosition: `${t.x}% ${t.y}%`,
-                                transform: `scale(${t.zoom / 100})`,
+                                transform: `translate(${(t.x - 50) * 0.5}%, ${(t.y - 50) * 0.5}%) scale(${t.zoom / 100})`,
                             }}
                         />
-                        <div className="absolute inset-0 bg-linear-to-r from-black/50 via-black/25 to-transparent pointer-events-none" />
+                        {/* 与 dashboard 一致的渐变模糊 */}
+                        <div
+                            className="absolute inset-0 backdrop-blur-md pointer-events-none"
+                            style={{ maskImage: 'linear-gradient(to right, black 0%, transparent 35%, transparent 65%, black 100%)' }}
+                        />
+                        <div
+                            className="absolute inset-0 backdrop-blur-[1px] pointer-events-none"
+                        />
+                        <div
+                            className="absolute inset-0 pointer-events-none"
+                            style={{
+                                background: `linear-gradient(to right, color-mix(in srgb, var(--bg-primary) ${Math.round(70 + t.opacity * 0.3)}%, transparent) 0%, color-mix(in srgb, var(--bg-primary) ${Math.round(30 + t.opacity * 0.4)}%, transparent) 40%, color-mix(in srgb, var(--bg-primary) ${Math.round(12 + t.opacity * 0.3)}%, transparent) 60%, color-mix(in srgb, var(--bg-primary) ${Math.round(25 + t.opacity * 0.4)}%, transparent) 100%)`,
+                            }}
+                        />
                         <div className="absolute bottom-2 left-3 text-white/90 text-caption pointer-events-none">预览效果</div>
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                             <Button
@@ -131,6 +143,11 @@ export function YouyouPhotoSettings() {
                             label="缩放" min={100} max={200} step={5} value={t.zoom} unit="%"
                             leftLabel="小" rightLabel="大"
                             onChange={zoom => setT(p => ({ ...p, zoom }))}
+                        />
+                        <SliderRow
+                            label="遮罩强度" min={0} max={80} step={5} value={t.opacity} unit="%"
+                            leftLabel="弱" rightLabel="强"
+                            onChange={opacity => setT(p => ({ ...p, opacity }))}
                         />
                         <Button
                             variant="primary"
