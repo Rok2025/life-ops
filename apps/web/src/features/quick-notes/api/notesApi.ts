@@ -158,4 +158,16 @@ export const notesApi = {
         const unique = [...new Set((data ?? []).map(d => d.note_date))];
         return unique.sort();
     },
+
+    /** 获取随手记时间线（仅备注和灵感） */
+    getNotesTimeline: async (): Promise<QuickNote[]> => {
+        const { data, error } = await supabase
+            .from('quick_notes')
+            .select('*')
+            .in('type', ['memo', 'idea'])
+            .order('note_date', { ascending: false })
+            .order('created_at', { ascending: false });
+        if (error) throw error;
+        return data ?? [];
+    },
 };

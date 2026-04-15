@@ -2,17 +2,18 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, StickyNote, ListChecks } from 'lucide-react';
+import { Plus, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, StickyNote, ListChecks, History } from 'lucide-react';
 import { getLocalDateStr, formatDisplayDate, offsetDate } from '@/lib/utils/date';
 import DataCalendar, { type DataCalendarHandle } from '@/components/DataCalendar';
 import { notesApi } from '../api/notesApi';
 import { NoteCard } from './NoteCard';
 import { NoteFilter } from './NoteFilter';
 import { NoteForm } from './NoteForm';
+import { NotesTimelineView } from './NotesTimelineView';
 import { useNotesByDate } from '../hooks/useNotesByDate';
 import type { QuickNote, NoteType, FilterType, TodoPriority } from '../types';
 import { NOTE_TYPE_CONFIG, NOTE_TYPES } from '../types';
-import { Button, Card } from '@/components/ui';
+import { Button, Card, Dialog } from '@/components/ui';
 
 interface NotesWidgetProps {
     initialDate?: string;
@@ -29,6 +30,7 @@ export default function NotesWidget({ initialDate }: NotesWidgetProps) {
     const [editingNote, setEditingNote] = useState<QuickNote | null>(null);
     const [defaultFormType, setDefaultFormType] = useState<NoteType>('memo');
     const [hideCompletedTodos, setHideCompletedTodos] = useState(false);
+    const [showTimelineDialog, setShowTimelineDialog] = useState(false);
 
     const { data: notes = [], isLoading: loading } = useNotesByDate(selectedDate);
     const isToday = selectedDate === getLocalDateStr();
@@ -157,6 +159,13 @@ export default function NotesWidget({ initialDate }: NotesWidgetProps) {
                     </div>
                     <DataCalendar ref={calendarRef} scope="notes" selectedDate={selectedDate} onSelectDate={setSelectedDate} hideTrigger externalTriggerRef={dateBtnRef} />
                     {notes.length > 0 && <span className="glass-mini-chip text-body-sm">{notes.length} 条</span>}
+                    <button
+                        onClick={() => setShowTimelineDialog(true)}
+                        className="flex items-center gap-1.5 rounded-full border border-glass-border bg-panel-bg/70 px-3 py-1.5 text-caption text-text-secondary backdrop-blur-xl transition-colors duration-normal ease-standard hover:border-accent/30 hover:text-accent"
+                    >
+                        <History size={14} />
+                        全部记录
+                    </button>
                 </div>
                 <Button onClick={() => handleAdd()} variant="tinted" size="sm" className="gap-1">
                     <Plus size={16} />
@@ -261,6 +270,15 @@ export default function NotesWidget({ initialDate }: NotesWidgetProps) {
                     onCancel={handleCancel}
                 />
             )}
+
+            <Dialog
+                open={showTimelineDialog}
+                onClose={() => setShowTimelineDialog(false)}
+                title="全部随手记"
+                maxWidth="4xl"
+            >
+                <NotesTimelineView onRequestClose={() => setShowTimelineDialog(false)} />
+            </Dialog>
         </Card>
     );
 }
