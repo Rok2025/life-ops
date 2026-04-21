@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { projectsApi } from '../api/projectsApi';
 import { SCOPE_CONFIG, STATUS_CONFIG } from '../types';
 import type { GrowthArea, ProjectWithStats, ProjectScope, ProjectStatus, CreateProjectInput, UpdateProjectInput } from '../types';
-import { Button, Dialog, Input, SegmentedControl, Select } from '@/components/ui';
+import { Button, DatePicker, Dialog, Input, SegmentedControl, Select } from '@/components/ui';
 
 interface ProjectFormProps {
     open: boolean;
@@ -166,18 +166,22 @@ export function ProjectForm({ open, onClose, area, editingProject }: ProjectForm
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className="block text-caption text-text-secondary mb-1">开始日期</label>
-                            <Input
-                                type="date"
+                            <DatePicker
                                 value={startDate}
-                                onChange={e => setStartDate(e.target.value)}
+                                onChange={setStartDate}
+                                maxDate={endDate || undefined}
+                                clearable
+                                placeholder="选择开始日期"
                             />
                         </div>
                         <div>
                             <label className="block text-caption text-text-secondary mb-1">结束日期</label>
-                            <Input
-                                type="date"
+                            <DatePicker
                                 value={endDate}
-                                onChange={e => setEndDate(e.target.value)}
+                                onChange={setEndDate}
+                                minDate={startDate || undefined}
+                                clearable
+                                placeholder="选择结束日期"
                             />
                         </div>
                     </div>

@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { getLocalDateStr } from '@/lib/utils/date';
 import type { TIL } from '../types';
-import { ChipGroup, Dialog, FormActions, Input } from '@/components/ui';
+import { ChipGroup, DatePicker, Dialog, FormActions, Input } from '@/components/ui';
 import type { ChipOption } from '@/components/ui';
 
 interface TilFormProps {
@@ -49,12 +49,7 @@ export function TilForm({ editingTil, defaultDate, saving, categories, onSave, o
                 <div className="space-y-3 px-5 py-4">
                     <div>
                         <label className="block text-caption text-text-secondary mb-1">日期</label>
-                        <Input
-                            type="date"
-                            value={date}
-                            onChange={(e) => setDate(e.target.value)}
-                            max={getLocalDateStr()}
-                        />
+                        <DatePicker value={date} onChange={setDate} maxDate={getLocalDateStr()} />
                     </div>
                     <div>
                         <label className="block text-caption text-text-secondary mb-1">分类（可选）</label>

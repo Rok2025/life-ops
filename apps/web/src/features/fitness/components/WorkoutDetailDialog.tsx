@@ -6,7 +6,7 @@ import { X, Edit2, Plus, Trash2, Save } from 'lucide-react';
 import { fitnessApi, useExerciseTypes, useWorkoutDetail, getCategoryConfig } from '@/features/fitness';
 import type { AggregatedExercise } from '@/features/fitness';
 import { useExerciseCategories } from '@/features/fitness/hooks/useExerciseCategories';
-import { Button, Dialog, Input, Select } from '@/components/ui';
+import { Button, DatePicker, Dialog, Input, Select } from '@/components/ui';
 
 interface WorkoutDetailDialogProps {
     sessionId: string | null;
@@ -149,7 +149,7 @@ function WorkoutDetailDialogInner({ sessionId, editMode, onClose }: { sessionId:
                         <div className="flex flex-col gap-4">
                             <div className="flex items-center gap-3">
                                 <label className="text-body-sm font-medium text-text-secondary shrink-0">日期</label>
-                                <Input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} className="flex-1" />
+                                <DatePicker value={editDate} onChange={setEditDate} className="flex-1" />
                             </div>
 
                             <div>

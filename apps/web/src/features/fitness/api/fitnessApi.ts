@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { getLocalDateStr } from '@/lib/utils/date';
+import { getLocalDateStr, getWeekDateRange } from '@/lib/utils/date';
 import type {
     WorkoutSession,
     WorkoutsByDate,
@@ -98,14 +98,12 @@ export const fitnessApi = {
     getWeeklyStats: async (): Promise<WeeklyStats> => {
         const now = new Date();
         const today = getLocalDateStr(now);
-        const startOfWeek = new Date(now);
-        startOfWeek.setDate(now.getDate() - now.getDay());
-        startOfWeek.setHours(0, 0, 0, 0);
+        const { start: weekStart } = getWeekDateRange(now);
 
         const { data: weekSessions } = await supabase
             .from('workout_sessions')
             .select('id, workout_date')
-            .gte('workout_date', getLocalDateStr(startOfWeek))
+            .gte('workout_date', weekStart)
             .order('workout_date', { ascending: false });
 
         const uniqueDates = new Set(weekSessions?.map(s => s.workout_date) || []);
@@ -551,14 +549,12 @@ export const fitnessApi = {
     /** 获取本周训练天数（供首页使用） */
     getWeeklyWorkoutDays: async (): Promise<number> => {
         const now = new Date();
-        const startOfWeek = new Date(now);
-        startOfWeek.setDate(now.getDate() - now.getDay());
-        startOfWeek.setHours(0, 0, 0, 0);
+        const { start: weekStart } = getWeekDateRange(now);
 
         const { data, error } = await supabase
             .from('workout_sessions')
             .select('workout_date')
-            .gte('workout_date', getLocalDateStr(startOfWeek));
+            .gte('workout_date', weekStart);
 
         if (error) {
             console.error('获取本周训练次数失败:', error);

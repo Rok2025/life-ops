@@ -2,10 +2,11 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { getLocalDateStr } from '@/lib/utils/date';
 import { youyouApi } from '../api/youyouApi';
 import { MOOD_CONFIG } from '../types';
 import type { DiaryEntry, DiaryMood, CreateDiaryInput, UpdateDiaryInput } from '../types';
-import { Button, Dialog, Input } from '@/components/ui';
+import { Button, DatePicker, Dialog, Input } from '@/components/ui';
 
 interface DiaryFormDialogProps {
     open: boolean;
@@ -38,7 +39,7 @@ export function DiaryFormDialog({ open, onClose, editingEntry }: DiaryFormDialog
                 setSleepNote(editingEntry.sleep_note ?? '');
                 setContent(editingEntry.content ?? '');
             } else {
-                setDate(new Date().toISOString().slice(0, 10));
+                setDate(getLocalDateStr());
                 setMood(null);
                 setHighlight('');
                 setLearned('');
@@ -116,13 +117,7 @@ export function DiaryFormDialog({ open, onClose, editingEntry }: DiaryFormDialog
                     {/* 日期 */}
                     <div>
                         <label className="block text-caption text-text-secondary mb-1">日期 *</label>
-                        <Input
-                            type="date"
-                            value={date}
-                            onChange={e => setDate(e.target.value)}
-                            required
-                            disabled={isEditing}
-                        />
+                        <DatePicker value={date} onChange={setDate} disabled={isEditing} />
                     </div>
 
                     {/* 心情 */}

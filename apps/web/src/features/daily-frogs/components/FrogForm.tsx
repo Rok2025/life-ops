@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { getLocalDateStr } from '@/lib/utils/date';
 import type { Frog } from '../types';
-import { Dialog, FormActions, Input } from '@/components/ui';
+import { DatePicker, Dialog, FormActions, Input } from '@/components/ui';
 
 interface FrogFormProps {
     editingFrog: Frog | null;
@@ -40,12 +40,7 @@ export function FrogForm({ editingFrog, defaultDate, saving, onSave, onCancel }:
                 <div className="space-y-3 px-5 py-4">
                     <div>
                         <label className="block text-caption text-text-secondary mb-1">日期</label>
-                        <Input
-                            type="date"
-                            value={date}
-                            onChange={(e) => setDate(e.target.value)}
-                            max={getLocalDateStr()}
-                        />
+                        <DatePicker value={date} onChange={setDate} maxDate={getLocalDateStr()} />
                     </div>
                     <div>
                         <label className="block text-caption text-text-secondary mb-1">任务内容</label>

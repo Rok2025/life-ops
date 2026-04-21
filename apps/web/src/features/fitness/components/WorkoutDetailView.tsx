@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { fitnessApi, useExerciseTypes, useWorkoutDetail, getCategoryConfig } from '@/features/fitness';
 import type { AggregatedExercise } from '@/features/fitness';
 import { useExerciseCategories } from '@/features/fitness/hooks/useExerciseCategories';
-import { Button, Card, Input, PageHero, Select } from '@/components/ui';
+import { Button, Card, DatePicker, Input, PageHero, Select } from '@/components/ui';
 
 export default function WorkoutDetailView() {
     const queryClient = useQueryClient();
@@ -225,12 +225,7 @@ export default function WorkoutDetailView() {
                     {/* 日期 */}
                     <div className="flex items-center gap-3">
                         <label className="text-body-sm font-medium text-text-secondary shrink-0">日期</label>
-                        <Input
-                            type="date"
-                            value={editDate}
-                            onChange={(e) => setEditDate(e.target.value)}
-                            className="flex-1"
-                        />
+                        <DatePicker value={editDate} onChange={setEditDate} className="flex-1" />
                     </div>
 
                     {/* 训练动作 */}

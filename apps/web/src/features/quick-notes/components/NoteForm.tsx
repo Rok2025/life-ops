@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react';
 import { getLocalDateStr } from '@/lib/utils/date';
 import type { QuickNote, NoteType, TodoPriority } from '../types';
 import { NOTE_TYPE_CONFIG, NOTE_TYPES, PRIORITY_CONFIG, TODO_PRIORITIES } from '../types';
-import { ChipGroup, Dialog, FormActions, Input } from '@/components/ui';
+import { ChipGroup, DatePicker, Dialog, FormActions, Input } from '@/components/ui';
 import type { ChipOption } from '@/components/ui';
 
 interface NoteFormProps {
@@ -91,12 +91,7 @@ export function NoteForm({
                     {/* 日期 */}
                     <div>
                         <label className="block text-caption text-text-secondary mb-1">日期</label>
-                        <Input
-                            type="date"
-                            value={date}
-                            onChange={(e) => setDate(e.target.value)}
-                            max={getLocalDateStr()}
-                        />
+                        <DatePicker value={date} onChange={setDate} maxDate={getLocalDateStr()} />
                     </div>
 
                     {/* 待办优先级 */}

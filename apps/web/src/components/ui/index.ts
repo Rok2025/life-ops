@@ -3,6 +3,7 @@ export * from './Button';
 export * from './Card';
 export * from './Checkbox';
 export * from './ChipGroup';
+export * from './DatePicker';
 export * from './Dialog';
 export * from './FormActions';
 export * from './Input';

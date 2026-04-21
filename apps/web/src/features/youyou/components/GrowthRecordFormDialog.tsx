@@ -2,9 +2,10 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { getLocalDateStr } from '@/lib/utils/date';
 import { growthApi } from '../api/growthApi';
 import type { GrowthRecord, CreateGrowthRecordInput, UpdateGrowthRecordInput } from '../types';
-import { Button, Dialog, Input } from '@/components/ui';
+import { Button, DatePicker, Dialog, Input } from '@/components/ui';
 
 interface GrowthRecordFormDialogProps {
     open: boolean;
@@ -31,7 +32,7 @@ export function GrowthRecordFormDialog({ open, onClose, editingRecord }: GrowthR
                 setHeadCm(editingRecord.head_cm?.toString() ?? '');
                 setNotes(editingRecord.notes ?? '');
             } else {
-                setDate(new Date().toISOString().slice(0, 10));
+                setDate(getLocalDateStr());
                 setHeightCm('');
                 setWeightKg('');
                 setHeadCm('');
@@ -87,13 +88,7 @@ export function GrowthRecordFormDialog({ open, onClose, editingRecord }: GrowthR
                 <div className="space-y-4 px-5 py-4">
                     <div>
                         <label className="block text-caption text-text-secondary mb-1">日期 *</label>
-                        <Input
-                            type="date"
-                            value={date}
-                            onChange={e => setDate(e.target.value)}
-                            disabled={isEditing}
-                            required
-                        />
+                        <DatePicker value={date} onChange={setDate} disabled={isEditing} />
                     </div>
 
                     <div className="grid grid-cols-3 gap-3">

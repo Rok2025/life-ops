@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { formatDisplayDate } from '@/lib/utils/date';
-import { ChipGroup, Dialog, FormActions, Input } from '@/components/ui';
+import { ChipGroup, DatePicker, Dialog, FormActions, Input } from '@/components/ui';
 import type { ChipOption } from '@/components/ui';
 import type { QuickNote, TodoPriority } from '../types';
 import { PRIORITY_CONFIG, TODO_PRIORITIES } from '../types';
@@ -113,10 +113,11 @@ export function TodoFormDialog({
 
                     <div>
                         <label className="mb-1 block text-caption text-text-secondary">执行日期</label>
-                        <Input
-                            type="date"
+                        <DatePicker
                             value={executeDate}
-                            onChange={(event) => setExecuteDate(event.target.value)}
+                            onChange={setExecuteDate}
+                            clearable
+                            placeholder="暂不指定执行日期"
                         />
                         <p className="mt-1 text-caption text-text-tertiary">默认是今天；清空后表示暂不指定执行日期。</p>
                     </div>

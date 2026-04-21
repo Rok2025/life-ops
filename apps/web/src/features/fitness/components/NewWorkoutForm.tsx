@@ -8,7 +8,7 @@ import { fitnessApi, useExerciseTypes } from '@/features/fitness';
 import type { AggregatedExercise } from '@/features/fitness';
 import { useExerciseCategories } from '@/features/fitness/hooks/useExerciseCategories';
 import { getLocalDateStr } from '@/lib/utils/date';
-import { Button, Input, Select } from '@/components/ui';
+import { Button, DatePicker, Input, Select } from '@/components/ui';
 import { DailyWorkoutRecords } from './DailyWorkoutRecords';
 
 type ExerciseSet = {
@@ -165,12 +165,7 @@ export default function NewWorkoutForm({ onSaved }: NewWorkoutFormProps) {
             <div>
                 <div className="flex items-center gap-3">
                     <label className="text-body-sm font-medium text-text-secondary shrink-0">日期</label>
-                    <Input
-                        type="date"
-                        value={date}
-                        onChange={(e) => setDate(e.target.value)}
-                        className="flex-1"
-                    />
+                    <DatePicker value={date} onChange={setDate} className="flex-1" />
                 </div>
                 {!dailyWorkoutsQuery.isLoading && (
                     <DailyWorkoutRecords

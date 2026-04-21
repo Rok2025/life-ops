@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Dialog, Input, Select, Button, Checkbox } from '@/components/ui';
+import { DatePicker, Dialog, Input, Select, Button, Checkbox } from '@/components/ui';
 import { familyApi } from '../api/familyApi';
 import { useActiveMember } from '../contexts/ActiveMemberContext';
 import type {
@@ -211,10 +211,11 @@ export function TaskFormDialog({
                 {/* Due date */}
                 <div>
                     <label className="text-caption text-text-secondary mb-1 block">截止日期</label>
-                    <Input
-                        type="date"
+                    <DatePicker
                         value={dueDate}
-                        onChange={(e) => setDueDate(e.target.value)}
+                        onChange={setDueDate}
+                        clearable
+                        placeholder="不设置截止日期"
                     />
                 </div>
 

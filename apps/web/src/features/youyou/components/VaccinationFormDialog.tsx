@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { healthApi } from '../api/healthApi';
 import type { CreateVaccinationInput } from '../types';
-import { Button, Dialog, Input } from '@/components/ui';
+import { Button, DatePicker, Dialog, Input } from '@/components/ui';
 
 interface VaccinationFormDialogProps {
     open: boolean;
@@ -90,10 +90,11 @@ export function VaccinationFormDialog({ open, onClose }: VaccinationFormDialogPr
                         </div>
                         <div>
                             <label className="block text-caption text-text-secondary mb-1">计划日期</label>
-                            <Input
-                                type="date"
+                            <DatePicker
                                 value={scheduledDate}
-                                onChange={e => setScheduledDate(e.target.value)}
+                                onChange={setScheduledDate}
+                                clearable
+                                placeholder="选择计划日期"
                             />
                         </div>
                     </div>

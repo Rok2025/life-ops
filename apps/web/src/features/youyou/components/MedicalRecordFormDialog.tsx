@@ -2,10 +2,11 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { getLocalDateStr } from '@/lib/utils/date';
 import { healthApi } from '../api/healthApi';
 import { MEDICAL_RECORD_TYPE_CONFIG } from '../types';
 import type { MedicalRecord, MedicalRecordType, CreateMedicalRecordInput, UpdateMedicalRecordInput } from '../types';
-import { Button, Dialog, Input, Select } from '@/components/ui';
+import { Button, DatePicker, Dialog, Input, Select } from '@/components/ui';
 
 interface MedicalRecordFormDialogProps {
     open: boolean;
@@ -40,7 +41,7 @@ export function MedicalRecordFormDialog({ open, onClose, editingRecord }: Medica
                 setDoctor(editingRecord.doctor ?? '');
                 setNotes(editingRecord.notes ?? '');
             } else {
-                setDate(new Date().toISOString().slice(0, 10));
+                setDate(getLocalDateStr());
                 setType('checkup');
                 setTitle('');
                 setSymptoms('');
@@ -107,13 +108,7 @@ export function MedicalRecordFormDialog({ open, onClose, editingRecord }: Medica
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className="block text-caption text-text-secondary mb-1">日期 *</label>
-                            <Input
-                                type="date"
-                                value={date}
-                                onChange={e => setDate(e.target.value)}
-                                disabled={isEditing}
-                                required
-                            />
+                            <DatePicker value={date} onChange={setDate} disabled={isEditing} />
                         </div>
                         <div>
                             <label className="block text-caption text-text-secondary mb-1">类型</label>
