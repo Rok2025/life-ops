@@ -5,6 +5,8 @@ export type {
     AnalyticsPeriod,
     AreaSnapshot,
     GlobalPulseStat,
+    InsightActionPriority,
+    InsightDecisionAction,
     AchievementItem,
     RiskItem,
     UpcomingItem,

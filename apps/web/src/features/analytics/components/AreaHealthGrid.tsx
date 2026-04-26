@@ -31,20 +31,43 @@ function getProgressBarClass(status: InsightStatus) {
     return 'bg-text-tertiary/45';
 }
 
+function getStatusRank(status: InsightStatus) {
+    if (status === 'offtrack') return 0;
+    if (status === 'attention') return 1;
+    if (status === 'progress') return 2;
+    if (status === 'stable') return 3;
+    return 4;
+}
+
 export default function AreaHealthGrid({
     areas,
+    compact = false,
 }: {
     areas: AreaSnapshot[];
+    compact?: boolean;
 }) {
+    const displayAreas = compact
+        ? [...areas]
+            .sort((left, right) => {
+                const statusDelta = getStatusRank(left.status) - getStatusRank(right.status);
+                if (statusDelta !== 0) return statusDelta;
+                return (left.score ?? 101) - (right.score ?? 101);
+            })
+            .slice(0, 6)
+        : areas;
+    const hiddenCount = areas.length - displayAreas.length;
+
     return (
         <section className="space-y-3">
             <SectionHeader
                 title="领域健康矩阵"
-                description="把所有模块拉到同一张图里看，先判断哪里稳定，哪里需要你补一把。"
+                description={compact
+                    ? '优先展示偏离、需关注和正在推进的领域，稳定或未接入的内容先退到次级。'
+                    : '把所有模块拉到同一张图里看，先判断哪里稳定，哪里需要你补一把。'}
             />
 
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-                {areas.map((area) => (
+                {displayAreas.map((area) => (
                     <Card key={area.key} className="p-card">
                         <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
@@ -96,6 +119,12 @@ export default function AreaHealthGrid({
                     </Card>
                 ))}
             </div>
+
+            {hiddenCount > 0 ? (
+                <div className="text-caption text-text-tertiary">
+                    其余 {hiddenCount} 个领域当前没有排在主要关注位。
+                </div>
+            ) : null}
         </section>
     );
 }

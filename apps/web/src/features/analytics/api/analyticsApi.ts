@@ -5,7 +5,9 @@ import type {
     AnalyticsPeriod,
     AreaSnapshot,
     GlobalPulseStat,
+    InsightActionPriority,
     InsightAreaKey,
+    InsightDecisionAction,
     InsightStatus,
     InsightTone,
     InsightsSnapshot,
@@ -483,6 +485,11 @@ function sortRiskItems(items: RiskItem[]) {
     return [...items].sort((left, right) => severityRank[left.severity] - severityRank[right.severity]);
 }
 
+function sortDecisionActions(items: InsightDecisionAction[]) {
+    const priorityRank: Record<InsightActionPriority, number> = { critical: 0, high: 1, normal: 2 };
+    return [...items].sort((left, right) => priorityRank[left.priority] - priorityRank[right.priority]);
+}
+
 function buildProjectAreaSummary(
     area: 'english' | 'reading' | 'ai',
     projects: GrowthProjectRow[],
@@ -852,6 +859,11 @@ export const analyticsApi = {
         const achievements: AchievementItem[] = [];
         const risks: RiskItem[] = [];
         const upcoming: UpcomingItem[] = [];
+        const decisionActions: InsightDecisionAction[] = [];
+        const addDecisionAction = (action: InsightDecisionAction) => {
+            if (decisionActions.some((item) => item.id === action.id)) return;
+            decisionActions.push(action);
+        };
 
         if (fullFrogDays > 0) {
             achievements.push({
@@ -952,6 +964,19 @@ export const analyticsApi = {
                 severity: 'high',
                 action: '优先把逾期待办重新排期或直接完成。',
             });
+            addDecisionAction({
+                id: 'todos-overdue',
+                areaKey: 'todos',
+                areaLabel: AREA_META.todos.label,
+                priority: 'critical',
+                title: '先清逾期待办',
+                reason: overdueTodos.length > 1
+                    ? `已有 ${overdueTodos.length} 条待办超过执行日期，最早的一条是「${sliceText(overdueTodos[0].content, 18)}」。`
+                    : `「${sliceText(overdueTodos[0].content, 20)}」已经超过执行日期，需要重新排期或直接完成。`,
+                actionLabel: '去处理待办',
+                href: '/todos',
+                metric: `${overdueTodos.length} 条逾期`,
+            });
         }
 
         if (familyOverdue.length >= familyOverdueWarningThreshold) {
@@ -963,6 +988,17 @@ export const analyticsApi = {
                 detail: `最早需要处理的是 ${sliceText(familyOverdue[0].title)}。`,
                 severity: 'high',
                 action: '先清逾期家庭任务，再安排新事务。',
+            });
+            addDecisionAction({
+                id: 'family-overdue',
+                areaKey: 'family',
+                areaLabel: AREA_META.family.label,
+                priority: 'critical',
+                title: '处理逾期家庭事务',
+                reason: `当前有 ${familyOverdue.length} 项家庭事务逾期，最早需要处理的是「${sliceText(familyOverdue[0].title, 18)}」。`,
+                actionLabel: '去家庭待办',
+                href: '/family',
+                metric: `${familyOverdue.length} 项逾期`,
             });
         }
 
@@ -976,6 +1012,17 @@ export const analyticsApi = {
                 severity: 'medium',
                 action: '优先清一轮复习，再继续加新词。',
             });
+            addDecisionAction({
+                id: 'english-review-backlog',
+                areaKey: 'english',
+                areaLabel: AREA_META.english.label,
+                priority: 'high',
+                title: '清一轮英语复习',
+                reason: `待复习卡片已经到 ${reviewCount} 张，超过 ${englishReviewWarningThreshold} 张提醒线，继续加新词会稀释复习质量。`,
+                actionLabel: '去英语学习',
+                href: '/growth/english',
+                metric: `${reviewCount} 张待复习`,
+            });
         }
 
         if (workoutDaysAgo !== null && workoutDaysAgo >= 5) {
@@ -987,6 +1034,17 @@ export const analyticsApi = {
                 detail: '当前训练节奏正在往下掉，越拖越难重新起势。',
                 severity: 'medium',
                 action: '先补一练，把连续性拉回来。',
+            });
+            addDecisionAction({
+                id: 'fitness-stale',
+                areaKey: 'fitness',
+                areaLabel: AREA_META.fitness.label,
+                priority: 'high',
+                title: '补一次训练',
+                reason: `最近一次训练在 ${workoutDaysAgo} 天前，本周训练节奏已经开始下滑。`,
+                actionLabel: '记录训练',
+                href: '/fitness/workout/new',
+                metric: `${workoutDaysAgo} 天未训练`,
             });
         }
 
@@ -1000,6 +1058,17 @@ export const analyticsApi = {
                 severity: 'low',
                 action: '从最接近完成的一条草稿开始发布。',
             });
+            addDecisionAction({
+                id: 'output-stale',
+                areaKey: 'output',
+                areaLabel: AREA_META.output.label,
+                priority: 'normal',
+                title: '推进一条草稿发布',
+                reason: `当前有 ${draftOutputs.length} 条草稿，但 ${config.periodLabel}还没有发布输出。`,
+                actionLabel: '去输出面板',
+                href: '/output',
+                metric: `${draftOutputs.length} 条草稿`,
+            });
         }
 
         for (const dueSoonProject of [
@@ -1007,6 +1076,12 @@ export const analyticsApi = {
             ...readingProjectSummary.dueSoonProjects.map((item) => ({ ...item, areaKey: 'reading' as InsightAreaKey })),
             ...aiProjectSummary.dueSoonProjects.map((item) => ({ ...item, areaKey: 'ai' as InsightAreaKey })),
         ].slice(0, 3)) {
+            const projectHref = dueSoonProject.areaKey === 'english'
+                ? '/growth/english'
+                : dueSoonProject.areaKey === 'reading'
+                    ? '/growth/reading'
+                    : '/growth/ai';
+
             risks.push({
                 id: `project-${dueSoonProject.areaKey}-${dueSoonProject.title}`,
                 areaKey: dueSoonProject.areaKey,
@@ -1015,6 +1090,17 @@ export const analyticsApi = {
                 detail: `${formatShortDate(dueSoonProject.end_date)} 到期，当前完成率约 ${Math.round(dueSoonProject.completionRate)}%。`,
                 severity: 'medium',
                 action: '优先把截止最近的项目 Todo 往前推。',
+            });
+            addDecisionAction({
+                id: `project-${dueSoonProject.areaKey}-${dueSoonProject.title}`,
+                areaKey: dueSoonProject.areaKey,
+                areaLabel: AREA_META[dueSoonProject.areaKey].label,
+                priority: 'high',
+                title: `推进临期项目：${sliceText(dueSoonProject.title, 16)}`,
+                reason: `${formatShortDate(dueSoonProject.end_date)} 到期，当前完成率约 ${Math.round(dueSoonProject.completionRate)}%，需要先补最近的项目 Todo。`,
+                actionLabel: '去项目页',
+                href: projectHref,
+                metric: `${Math.round(dueSoonProject.completionRate)}% 完成`,
             });
         }
 
@@ -1069,15 +1155,27 @@ export const analyticsApi = {
         }
 
         if (period === 'week' && workoutDaysInPeriod.length < fitnessWeeklyGoal) {
+            const remainingWorkouts = fitnessWeeklyGoal - workoutDaysInPeriod.length;
             upcoming.push({
                 id: 'fitness-goal-gap',
                 areaKey: 'fitness',
                 areaLabel: AREA_META.fitness.label,
-                title: `本周还差 ${fitnessWeeklyGoal - workoutDaysInPeriod.length} 次训练`,
+                title: `本周还差 ${remainingWorkouts} 次训练`,
                 detail: '只要补上剩余次数，本周目标就能达成。',
                 dueLabel: '本周内',
                 daysLeft: null,
                 tone: 'success',
+            });
+            addDecisionAction({
+                id: 'fitness-goal-gap',
+                areaKey: 'fitness',
+                areaLabel: AREA_META.fitness.label,
+                priority: workoutDaysAgo !== null && workoutDaysAgo >= 5 ? 'high' : 'normal',
+                title: '补齐本周训练目标',
+                reason: `本周目标是 ${fitnessWeeklyGoal} 次，目前完成 ${workoutDaysInPeriod.length} 次，还差 ${remainingWorkouts} 次。`,
+                actionLabel: '记录训练',
+                href: '/fitness/workout/new',
+                metric: `差 ${remainingWorkouts} 次`,
             });
         }
 
@@ -1091,6 +1189,17 @@ export const analyticsApi = {
                 dueLabel: '今天',
                 daysLeft: 0,
                 tone: 'accent',
+            });
+            addDecisionAction({
+                id: 'english-today-left',
+                areaKey: 'english',
+                areaLabel: AREA_META.english.label,
+                priority: reviewCount >= englishReviewWarningThreshold ? 'high' : 'normal',
+                title: '完成今天的英语词条',
+                reason: `今天还有 ${remainingAssignmentsToday} 个词条未完成，清掉后英语节奏会更稳。`,
+                actionLabel: '去英语学习',
+                href: '/growth/english',
+                metric: `${remainingAssignmentsToday} 个剩余`,
             });
         }
 
@@ -1402,6 +1511,8 @@ export const analyticsApi = {
                 values: buildTrendValues(trendWindow, achievementCounts),
             },
         ];
+        const actionQueue = sortDecisionActions(decisionActions).slice(0, 3);
+        const focusAction = actionQueue[0] ?? null;
 
         return {
             period,
@@ -1414,8 +1525,12 @@ export const analyticsApi = {
             }).format(new Date()),
             healthScore,
             focusArea,
-            heroSummary: `当前整体健康度约 ${healthScore}% ，最需要补的是 ${focusArea}；${config.periodLabel}已沉淀 ${achievements.length} 项成果，识别到 ${risks.length} 项风险。`,
+            heroSummary: focusAction
+                ? `当前整体健康度约 ${healthScore}% ，本轮最值得先处理的是：${focusAction.title}。`
+                : `当前整体健康度约 ${healthScore}% ，${config.periodLabel}暂时没有需要立刻打断的风险。`,
             globalStats,
+            focusAction,
+            actionQueue,
             areaSnapshots,
             achievements: achievements.slice(0, 8),
             risks: sortRiskItems(risks).slice(0, 6),

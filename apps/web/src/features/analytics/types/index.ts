@@ -18,6 +18,8 @@ export type InsightTone =
 
 export type InsightStatus = 'stable' | 'progress' | 'attention' | 'offtrack' | 'untracked';
 
+export type InsightActionPriority = 'critical' | 'high' | 'normal';
+
 export type InsightAreaKey =
     | 'rhythm'
     | 'todos'
@@ -107,6 +109,18 @@ export type TrendMetric = {
     values: TrendDatum[];
 };
 
+export type InsightDecisionAction = {
+    id: string;
+    areaKey: InsightAreaKey;
+    areaLabel: string;
+    priority: InsightActionPriority;
+    title: string;
+    reason: string;
+    actionLabel: string;
+    href: string;
+    metric?: string;
+};
+
 export type InsightsSnapshot = {
     period: AnalyticsPeriod;
     periodLabel: string;
@@ -115,6 +129,8 @@ export type InsightsSnapshot = {
     focusArea: string;
     heroSummary: string;
     globalStats: GlobalPulseStat[];
+    focusAction: InsightDecisionAction | null;
+    actionQueue: InsightDecisionAction[];
     areaSnapshots: AreaSnapshot[];
     achievements: AchievementItem[];
     risks: RiskItem[];

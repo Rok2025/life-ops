@@ -9,13 +9,15 @@ import PeriodSwitcher from './PeriodSwitcher';
 import GlobalPulse from './GlobalPulse';
 import AreaHealthGrid from './AreaHealthGrid';
 import AchievementBoard from './AchievementBoard';
-import RiskPanel from './RiskPanel';
 import TrendForecastPanel from './TrendForecastPanel';
 import UpcomingMilestones from './UpcomingMilestones';
+import DecisionFocusCard from './DecisionFocusCard';
+import ActionQueue from './ActionQueue';
 
 export default function InsightsPage() {
     const [period, setPeriod] = useState<AnalyticsPeriod>('week');
     const { data, isLoading, error, refetch, isFetching } = useInsights(period);
+    const secondaryActions = data?.actionQueue.filter((action) => action.id !== data.focusAction?.id) ?? [];
 
     if (isLoading && !data) {
         return (
@@ -75,9 +77,9 @@ export default function InsightsPage() {
                         tone: 'accent',
                     },
                     {
-                        label: '重点关注',
-                        value: data.focusArea,
-                        meta: `${data.risks.length} 项风险`,
+                        label: '决策焦点',
+                        value: data.focusAction?.areaLabel ?? '平稳',
+                        meta: data.focusAction?.metric ?? `${data.risks.length} 项风险`,
                         tone: data.risks.length > 0 ? 'warning' : 'success',
                     },
                 ]}
@@ -85,22 +87,23 @@ export default function InsightsPage() {
                 <PeriodSwitcher value={period} onChange={setPeriod} />
             </PageHero>
 
+            <DecisionFocusCard action={data.focusAction} />
+
+            <ActionQueue actions={secondaryActions} />
+
             <GlobalPulse
                 stats={data.globalStats}
-                summary="先看全局，再回到具体领域。这里聚焦的是整体稳定度、成果沉淀和风险密度。"
+                summary="全局数字只做背景判断，真正的主线已经收束到上面的行动建议里。"
                 generatedAt={data.generatedAt}
             />
 
-            <AreaHealthGrid areas={data.areaSnapshots} />
+            <AreaHealthGrid areas={data.areaSnapshots} compact />
 
-            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)]">
-                <AchievementBoard items={data.achievements} />
-                <RiskPanel items={data.risks} />
-            </div>
+            <AchievementBoard items={data.achievements.slice(0, 5)} />
 
             <TrendForecastPanel metrics={data.trends} />
 
-            <UpcomingMilestones items={data.upcoming} />
+            <UpcomingMilestones items={data.upcoming.slice(0, 5)} />
         </div>
     );
 }
