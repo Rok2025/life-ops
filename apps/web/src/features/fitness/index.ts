@@ -19,6 +19,8 @@ export type {
 	HistoryStats,
 	ExerciseType,
 	AggregatedExercise,
+	TopExercise,
+	TopExercisesPeriod,
 } from './types';
 export { CATEGORY_CONFIG, getCategoryConfig, WEEKLY_GOAL } from './types';
 export { ClientFitnessAreaCard } from './components/ClientFitnessAreaCard';

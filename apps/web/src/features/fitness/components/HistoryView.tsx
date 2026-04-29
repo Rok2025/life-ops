@@ -31,14 +31,8 @@ function formatDate(dateStr: string) {
     return `${month}月${day}日 ${weekday}`;
 }
 
-function formatVolume(volume: number): string {
-    if (volume >= 1000000) {
-        return `${(volume / 1000000).toFixed(1)}M kg`;
-    }
-    if (volume >= 1000) {
-        return `${(volume / 1000).toFixed(1)}t`;
-    }
-    return `${volume}kg`;
+function formatLoadTons(weightKg: number): string {
+    return `${(weightKg / 1000).toLocaleString('zh-CN', { maximumFractionDigits: 2 })}吨`;
 }
 
 export default function HistoryView() {
@@ -74,7 +68,7 @@ export default function HistoryView() {
                 stats={[
                     { label: '总训练次数', value: stats.totalWorkouts, meta: '累计', tone: 'accent' },
                     { label: '总训练组数', value: stats.totalSets, meta: '所有动作', tone: 'success' },
-                    { label: '总训练负荷', value: formatVolume(stats.totalVolume), meta: '累计重量', tone: 'warning' },
+                    { label: '总训练负荷', value: formatLoadTons(stats.totalVolume), meta: '累计重量', tone: 'warning' },
                 ]}
             >
                 <Link

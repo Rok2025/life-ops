@@ -335,6 +335,10 @@ function formatTimestampDate(value: string) {
     return formatShortDate(getLocalDateStr(new Date(value)));
 }
 
+function formatLoadTons(weightKg: number) {
+    return `${(weightKg / 1000).toLocaleString('zh-CN', { maximumFractionDigits: 2 })}吨`;
+}
+
 function formatDaysLeft(daysLeft: number | null) {
     if (daysLeft === null) return '近期';
     if (daysLeft < 0) return `已超期 ${Math.abs(daysLeft)} 天`;
@@ -886,7 +890,7 @@ export const analyticsApi = {
                 icon: AREA_META.fitness.icon,
                 title: `${workoutDaysInPeriod.length} 天完成训练`,
                 detail: workoutSetsInPeriod > 0
-                    ? `累计 ${workoutSetsInPeriod} 组，训练量约 ${Math.round(workoutVolumeInPeriod)}kg。`
+                    ? `累计 ${workoutSetsInPeriod} 组，训练量约 ${formatLoadTons(workoutVolumeInPeriod)}。`
                     : '本周期已经把训练重新拉起来了。',
                 dateLabel: config.periodLabel,
                 tone: 'success',
@@ -1240,7 +1244,7 @@ export const analyticsApi = {
                     : clamp(workoutProgress * 0.72 + Math.min(workoutSetsInPeriod / 2, 18) + (workoutDaysAgo !== null && workoutDaysAgo <= 2 ? 10 : 0) - fitnessRiskCount * 10),
                 summary: `${workoutDaysInPeriod.length}/${periodWorkoutTarget} 天训练 · ${workoutSetsInPeriod} 组`,
                 achievement: workoutDaysInPeriod.length > 0
-                    ? `累计约 ${Math.round(workoutVolumeInPeriod)}kg · 最近一次 ${latestWorkoutDate ? formatShortDate(latestWorkoutDate) : '今天'}`
+                    ? `累计约 ${formatLoadTons(workoutVolumeInPeriod)} · 最近一次 ${latestWorkoutDate ? formatShortDate(latestWorkoutDate) : '今天'}`
                     : '先补一练，重新启动身体节奏',
                 achievementTone: workoutDaysInPeriod.length > 0 ? 'success' : 'warning',
                 riskCount: fitnessRiskCount,
