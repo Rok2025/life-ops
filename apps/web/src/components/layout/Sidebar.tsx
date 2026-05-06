@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
     Home, Dumbbell, Sprout, Languages, BookOpen, Bot, Sparkles,
-    PenLine, Users, Wallet, LogOut, Settings, ListTodo, BarChart3, Baby, Search,
+    PenLine, Users, Wallet, LogOut, Settings, ListTodo, BarChart3, Baby, Search, History,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { formatHorizons } from '@/lib/horizons';
@@ -30,6 +30,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
     { href: '/', label: '主页', icon: Home },
+    { href: '/timeline', label: '流水记', icon: History },
     { href: '/insights', label: '洞察', icon: BarChart3 },
     { href: '/search', label: '搜索', icon: Search },
     { href: '/todos', label: '待办', icon: ListTodo },

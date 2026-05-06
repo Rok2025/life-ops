@@ -13,7 +13,7 @@ import {
     Plus,
     Trash2,
 } from 'lucide-react';
-import { formatDisplayDate, formatFullDate, getLocalDateStr } from '@/lib/utils/date';
+import { formatDisplayDate, formatFullDate, getLocalDateStr, getWeekDateRange } from '@/lib/utils/date';
 import { Button, Card, Dialog, SectionHeader, SegmentedControl } from '@/components/ui';
 import type { SegmentedControlOption } from '@/components/ui';
 import { notesApi } from '../api/notesApi';
@@ -25,12 +25,27 @@ import { TodoFormDialog, type TodoFormValues } from './TodoFormDialog';
 import { TodoTimelineView } from './TodoTimelineView';
 
 type TodoStatusFilter = 'open' | 'all' | 'completed';
-type TodoScope = 'all' | 'today' | 'overdue' | 'unscheduled' | 'date';
+type TodoScope = 'all' | 'today' | 'week' | 'month' | 'overdue' | 'unscheduled' | 'date';
 type CalendarDaySummary = {
     total: number;
     open: number;
     completed: number;
 };
+type DateRange = {
+    start: string;
+    end: string;
+};
+type TodoDateGroup = {
+    key: string;
+    title: string;
+    chip: {
+        label: string;
+        className: string;
+    };
+    openCount: number;
+    todos: QuickNote[];
+};
+type TodoMetricTone = 'accent' | 'success' | 'warning' | 'danger' | 'neutral';
 
 const STATUS_OPTIONS: SegmentedControlOption[] = [
     { value: 'open', label: '待执行' },
@@ -114,6 +129,103 @@ function toDateStr(year: number, month: number, day: number) {
     return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
+function formatMonthDay(dateStr: string) {
+    const date = new Date(`${dateStr}T00:00:00`);
+    return `${date.getMonth() + 1}月${date.getDate()}日`;
+}
+
+function getMonthDateRange(date: Date = new Date()): DateRange {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    return {
+        start: toDateStr(year, month, 1),
+        end: toDateStr(year, month, getDaysInMonth(year, month)),
+    };
+}
+
+function isDateInRange(dateStr: string | null, start: string, end: string) {
+    return Boolean(dateStr && dateStr >= start && dateStr <= end);
+}
+
+function getDateGroupTitle(dateStr: string | null, today: string) {
+    if (!dateStr) return '未安排';
+    if (dateStr === today) return '今天';
+    return formatFullDate(dateStr);
+}
+
+function getDateGroupChip(dateStr: string | null, today: string, weekRange: DateRange, monthRange: DateRange, openCount: number) {
+    if (!dateStr) {
+        return {
+            label: '未安排',
+            className: 'bg-bg-tertiary text-text-secondary ring-text-primary/10',
+        };
+    }
+    if (openCount > 0 && dateStr < today) {
+        return {
+            label: '逾期',
+            className: 'bg-warning/10 text-warning ring-warning/18',
+        };
+    }
+    if (dateStr === today) {
+        return {
+            label: '今天',
+            className: 'bg-accent/10 text-accent ring-accent/18',
+        };
+    }
+    if (isDateInRange(dateStr, weekRange.start, weekRange.end)) {
+        return {
+            label: '本周',
+            className: 'bg-success/10 text-success ring-success/18',
+        };
+    }
+    if (isDateInRange(dateStr, monthRange.start, monthRange.end)) {
+        return {
+            label: '本月',
+            className: 'bg-selection-bg text-accent ring-selection-border',
+        };
+    }
+    if (dateStr < today) {
+        return {
+            label: '历史',
+            className: 'bg-bg-tertiary text-text-secondary ring-text-primary/10',
+        };
+    }
+    return {
+        label: '已排期',
+        className: 'bg-panel-bg text-text-secondary ring-text-primary/10',
+    };
+}
+
+function buildTodoDateGroups(todos: QuickNote[], today: string, weekRange: DateRange, monthRange: DateRange): TodoDateGroup[] {
+    const groupMap = new Map<string, QuickNote[]>();
+
+    for (const todo of todos) {
+        const key = todo.execute_date ?? 'unscheduled';
+        const current = groupMap.get(key) ?? [];
+        current.push(todo);
+        groupMap.set(key, current);
+    }
+
+    return Array.from(groupMap.entries())
+        .sort(([a], [b]) => {
+            if (a === 'unscheduled') return 1;
+            if (b === 'unscheduled') return -1;
+            return a.localeCompare(b);
+        })
+        .map(([key, groupTodos]) => {
+            const dateStr = key === 'unscheduled' ? null : key;
+            const openCount = groupTodos.filter((todo) => !todo.is_completed).length;
+
+            return {
+                key,
+                title: getDateGroupTitle(dateStr, today),
+                chip: getDateGroupChip(dateStr, today, weekRange, monthRange, openCount),
+                openCount,
+                todos: groupTodos,
+            };
+        });
+}
+
 function isEditableTarget(target: EventTarget | null) {
     if (!(target instanceof HTMLElement)) return false;
 
@@ -132,6 +244,23 @@ function getScopeButtonClass(active: boolean) {
             ? 'border-selection-border bg-selection-bg text-accent'
             : 'border-glass-border bg-panel-bg text-text-secondary hover:bg-card-bg hover:text-text-primary',
     ].join(' ');
+}
+
+function getFocusPanelClass(tone: TodoMetricTone) {
+    if (tone === 'danger') return 'border-danger/25 bg-danger/8 shadow-danger/10';
+    if (tone === 'warning') return 'border-warning/25 bg-warning/10 shadow-warning/10';
+    if (tone === 'success') return 'border-success/25 bg-success/10 shadow-success/10';
+    return 'border-accent/20 bg-selection-bg/45 shadow-accent/8';
+}
+
+function getMetricButtonClass(active: boolean, tone: TodoMetricTone) {
+    const base = 'rounded-inner-card border px-3 py-3 text-left transition-colors duration-normal ease-standard hover:bg-card-bg';
+    if (active) return `${base} border-selection-border bg-selection-bg text-accent`;
+    if (tone === 'danger') return `${base} border-danger/20 bg-danger/7 text-danger`;
+    if (tone === 'warning') return `${base} border-warning/20 bg-warning/8 text-warning`;
+    if (tone === 'success') return `${base} border-success/20 bg-success/8 text-success`;
+    if (tone === 'accent') return `${base} border-accent/18 bg-selection-bg/45 text-accent`;
+    return `${base} border-glass-border bg-panel-bg/75 text-text-primary`;
 }
 
 function getTodoStatus(todo: QuickNote, today: string) {
@@ -190,6 +319,10 @@ function getScopeSummaryLabel(scope: TodoScope, selectedDate: string | null) {
     switch (scope) {
         case 'today':
             return '今天';
+        case 'week':
+            return '本周';
+        case 'month':
+            return '本月';
         case 'overdue':
             return '逾期';
         case 'unscheduled':
@@ -230,6 +363,18 @@ function getEmptyStateCopy(scope: TodoScope, statusFilter: TodoStatusFilter, sel
                 description: '可以补一条今天要推进的事项，或者切去全部看看其他日期。',
             };
     }
+    if (scope === 'week') {
+        return {
+            title: '本周没有匹配的待办',
+            description: '可以切回全部看看其他安排，或者给本周补一条要推进的事项。',
+        };
+    }
+    if (scope === 'month') {
+        return {
+            title: '本月没有匹配的待办',
+            description: '可以切回全部看看完整时间线，或者给本月补一条计划。',
+        };
+    }
     if (scope === 'overdue') {
         return {
             title: '当前没有逾期待办',
@@ -263,12 +408,14 @@ function getEmptyStateCopy(scope: TodoScope, statusFilter: TodoStatusFilter, sel
 function TodoListRow({
     todo,
     today,
+    showDate = true,
     onToggleCompleted,
     onEdit,
     onDelete,
 }: {
     todo: QuickNote;
     today: string;
+    showDate?: boolean;
     onToggleCompleted: (id: string, completed: boolean) => void;
     onEdit: (todo: QuickNote) => void;
     onDelete: (id: string) => void;
@@ -283,7 +430,9 @@ function TodoListRow({
         <div
             className={[
                 'glass-list-row relative z-0 grid grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-3 px-3 py-2.5 hover:z-20 focus-within:z-20',
-                'md:grid-cols-[36px_minmax(0,1fr)_110px_110px_84px_56px]',
+                showDate
+                    ? 'md:grid-cols-[36px_minmax(0,1fr)_110px_110px_84px_56px]'
+                    : 'md:grid-cols-[36px_minmax(0,1fr)_110px_84px_56px]',
                 todo.is_completed ? 'opacity-75' : '',
                 isOverdue ? 'border-warning/30' : '',
             ].filter(Boolean).join(' ')}
@@ -311,7 +460,7 @@ function TodoListRow({
                     ].join(' ')}
                 />
                 <div className="mt-1 flex flex-wrap items-center gap-2 text-caption text-text-secondary md:hidden">
-                    <span className={dateInfo.className}>{dateInfo.label}</span>
+                    {showDate ? <span className={dateInfo.className}>{dateInfo.label}</span> : null}
                     <span className={`rounded-full px-2 py-0.5 ${priorityCfg.bg} ${priorityCfg.color}`}>
                         {priorityCfg.emoji ? `${priorityCfg.emoji} ${priorityCfg.label}` : priorityCfg.label}
                     </span>
@@ -319,9 +468,11 @@ function TodoListRow({
                 </div>
             </div>
 
-            <div className={`hidden text-body-sm md:block ${dateInfo.className}`}>
-                {dateInfo.label}
-            </div>
+            {showDate ? (
+                <div className={`hidden text-body-sm md:block ${dateInfo.className}`}>
+                    {dateInfo.label}
+                </div>
+            ) : null}
 
             <div className="hidden md:flex">
                 <span className={`rounded-full px-2 py-0.5 text-caption ${priorityCfg.bg} ${priorityCfg.color}`}>
@@ -527,6 +678,8 @@ export default function TodoPage() {
     const [editingTodo, setEditingTodo] = useState<QuickNote | null>(null);
     const [timelineDialogOpen, setTimelineDialogOpen] = useState(false);
     const { data: todos = [], isLoading, error: todosError } = useTodos();
+    const weekRange = getWeekDateRange();
+    const monthRange = getMonthDateRange();
 
     const refreshTodos = useCallback(async () => {
         await Promise.all([
@@ -586,16 +739,91 @@ export default function TodoPage() {
 
     const sortedTodos = [...todos].sort(compareTodos);
     const openTodos = sortedTodos.filter((todo) => !todo.is_completed);
+    const todayOpenTodos = openTodos.filter((todo) => todo.execute_date === today);
+    const overdueOpenTodos = openTodos.filter((todo) => todo.execute_date && todo.execute_date < today);
+    const futureOpenTodos = openTodos.filter((todo) => todo.execute_date && todo.execute_date > today);
+    const unscheduledOpenTodos = openTodos.filter((todo) => !todo.execute_date);
     const todayScheduledTodos = sortedTodos.filter((todo) => todo.execute_date === today).length;
-    const todayTodos = openTodos.filter((todo) => todo.execute_date === today).length;
+    const todayTodos = todayOpenTodos.length;
+    const weekTodos = openTodos.filter((todo) => isDateInRange(todo.execute_date, weekRange.start, weekRange.end)).length;
+    const weekCompletedTodos = sortedTodos.filter((todo) => todo.is_completed && isDateInRange(todo.execute_date, weekRange.start, weekRange.end)).length;
+    const monthTodos = openTodos.filter((todo) => isDateInRange(todo.execute_date, monthRange.start, monthRange.end)).length;
+    const monthCompletedTodos = sortedTodos.filter((todo) => todo.is_completed && isDateInRange(todo.execute_date, monthRange.start, monthRange.end)).length;
     const todayCompletedTodos = sortedTodos.filter((todo) => todo.execute_date === today && todo.is_completed).length;
-    const overdueTodos = openTodos.filter((todo) => todo.execute_date && todo.execute_date < today).length;
-    const unscheduledTodos = openTodos.filter((todo) => !todo.execute_date).length;
+    const overdueTodos = overdueOpenTodos.length;
+    const unscheduledTodos = unscheduledOpenTodos.length;
     const selectedDateTodos = selectedDate ? sortedTodos.filter((todo) => todo.execute_date === selectedDate) : [];
     const todosErrorMessage = todosError ? formatTodoError(todosError) : null;
+    const focusTodo = overdueOpenTodos[0] ?? todayOpenTodos[0] ?? futureOpenTodos[0] ?? unscheduledOpenTodos[0] ?? null;
+    const focusState = (() => {
+        if (overdueOpenTodos.length > 0 && focusTodo) {
+            return {
+                tone: 'danger' as const,
+                eyebrow: '先清风险',
+                title: `${overdueOpenTodos.length} 项逾期`,
+                description: focusTodo.content,
+                meta: focusTodo.execute_date ? `最早 ${formatDisplayDate(focusTodo.execute_date)}` : '未设置执行日',
+                actionLabel: '查看逾期',
+                actionScope: 'overdue' as const,
+            };
+        }
+        if (todayOpenTodos.length > 0 && focusTodo) {
+            return {
+                tone: 'warning' as const,
+                eyebrow: '今日焦点',
+                title: `${todayOpenTodos.length} 项待处理`,
+                description: focusTodo.content,
+                meta: `${todayCompletedTodos} 项已完成`,
+                actionLabel: '查看今天',
+                actionScope: 'today' as const,
+            };
+        }
+        if (futureOpenTodos.length > 0 && focusTodo) {
+            const isFocusInWeek = isDateInRange(focusTodo.execute_date, weekRange.start, weekRange.end);
+            const isFocusInMonth = isDateInRange(focusTodo.execute_date, monthRange.start, monthRange.end);
+
+            return {
+                tone: 'accent' as const,
+                eyebrow: '下一件排期',
+                title: focusTodo.execute_date ? formatDisplayDate(focusTodo.execute_date) : '近期安排',
+                description: focusTodo.content,
+                meta: `本周 ${weekTodos} 项待处理`,
+                actionLabel: isFocusInWeek ? '查看本周' : isFocusInMonth ? '查看本月' : '查看全部',
+                actionScope: isFocusInWeek ? 'week' as const : isFocusInMonth ? 'month' as const : 'all' as const,
+            };
+        }
+        if (unscheduledOpenTodos.length > 0 && focusTodo) {
+            return {
+                tone: 'neutral' as const,
+                eyebrow: '需要补日期',
+                title: `${unscheduledOpenTodos.length} 项未安排`,
+                description: focusTodo.content,
+                meta: '补上执行日后会进入日历',
+                actionLabel: '查看未安排',
+                actionScope: 'unscheduled' as const,
+            };
+        }
+        return {
+            tone: 'success' as const,
+            eyebrow: '今日焦点',
+            title: '当前已清空',
+            description: '今天没有待处理事项，可以继续保持节奏，或提前安排下一件事。',
+            meta: `${monthCompletedTodos} 项本月已完成`,
+            actionLabel: '查看全部',
+            actionScope: 'all' as const,
+        };
+    })();
+    const overviewMetrics = [
+        { scope: 'week' as const, label: '本周待处理', value: weekTodos, meta: `已完成 ${weekCompletedTodos}`, tone: 'success' as const },
+        { scope: 'month' as const, label: '本月待处理', value: monthTodos, meta: `已完成 ${monthCompletedTodos}`, tone: 'accent' as const },
+        { scope: 'overdue' as const, label: '逾期', value: overdueTodos, meta: overdueTodos > 0 ? '需要优先清理' : '没有风险', tone: 'danger' as const },
+        { scope: 'unscheduled' as const, label: '未安排', value: unscheduledTodos, meta: unscheduledTodos > 0 ? '需要补执行日' : '排期完整', tone: 'neutral' as const },
+    ];
     const scopeButtons = [
         { value: 'all' as const, label: '全部', count: sortedTodos.length },
         { value: 'today' as const, label: '今天', count: todayTodos },
+        { value: 'week' as const, label: '本周', count: weekTodos },
+        { value: 'month' as const, label: '本月', count: monthTodos },
         { value: 'overdue' as const, label: '逾期', count: overdueTodos },
         { value: 'unscheduled' as const, label: '未安排', count: unscheduledTodos },
     ];
@@ -607,6 +835,10 @@ export default function TodoPage() {
         switch (scope) {
             case 'today':
                 return todo.execute_date === today;
+            case 'week':
+                return isDateInRange(todo.execute_date, weekRange.start, weekRange.end);
+            case 'month':
+                return isDateInRange(todo.execute_date, monthRange.start, monthRange.end);
             case 'overdue':
                 return !todo.is_completed && Boolean(todo.execute_date && todo.execute_date < today);
             case 'unscheduled':
@@ -618,6 +850,7 @@ export default function TodoPage() {
                 return true;
         }
     });
+    const visibleTodoGroups = buildTodoDateGroups(visibleTodos, today, weekRange, monthRange);
 
     const createDialogDefaults: Partial<TodoFormValues> = {
         execute_date: scope === 'date' && selectedDate ? selectedDate : today,
@@ -634,13 +867,19 @@ export default function TodoPage() {
         if (scope === 'today') {
             return '只看今天需要推进的安排。';
         }
+        if (scope === 'week') {
+            return `只看本周 ${formatMonthDay(weekRange.start)} - ${formatMonthDay(weekRange.end)} 的安排。`;
+        }
+        if (scope === 'month') {
+            return '只看本月已安排执行日期的待办。';
+        }
         if (scope === 'overdue') {
             return '只看已经到期但还没处理完的待办。';
         }
         if (scope === 'unscheduled') {
             return '这些待办还没有执行日期，不会进入日历。';
         }
-        return '默认按执行日期、优先级和完成状态排序，单行处理更省空间。';
+        return '按执行日期分组展示，不同日期的事项会各自收在同一个日期下面。';
     })();
 
     const handleSelectScope = (nextScope: Exclude<TodoScope, 'date'>) => {
@@ -668,13 +907,13 @@ export default function TodoPage() {
     const openCreateDialog = useCallback(() => {
         setEditingTodo(null);
         setCreateDialogOpen(true);
-    }, []);
+    }, [setCreateDialogOpen, setEditingTodo]);
 
     const resetToAllTodos = useCallback(() => {
         setSelectedDate(null);
         setScope('all');
         setStatusFilter('all');
-    }, []);
+    }, [setScope, setSelectedDate, setStatusFilter]);
 
     useEffect(() => {
         function handleKeyDown(event: KeyboardEvent) {
@@ -742,39 +981,63 @@ export default function TodoPage() {
                     </div>
                 ) : null}
 
-                <div className="grid gap-3 md:grid-cols-12">
-                    <div className="rounded-inner-card border border-warning/25 bg-warning/10 px-4 py-4 shadow-sm shadow-warning/10 md:col-span-6">
-                        <div className="flex items-start justify-between gap-3">
-                            <div>
-                                <div className="text-caption text-warning/85">今日待处理</div>
-                                <div className="mt-2 text-[2rem] font-semibold leading-none text-warning">{todayTodos}</div>
+                <div className="grid gap-3 lg:grid-cols-[minmax(0,1.35fr)_minmax(340px,0.9fr)]">
+                    <div className={`rounded-inner-card border px-4 py-4 shadow-sm ${getFocusPanelClass(focusState.tone)}`}>
+                        <div className="flex h-full flex-col justify-between gap-4">
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                    <div className="text-caption font-medium text-text-secondary">{focusState.eyebrow}</div>
+                                    <div className="mt-2 flex flex-wrap items-end gap-2">
+                                        <span className="text-[2rem] font-semibold leading-none text-text-primary">{focusState.title}</span>
+                                        <span className="pb-1 text-caption text-text-tertiary">{focusState.meta}</span>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => handleSelectScope(focusState.actionScope)}
+                                    className="shrink-0 rounded-full border border-glass-border bg-white/62 px-2.5 py-1 text-caption font-medium text-text-secondary transition-colors duration-normal ease-standard hover:bg-white/88 hover:text-text-primary"
+                                >
+                                    {focusState.actionLabel}
+                                </button>
                             </div>
-                            <span className="rounded-full bg-warning/14 px-2.5 py-1 text-caption font-medium text-warning ring-1 ring-warning/14">
-                                {todayTodos > 0 ? '需要推进' : '已无压力'}
-                            </span>
-                        </div>
-                        <div className="mt-3 flex flex-wrap items-center gap-3 text-body-sm text-warning/80">
-                            <span>{todayTodos > 0 ? '今天最需要先处理这一组。' : '今天已没有待处理压力。'}</span>
-                            <span className="inline-flex items-center rounded-full bg-white/45 px-2 py-0.5 text-caption text-warning/80">
-                                逾期 {overdueTodos}
-                            </span>
+
+                            <OverflowTooltipText
+                                text={focusState.description}
+                                className="truncate text-body-sm font-medium text-text-primary"
+                            />
+
+                            <div className="grid grid-cols-3 gap-2 border-t border-glass-border/70 pt-3 text-caption">
+                                <div>
+                                    <div className="text-text-tertiary">今日待处理</div>
+                                    <div className="mt-1 font-semibold text-warning">{todayTodos}</div>
+                                </div>
+                                <div>
+                                    <div className="text-text-tertiary">今日已完成</div>
+                                    <div className="mt-1 font-semibold text-success">{todayCompletedTodos}</div>
+                                </div>
+                                <div>
+                                    <div className="text-text-tertiary">今日总数</div>
+                                    <div className="mt-1 font-semibold text-accent">{todayScheduledTodos}</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="rounded-inner-card border border-glass-border bg-panel-bg/75 px-4 py-3 md:col-span-3">
-                        <div className="text-caption text-text-secondary">今日总数</div>
-                        <div className="mt-2 flex items-end justify-between gap-3">
-                            <span className="text-h2 font-semibold text-accent">{todayScheduledTodos}</span>
-                            <span className="text-caption text-text-tertiary">已排期</span>
-                        </div>
-                    </div>
-
-                    <div className="rounded-inner-card border border-glass-border bg-panel-bg/75 px-4 py-3 md:col-span-3">
-                        <div className="text-caption text-text-secondary">今日已完成</div>
-                        <div className="mt-2 flex items-end justify-between gap-3">
-                            <span className="text-h2 font-semibold text-success">{todayCompletedTodos}</span>
-                            <span className="text-caption text-text-tertiary">完成数</span>
-                        </div>
+                    <div className="grid grid-cols-2 gap-2">
+                        {overviewMetrics.map((item) => (
+                            <button
+                                key={item.scope}
+                                type="button"
+                                onClick={() => handleSelectScope(item.scope)}
+                                className={getMetricButtonClass(scope === item.scope, item.tone)}
+                            >
+                                <div className="flex items-start justify-between gap-2">
+                                    <span className="text-caption text-text-secondary">{item.label}</span>
+                                    <span className="text-[11px] text-current/70">{item.meta}</span>
+                                </div>
+                                <div className="mt-2 text-h2 font-semibold leading-none">{item.value}</div>
+                            </button>
+                        ))}
                     </div>
                 </div>
 
@@ -875,10 +1138,9 @@ export default function TodoPage() {
                             </div>
                         ) : (
                             <>
-                                <div className="hidden grid-cols-[36px_minmax(0,1fr)_110px_110px_84px_56px] gap-3 border-b border-glass-border px-3 pb-2 text-caption uppercase tracking-wide text-text-tertiary md:grid">
+                                <div className="hidden grid-cols-[36px_minmax(0,1fr)_110px_84px_56px] gap-3 border-b border-glass-border px-3 pb-2 text-caption uppercase tracking-wide text-text-tertiary md:grid">
                                     <span className="whitespace-nowrap">完成</span>
                                     <span>内容</span>
-                                    <span>执行日</span>
                                     <span>优先级</span>
                                     <span>状态</span>
                                     <span className="text-right">操作</span>
@@ -913,19 +1175,47 @@ export default function TodoPage() {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="space-y-2">
-                                        {visibleTodos.map((todo) => (
-                                            <TodoListRow
-                                                key={todo.id}
-                                                todo={todo}
-                                                today={today}
-                                                onToggleCompleted={(id, completed) => toggleMutation.mutate({ id, completed })}
-                                                onEdit={(nextTodo) => {
-                                                    setCreateDialogOpen(false);
-                                                    setEditingTodo(nextTodo);
-                                                }}
-                                                onDelete={handleDelete}
-                                            />
+                                    <div className="space-y-3">
+                                        {visibleTodoGroups.map((group) => (
+                                            <section
+                                                key={group.key}
+                                                className="overflow-hidden rounded-inner-card border border-glass-border bg-panel-bg/60"
+                                            >
+                                                <div className="flex flex-col gap-2 border-b border-glass-border/70 bg-bg-tertiary/42 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+                                                    <div className="flex min-w-0 flex-wrap items-center gap-2">
+                                                        <CalendarDays size={14} className="shrink-0 text-accent" />
+                                                        <span className="text-body-sm font-semibold text-text-primary">{group.title}</span>
+                                                        <span
+                                                            className={[
+                                                                'inline-flex items-center rounded-full px-2 py-0.5 text-caption font-medium ring-1',
+                                                                group.chip.className,
+                                                            ].join(' ')}
+                                                        >
+                                                            {group.chip.label}
+                                                        </span>
+                                                    </div>
+                                                    <span className="text-caption text-text-secondary">
+                                                        {group.openCount > 0 ? `${group.openCount} 待处理` : '已清空'} · 共 {group.todos.length} 项
+                                                    </span>
+                                                </div>
+
+                                                <div className="space-y-1.5 p-1.5">
+                                                    {group.todos.map((todo) => (
+                                                        <TodoListRow
+                                                            key={todo.id}
+                                                            todo={todo}
+                                                            today={today}
+                                                            showDate={false}
+                                                            onToggleCompleted={(id, completed) => toggleMutation.mutate({ id, completed })}
+                                                            onEdit={(nextTodo) => {
+                                                                setCreateDialogOpen(false);
+                                                                setEditingTodo(nextTodo);
+                                                            }}
+                                                            onDelete={handleDelete}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </section>
                                         ))}
                                     </div>
                                 )}

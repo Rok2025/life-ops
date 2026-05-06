@@ -73,15 +73,31 @@ export type AggregatedExercise = {
     reps: number;
 };
 
+/** 常练动作统计周期 */
+export type TopExercisesPeriod = 'week' | 'month' | 'year';
+
+/** 常练动作统计项 */
+export type TopExercise = {
+    exerciseTypeId: string;
+    name: string;
+    category: string;
+    sessionCount: number;
+    totalSets: number;
+    totalVolume: number;
+};
+
 /** 本周统计数据 */
 export type WeeklyStats = {
     count: number;
+    monthCount: number;
+    monthGoal: number;
     totalSets: number;
+    monthTotalSets: number;
     totalVolume: number;
+    monthTotalVolume: number;
     categoryBreakdown: Record<string, number>;
-    streak: number;
+    monthCategoryBreakdown: Record<string, number>;
     trainedToday: boolean;
-    lastWorkoutId: string | null;
 };
 
 /** 每周训练目标天数 */

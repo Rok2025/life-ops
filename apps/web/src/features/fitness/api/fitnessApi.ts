@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { getLocalDateStr, getWeekDateRange } from '@/lib/utils/date';
+import { WEEKLY_GOAL } from '../types';
 import type {
     WorkoutSession,
     WorkoutsByDate,
@@ -8,6 +9,8 @@ import type {
     HistoryStats,
     ExerciseType,
     AggregatedExercise,
+    TopExercise,
+    TopExercisesPeriod,
 } from '../types';
 
 type SessionSetRow = {
@@ -21,6 +24,50 @@ type SessionSetRow = {
         category: string;
     } | null;
 };
+
+type WorkoutSetTopExerciseRow = {
+    session_id: string;
+    weight: number | null;
+    reps: number | null;
+    exercise_types:
+    | { id: string; name: string; category: string }
+    | Array<{ id: string; name: string; category: string }>
+    | null;
+};
+
+type TopExerciseAccumulator = TopExercise & {
+    sessionIds: Set<string>;
+};
+
+function getTopExercisesDateRange(period: TopExercisesPeriod): { start: string; end: string } {
+    const now = new Date();
+    const today = getLocalDateStr(now);
+    const year = now.getFullYear();
+
+    if (period === 'week') {
+        return { start: getWeekDateRange(now).start, end: today };
+    }
+
+    if (period === 'month') {
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        return { start: `${year}-${month}-01`, end: today };
+    }
+
+    return { start: `${year}-01-01`, end: today };
+}
+
+function getExerciseTypeFromRow(row: WorkoutSetTopExerciseRow): { id: string; name: string; category: string } | null {
+    if (Array.isArray(row.exercise_types)) {
+        return row.exercise_types[0] ?? null;
+    }
+
+    return row.exercise_types;
+}
+
+function getMonthlyWorkoutGoal(date: Date): number {
+    const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+    return Math.round((daysInMonth / 7) * WEEKLY_GOAL);
+}
 
 export const fitnessApi = {
     /** 获取最近训练记录（按日期分组） */
@@ -99,6 +146,8 @@ export const fitnessApi = {
         const now = new Date();
         const today = getLocalDateStr(now);
         const { start: weekStart } = getWeekDateRange(now);
+        const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+        const monthGoal = getMonthlyWorkoutGoal(now);
 
         const { data: weekSessions } = await supabase
             .from('workout_sessions')
@@ -106,13 +155,22 @@ export const fitnessApi = {
             .gte('workout_date', weekStart)
             .order('workout_date', { ascending: false });
 
+        const { data: monthSessions } = await supabase
+            .from('workout_sessions')
+            .select('id, workout_date')
+            .gte('workout_date', monthStart)
+            .lte('workout_date', today);
+
         const uniqueDates = new Set(weekSessions?.map(s => s.workout_date) || []);
+        const monthUniqueDates = new Set(monthSessions?.map(s => s.workout_date) || []);
         const trainedToday = uniqueDates.has(today);
-        const lastWorkoutId = weekSessions?.[0]?.id || null;
 
         let totalSets = 0;
+        let monthTotalSets = 0;
         let totalVolume = 0;
+        let monthTotalVolume = 0;
         const categoryBreakdown: Record<string, number> = {};
+        const monthCategoryBreakdown: Record<string, number> = {};
 
         if (weekSessions && weekSessions.length > 0) {
             const sessionIds = weekSessions.map(s => s.id);
@@ -130,43 +188,43 @@ export const fitnessApi = {
             });
         }
 
-        // 计算连续训练天数
-        let streak = 0;
-        const { data: allSessions } = await supabase
-            .from('workout_sessions')
-            .select('workout_date')
-            .order('workout_date', { ascending: false })
-            .limit(30);
+        if (monthSessions && monthSessions.length > 0) {
+            const monthSessionIds = monthSessions.map(s => s.id);
+            const { data: monthSets } = await supabase
+                .from('workout_sets')
+                .select('weight, reps, exercise_types(category)')
+                .in('session_id', monthSessionIds);
 
-        if (allSessions) {
-            const dates = [...new Set(allSessions.map(s => s.workout_date))].sort().reverse();
-            const checkDate = new Date(today);
-
-            for (const dateStr of dates) {
-                const expectedDate = getLocalDateStr(checkDate);
-                if (dateStr === expectedDate) {
-                    streak++;
-                    checkDate.setDate(checkDate.getDate() - 1);
-                } else if (dateStr === getLocalDateStr(new Date(checkDate.getTime() - 86400000))) {
-                    checkDate.setDate(checkDate.getDate() - 1);
-                    if (dateStr === getLocalDateStr(checkDate)) {
-                        streak++;
-                        checkDate.setDate(checkDate.getDate() - 1);
-                    }
-                } else {
-                    break;
-                }
-            }
+            const safeMonthSets = (monthSets ?? []) as unknown as Array<{
+                weight: number | null;
+                reps: number | null;
+                exercise_types:
+                | { category: string }
+                | Array<{ category: string }>
+                | null;
+            }>;
+            safeMonthSets.forEach((set) => {
+                monthTotalSets++;
+                monthTotalVolume += (set.weight || 0) * (set.reps || 0);
+                const exerciseType = Array.isArray(set.exercise_types)
+                    ? set.exercise_types[0]
+                    : set.exercise_types;
+                const cat = exerciseType?.category || 'other';
+                monthCategoryBreakdown[cat] = (monthCategoryBreakdown[cat] || 0) + 1;
+            });
         }
 
         return {
             count: uniqueDates.size,
+            monthCount: monthUniqueDates.size,
+            monthGoal,
             totalSets,
+            monthTotalSets,
             totalVolume,
+            monthTotalVolume,
             categoryBreakdown,
-            streak,
+            monthCategoryBreakdown,
             trainedToday,
-            lastWorkoutId,
         };
     },
 
@@ -290,6 +348,65 @@ export const fitnessApi = {
             .order('name');
         if (error) throw error;
         return data ?? [];
+    },
+
+    /** 获取指定周期内的常练动作 Top 列表 */
+    getTopExercises: async (period: TopExercisesPeriod, limit = 5): Promise<TopExercise[]> => {
+        const { start, end } = getTopExercisesDateRange(period);
+        const { data: sessions, error: sessionError } = await supabase
+            .from('workout_sessions')
+            .select('id')
+            .gte('workout_date', start)
+            .lte('workout_date', end);
+
+        if (sessionError) throw sessionError;
+        if (!sessions || sessions.length === 0) return [];
+
+        const sessionIds = sessions.map((session) => session.id);
+        const { data: sets, error: setsError } = await supabase
+            .from('workout_sets')
+            .select('session_id, weight, reps, exercise_types(id, name, category)')
+            .in('session_id', sessionIds);
+
+        if (setsError) throw setsError;
+
+        const exerciseMap = new Map<string, TopExerciseAccumulator>();
+        const safeSets = (sets ?? []) as unknown as WorkoutSetTopExerciseRow[];
+
+        safeSets.forEach((set) => {
+            const exerciseType = getExerciseTypeFromRow(set);
+            if (!exerciseType) return;
+
+            if (!exerciseMap.has(exerciseType.id)) {
+                exerciseMap.set(exerciseType.id, {
+                    exerciseTypeId: exerciseType.id,
+                    name: exerciseType.name,
+                    category: exerciseType.category,
+                    sessionCount: 0,
+                    totalSets: 0,
+                    totalVolume: 0,
+                    sessionIds: new Set<string>(),
+                });
+            }
+
+            const exercise = exerciseMap.get(exerciseType.id)!;
+            exercise.sessionIds.add(set.session_id);
+            exercise.sessionCount = exercise.sessionIds.size;
+            exercise.totalSets += 1;
+            exercise.totalVolume += (set.weight || 0) * (set.reps || 0);
+        });
+
+        return [...exerciseMap.values()]
+            .map((exercise) => ({
+                exerciseTypeId: exercise.exerciseTypeId,
+                name: exercise.name,
+                category: exercise.category,
+                sessionCount: exercise.sessionCount,
+                totalSets: exercise.totalSets,
+                totalVolume: exercise.totalVolume,
+            }))
+            .sort((a, b) => b.sessionCount - a.sessionCount || b.totalVolume - a.totalVolume)
+            .slice(0, limit);
     },
 
     /** 获取训练会话详情 */

@@ -6,7 +6,6 @@ import { Dumbbell, Plus } from 'lucide-react';
 import { fitnessApi } from '@/features/fitness';
 import { WeeklyStatsCards } from '@/features/fitness';
 import { WorkoutList } from '@/features/fitness';
-import { WEEKLY_GOAL } from '@/features/fitness';
 import { NewWorkoutDialog } from './NewWorkoutDialog';
 import { WorkoutDetailDialog } from './WorkoutDetailDialog';
 import { FitnessCalendar } from './FitnessCalendar';
@@ -63,32 +62,13 @@ export default function FitnessOverview() {
                 icon={<Dumbbell size={18} className="text-success" />}
                 title="健身领域"
                 description="把本周训练、动作分布和历史记录放在一个稳定视图里，方便持续推进。"
+                compact
                 action={
                     <Button onClick={() => openDialog()} variant="tinted" size="sm" className="gap-1.5">
                         <Plus size={16} />
                         添加记录
                     </Button>
                 }
-                stats={[
-                    {
-                        label: '本周训练',
-                        value: `${stats.count}/${WEEKLY_GOAL}`,
-                        meta: stats.trainedToday ? '今天已训练' : '等待记录',
-                        tone: 'success',
-                    },
-                    {
-                        label: '连续训练',
-                        value: `${stats.streak} 天`,
-                        meta: stats.lastWorkoutId ? '保持状态' : '从今天开始',
-                        tone: 'warning',
-                    },
-                    {
-                        label: '本周总组数',
-                        value: stats.totalSets,
-                        meta: `${stats.totalVolume}kg`,
-                        tone: 'accent',
-                    },
-                ]}
             />
 
             <WeeklyStatsCards stats={stats} />
@@ -101,7 +81,7 @@ export default function FitnessOverview() {
                         openDetail(dayGroup.sessions[0].id);
                     }
                 }} />
-                <TopExercises workoutsByDate={workoutsByDate} />
+                <TopExercises onAddWorkout={openDialog} />
             </div>
 
             <WorkoutList
