@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub Pages Push Guard"
+  short_description: "Verify Pages export before remote pushes."
+  default_prompt: "Use $github-pages-push-guard before pushing this repository to verify GitHub Pages and fix any blocking issues."
