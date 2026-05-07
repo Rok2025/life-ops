@@ -8,6 +8,7 @@ import { useEnglishMutations } from '../hooks/useEnglishMutations';
 import type { Familiarity, EnglishCard } from '../types';
 import { TONES } from '@/design-system/tokens';
 import { Button, Card, SectionHeader } from '@/components/ui';
+import PronunciationButton from './PronunciationButton';
 
 const REVIEW_BUTTONS: { familiarity: Familiarity; label: string; color: string }[] = [
     { familiarity: 0, label: '完全不记得', color: `${TONES.danger.bg} ${TONES.danger.color} ${TONES.danger.hoverBg}` },
@@ -31,6 +32,13 @@ export default function FlashcardReview() {
     const handleFlip = useCallback(() => {
         setIsFlipped(v => !v);
     }, []);
+
+    const handleCardKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            handleFlip();
+        }
+    }, [handleFlip]);
 
     const handleRate = useCallback((familiarity: Familiarity) => {
         if (!currentCard) return;
@@ -106,16 +114,22 @@ export default function FlashcardReview() {
             </div>
 
             {/* Flashcard */}
-            <button
+            <div
+                role="button"
+                tabIndex={0}
                 onClick={handleFlip}
+                onKeyDown={handleCardKeyDown}
                 className="w-full min-h-[200px] cursor-pointer rounded-card border border-glass-border bg-panel-bg p-6 text-left shadow-sm transition-shadow duration-normal ease-standard hover:shadow-md"
             >
                 {!isFlipped ? (
                     // Front: English text
                     <div className="flex flex-col items-center justify-center min-h-[160px] text-center">
-                        <p className="text-h2 font-bold text-text-primary mb-2">
-                            {currentCard.front_text}
-                        </p>
+                        <div className="mb-2 flex max-w-full items-center justify-center gap-2">
+                            <p className="min-w-0 break-words text-h2 font-bold text-text-primary">
+                                {currentCard.front_text}
+                            </p>
+                            <PronunciationButton text={currentCard.front_text} stopPropagation />
+                        </div>
                         {currentCard.phonetic && (
                             <p className="text-body-sm text-text-secondary">{currentCard.phonetic}</p>
                         )}
@@ -134,14 +148,22 @@ export default function FlashcardReview() {
                 ) : (
                     // Back: Chinese + details
                     <div className="space-y-3">
-                        <p className="text-h3 font-semibold text-text-primary">
-                            {currentCard.front_text}
+                        <div className="flex flex-wrap items-center gap-2">
+                            <p className="min-w-0 break-words text-h3 font-semibold text-text-primary">
+                                {currentCard.front_text}
+                            </p>
+                            <PronunciationButton
+                                text={currentCard.front_text}
+                                size={13}
+                                className="h-6 w-6"
+                                stopPropagation
+                            />
                             {currentCard.phonetic && (
                                 <span className="text-body-sm font-normal text-text-secondary ml-2">
                                     {currentCard.phonetic}
                                 </span>
                             )}
-                        </p>
+                        </div>
                         <div className="text-body-sm text-text-secondary whitespace-pre-wrap leading-relaxed">
                             {currentCard.back_text}
                         </div>
@@ -156,7 +178,7 @@ export default function FlashcardReview() {
                         )}
                     </div>
                 )}
-            </button>
+            </div>
 
             {/* Rating Buttons (visible after flip) */}
             {isFlipped && (

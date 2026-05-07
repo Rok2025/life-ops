@@ -5,7 +5,9 @@ import { BookmarkPlus, Check } from 'lucide-react';
 import { DIFFICULTY_CONFIG } from '../constants';
 import { useEnglishMutations } from '../hooks/useEnglishMutations';
 import type { AIQueryResponse } from '../types';
+import { getYouglishEnglishUrl } from '../utils/youglish';
 import { Card } from '@/components/ui';
+import PronunciationButton from './PronunciationButton';
 
 interface QueryResultCardProps {
     response: AIQueryResponse;
@@ -70,13 +72,25 @@ export default function QueryResultCard({ response, queryId }: QueryResultCardPr
     }
 
     const diffConfig = DIFFICULTY_CONFIG[response.difficulty] ?? DIFFICULTY_CONFIG.medium;
+    const youglishUrl = getYouglishEnglishUrl(response.input);
 
     return (
         <Card className="p-card space-y-4">
             {/* Header: word + phonetic + difficulty */}
             <div className="flex items-start justify-between">
-                <div>
-                    <h3 className="text-h2 font-bold text-text-primary">{response.input}</h3>
+                <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                        <a
+                            href={youglishUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            title="在 YouGlish 中查看真实视频发音"
+                            className="min-w-0 break-words text-h2 font-bold text-text-primary underline decoration-accent/35 underline-offset-4 transition-colors duration-normal ease-standard hover:text-accent hover:decoration-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 rounded-control"
+                        >
+                            {response.input}
+                        </a>
+                        <PronunciationButton text={response.input} />
+                    </div>
                     {response.phonetic && (
                         <p className="text-body-sm text-text-secondary mt-0.5">{response.phonetic}</p>
                     )}
@@ -133,7 +147,15 @@ export default function QueryResultCard({ response, queryId }: QueryResultCardPr
                     <div className="space-y-2">
                         {response.examples.map((ex, i) => (
                             <div key={i} className="pl-3 border-l-2 border-accent/30">
-                                <p className="text-body-sm text-text-primary">{ex.en}</p>
+                                <div className="flex items-start gap-1.5">
+                                    <p className="min-w-0 flex-1 text-body-sm text-text-primary">{ex.en}</p>
+                                    <PronunciationButton
+                                        text={ex.en}
+                                        size={13}
+                                        className="h-6 w-6"
+                                        label="播放例句"
+                                    />
+                                </div>
                                 <p className="text-body-sm text-text-secondary">{ex.zh}</p>
                             </div>
                         ))}

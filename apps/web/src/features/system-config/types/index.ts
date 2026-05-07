@@ -49,6 +49,8 @@ export type SettingsSection =
     | { type: 'scope'; scope: ConfigScope }
     | { type: 'exercise' }
     | { type: 'english-prompts' }
+    | { type: 'command-categories' }
+    | { type: 'command-templates' }
     | { type: 'youyou-photo' };
 
 export type SettingsNavItem = {
@@ -89,6 +91,13 @@ export const SETTINGS_NAV: SettingsNavGroup[] = [
         label: '英语',
         items: [
             { id: 'english-prompts', label: '提示词模板', section: { type: 'english-prompts' }, group: '英语' },
+        ],
+    },
+    {
+        label: '命令',
+        items: [
+            { id: 'command-templates', label: '命令模板', section: { type: 'command-templates' }, group: '命令' },
+            { id: 'command-categories', label: '命令分类', section: { type: 'command-categories' }, group: '命令' },
         ],
     },
     {

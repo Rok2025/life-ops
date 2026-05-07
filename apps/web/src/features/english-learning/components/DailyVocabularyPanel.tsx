@@ -8,6 +8,7 @@ import { formatDisplayDate, getLocalDateStr } from '@/lib/utils/date';
 import { ASSIGNMENT_STATUS_CONFIG, ASSIGNMENT_TYPE_CONFIG, FAMILIARITY_LABELS } from '../constants';
 import { useDailyAssignments, useDailyVocabularyMutations, useRecentWordLogs, useWordBankStats } from '../hooks/useDailyVocabulary';
 import type { DailyAssignment, Familiarity } from '../types';
+import PronunciationButton from './PronunciationButton';
 
 const FAMILIARITY_OPTIONS: Familiarity[] = [0, 1, 2, 3, 4, 5];
 type DailyVocabularyMutations = ReturnType<typeof useDailyVocabularyMutations>;
@@ -112,6 +113,7 @@ function AssignmentEditor({
                     <div>
                         <div className="flex flex-wrap items-center gap-2">
                             <h3 className="text-h2 font-semibold text-text-primary">{assignment.word.term}</h3>
+                            <PronunciationButton text={assignment.word.term} />
                             <span className="rounded-full bg-bg-tertiary px-2 py-0.5 text-caption text-text-secondary">
                                 {assignment.word.pos}
                             </span>

@@ -7,6 +7,7 @@ import { useEnglishCards } from '../hooks/useEnglishCards';
 import { useEnglishMutations } from '../hooks/useEnglishMutations';
 import type { CardFilters, Difficulty, Familiarity } from '../types';
 import { Card, Input, SectionHeader } from '@/components/ui';
+import PronunciationButton from './PronunciationButton';
 
 const DIFFICULTY_OPTIONS: (Difficulty | '')[] = ['', 'easy', 'medium', 'hard'];
 
@@ -108,10 +109,15 @@ export default function CardListView() {
                                 className="glass-list-row flex items-center justify-between px-3 py-2.5"
                             >
                                 <div className="flex-1 min-w-0 mr-3">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-body-sm font-medium text-text-primary truncate">
+                                    <div className="flex min-w-0 items-center gap-2">
+                                        <span className="min-w-0 truncate text-body-sm font-medium text-text-primary">
                                             {card.front_text}
                                         </span>
+                                        <PronunciationButton
+                                            text={card.front_text}
+                                            size={13}
+                                            className="h-6 w-6"
+                                        />
                                         {card.phonetic && (
                                             <span className="text-caption text-text-tertiary shrink-0">
                                                 {card.phonetic}

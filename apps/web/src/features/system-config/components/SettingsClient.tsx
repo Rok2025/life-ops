@@ -6,6 +6,7 @@ import { Settings } from 'lucide-react';
 import { ConfigScopeSection } from './ConfigScopeSection';
 import ExerciseManager from './ExerciseManager';
 import { EnglishPromptManager } from '@/features/english-prompts';
+import { CommandSettings } from '@/features/command-center';
 import { YouyouPhotoSettings } from './YouyouPhotoSettings';
 import { configApi } from '../api/configApi';
 import { exerciseTypesApi } from '../api/exerciseTypesApi';
@@ -165,6 +166,14 @@ function SettingsContent({
 
     if (section.type === 'english-prompts') {
         return <EnglishPromptManager />;
+    }
+
+    if (section.type === 'command-categories') {
+        return <CommandSettings initialView="categories" />;
+    }
+
+    if (section.type === 'command-templates') {
+        return <CommandSettings initialView="templates" />;
     }
 
     if (section.type === 'youyou-photo') {
