@@ -11,28 +11,37 @@ import { OutputAreaCard } from '@/features/output';
 import { EnglishDailyWidget } from '@/features/english-learning';
 import { getLocalDateStr } from '@/lib/utils/date';
 import { SectionHeader } from '@/components/ui';
+import type { HomeDashboardSnapshot } from '../types';
 
-export default function HomeDashboard() {
-    const today = getLocalDateStr();
+type HomeDashboardProps = {
+    initialData?: HomeDashboardSnapshot;
+};
+
+export default function HomeDashboard({ initialData }: HomeDashboardProps) {
+    const today = initialData?.today ?? getLocalDateStr();
 
     const { data: frogsStats } = useQuery({
         queryKey: ['frogs-stats', today],
         queryFn: () => frogsApi.getStats(today),
+        initialData: initialData?.frogsStats,
     });
 
     const { data: tilCount } = useQuery({
         queryKey: ['til-count', today],
         queryFn: () => tilApi.getCount(today),
+        initialData: initialData?.tilCount,
     });
 
     const { data: notesCount } = useQuery({
         queryKey: ['notes-count', today, 'notes-only'],
         queryFn: () => notesApi.getCount(today, { includeTodos: false }),
+        initialData: initialData?.notesCount,
     });
 
     const { data: weeklyWorkoutDays } = useQuery({
         queryKey: ['weekly-workout-days'],
         queryFn: () => fitnessApi.getWeeklyWorkoutDays(),
+        initialData: initialData?.weeklyWorkoutDays,
     });
 
     return (

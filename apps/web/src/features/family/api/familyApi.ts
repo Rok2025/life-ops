@@ -1,4 +1,5 @@
-import { supabase } from '@/lib/supabase';
+import { supabase as browserSupabase } from '@/lib/supabase';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type {
     FamilyMember,
     FamilyTask,
@@ -10,6 +11,7 @@ import type {
 
 /** Attach assignees to tasks via family_task_assignees join */
 async function attachAssignees(
+    supabase: SupabaseClient,
     tasks: Array<Omit<FamilyTask, 'assignees'> & { id: string }>,
 ): Promise<FamilyTask[]> {
     if (tasks.length === 0) return [];
@@ -35,7 +37,8 @@ async function attachAssignees(
     })) as FamilyTask[];
 }
 
-export const familyApi = {
+export function createFamilyApi(supabase: SupabaseClient) {
+    const api = {
     // ── Members ────────────────────────────────────────────
 
     getMembers: async (): Promise<FamilyMember[]> => {
@@ -98,7 +101,7 @@ export const familyApi = {
         }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        let tasks = await attachAssignees((data ?? []) as any);
+        let tasks = await attachAssignees(supabase, (data ?? []) as any);
 
         // Client-side assignee filtering (needs join data)
         if (options?.assignee && options.assignee !== 'all') {
@@ -137,7 +140,7 @@ export const familyApi = {
         }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const [task] = await attachAssignees([data as any]);
+        const [task] = await attachAssignees(supabase, [data as any]);
         return task ?? null;
     },
 
@@ -167,7 +170,7 @@ export const familyApi = {
         }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const [task] = await attachAssignees([data as any]);
+        const [task] = await attachAssignees(supabase, [data as any]);
         return task;
     },
 
@@ -198,7 +201,7 @@ export const familyApi = {
         }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const [task] = await attachAssignees([data as any]);
+        const [task] = await attachAssignees(supabase, [data as any]);
         return task;
     },
 
@@ -206,21 +209,21 @@ export const familyApi = {
     advanceStatus: async (id: string, currentStatus: string): Promise<FamilyTask> => {
         const next = { todo: 'in_progress', in_progress: 'done', done: 'todo' } as const;
         const nextStatus = next[currentStatus as keyof typeof next] ?? 'todo';
-        return familyApi.updateTask(id, {
+        return api.updateTask(id, {
             status: nextStatus,
             completed_at: nextStatus === 'done' ? new Date().toISOString() : null,
         });
     },
 
     completeTask: async (id: string): Promise<FamilyTask> => {
-        return familyApi.updateTask(id, {
+        return api.updateTask(id, {
             status: 'done',
             completed_at: new Date().toISOString(),
         });
     },
 
     reopenTask: async (id: string): Promise<FamilyTask> => {
-        return familyApi.updateTask(id, {
+        return api.updateTask(id, {
             status: 'todo',
             completed_at: null,
         });
@@ -288,4 +291,9 @@ export const familyApi = {
             .lt('completed_at', cutoff.toISOString());
         return count ?? 0;
     },
-};
+    };
+
+    return api;
+}
+
+export const familyApi = createFamilyApi(browserSupabase);

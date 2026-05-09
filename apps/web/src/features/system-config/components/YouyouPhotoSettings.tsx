@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState } from 'react';
 import { ImagePlus, Trash2, Upload, RotateCcw } from 'lucide-react';
 import { Card, Button } from '@/components/ui';
 import { useYouyouPhoto, useUploadYouyouPhoto, useDeleteYouyouPhoto, usePhotoTransform, useSavePhotoTransform } from '../../youyou/hooks/usePhoto';
@@ -41,11 +41,12 @@ export function YouyouPhotoSettings() {
     const remove = useDeleteYouyouPhoto();
     const { data: saved } = usePhotoTransform();
     const save = useSavePhotoTransform();
-    const [t, setT] = useState<PhotoTransform>(DEFAULT);
+    const [draft, setDraft] = useState<PhotoTransform | null>(null);
+    const t = draft ?? saved ?? DEFAULT;
 
-    useEffect(() => {
-        if (saved) setT(saved);
-    }, [saved]);
+    const updateDraft = (updates: Partial<PhotoTransform>) => {
+        setDraft((current) => ({ ...(current ?? t), ...updates }));
+    };
 
     const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -54,7 +55,9 @@ export function YouyouPhotoSettings() {
         e.target.value = '';
     };
 
-    const isDirty = saved && (t.x !== saved.x || t.y !== saved.y || t.zoom !== saved.zoom || t.blurL !== saved.blurL || t.blurC !== saved.blurC || t.blurR !== saved.blurR);
+    const isDirty = saved
+        ? t.x !== saved.x || t.y !== saved.y || t.zoom !== saved.zoom || t.blurL !== saved.blurL || t.blurC !== saved.blurC || t.blurR !== saved.blurR
+        : draft !== null;
 
     return (
         <Card className="p-card space-y-4">
@@ -140,7 +143,7 @@ export function YouyouPhotoSettings() {
                             <span className="text-body-sm font-medium text-text-primary">位置与缩放</span>
                             <button
                                 type="button"
-                                onClick={() => setT(DEFAULT)}
+                                onClick={() => setDraft(DEFAULT)}
                                 className="flex items-center gap-1 text-caption text-text-tertiary hover:text-accent transition-colors"
                             >
                                 <RotateCcw size={12} />
@@ -150,32 +153,32 @@ export function YouyouPhotoSettings() {
                         <SliderRow
                             label="水平位置" min={0} max={100} value={t.x} unit="%"
                             leftLabel="左" rightLabel="右"
-                            onChange={x => setT(p => ({ ...p, x }))}
+                            onChange={x => updateDraft({ x })}
                         />
                         <SliderRow
                             label="垂直位置" min={0} max={100} value={t.y} unit="%"
                             leftLabel="上" rightLabel="下"
-                            onChange={y => setT(p => ({ ...p, y }))}
+                            onChange={y => updateDraft({ y })}
                         />
                         <SliderRow
                             label="缩放" min={100} max={200} step={5} value={t.zoom} unit="%"
                             leftLabel="小" rightLabel="大"
-                            onChange={zoom => setT(p => ({ ...p, zoom }))}
+                            onChange={zoom => updateDraft({ zoom })}
                         />
                         <SliderRow
                             label="左侧模糊" min={0} max={20} step={1} value={t.blurL} unit="px"
                             leftLabel="清" rightLabel="糊"
-                            onChange={blurL => setT(p => ({ ...p, blurL }))}
+                            onChange={blurL => updateDraft({ blurL })}
                         />
                         <SliderRow
                             label="中间模糊" min={0} max={10} step={1} value={t.blurC} unit="px"
                             leftLabel="清" rightLabel="糊"
-                            onChange={blurC => setT(p => ({ ...p, blurC }))}
+                            onChange={blurC => updateDraft({ blurC })}
                         />
                         <SliderRow
                             label="右侧模糊" min={0} max={20} step={1} value={t.blurR} unit="px"
                             leftLabel="清" rightLabel="糊"
-                            onChange={blurR => setT(p => ({ ...p, blurR }))}
+                            onChange={blurR => updateDraft({ blurR })}
                         />
                         <Button
                             variant="primary"

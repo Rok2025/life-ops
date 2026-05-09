@@ -38,16 +38,18 @@ export function ActiveMemberProvider({
         return localStorage.getItem(STORAGE_KEY);
     });
 
-    const activeMember =
-        members.find((m) => m.id === activeMemberId) ?? null;
+    const storedMemberIsStale = Boolean(
+        activeMemberId && members.length > 0 && !members.some((m) => m.id === activeMemberId),
+    );
+    const resolvedActiveMemberId = storedMemberIsStale ? null : activeMemberId;
+    const activeMember = members.find((m) => m.id === resolvedActiveMemberId) ?? null;
 
     // If stored id doesn't match any member, clear it
     useEffect(() => {
-        if (activeMemberId && members.length > 0 && !activeMember) {
+        if (storedMemberIsStale) {
             localStorage.removeItem(STORAGE_KEY);
-            setActiveMemberId(null);
         }
-    }, [activeMemberId, members, activeMember]);
+    }, [storedMemberIsStale]);
 
     const setActiveMember = useCallback((member: FamilyMember) => {
         localStorage.setItem(STORAGE_KEY, member.id);
@@ -61,7 +63,7 @@ export function ActiveMemberProvider({
 
     return (
         <ActiveMemberContext.Provider
-            value={{ activeMemberId, activeMember, setActiveMember, clearActiveMember }}
+            value={{ activeMemberId: resolvedActiveMemberId, activeMember, setActiveMember, clearActiveMember }}
         >
             {children}
         </ActiveMemberContext.Provider>

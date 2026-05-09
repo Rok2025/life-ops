@@ -18,6 +18,7 @@ import type { FamilyTask, TaskStatus, TaskCategoryConfig } from '../types';
 import { STATUS_CONFIG, TASK_STATUSES } from '../types';
 import { TaskCard } from './TaskCard';
 import { familyApi } from '../api/familyApi';
+import { updateFamilyTaskAction } from '../actions';
 
 interface TaskBoardProps {
     tasks: FamilyTask[];
@@ -42,9 +43,12 @@ export function TaskBoard({ tasks, categories, onEditTask }: TaskBoardProps) {
 
     const moveMutation = useMutation({
         mutationFn: ({ id, status }: { id: string; status: TaskStatus }) =>
-            familyApi.updateTask(id, {
-                status,
-                completed_at: status === 'done' ? new Date().toISOString() : null,
+            updateFamilyTaskAction({
+                id,
+                updates: {
+                    status,
+                    completed_at: status === 'done' ? new Date().toISOString() : null,
+                },
             }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['family-tasks'] });

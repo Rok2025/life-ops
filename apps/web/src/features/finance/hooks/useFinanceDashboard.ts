@@ -1,12 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { financeApi } from '../api/financeApi';
+import {
+    bootstrapFinanceDashboardAction,
+    createFinanceMonthlySnapshotAction,
+    createFinanceTransactionAction,
+    updateFinanceAccountAction,
+    updateFinanceLiabilityAction,
+    updateFinanceProfileAction,
+    updatePaymentScheduleStatusAction,
+} from '../actions';
 import type {
     CreateFinanceTransactionInput,
     FinanceDashboard,
     PaymentScheduleStatus,
     SnapshotInput,
-    UpdateFinanceAccountInput,
-    UpdateFinanceLiabilityInput,
     UpdateFinanceProfileInput,
 } from '../types';
 
@@ -14,11 +21,12 @@ export const financeKeys = {
     dashboard: (userId: string | undefined) => ['finance-dashboard', userId] as const,
 };
 
-export function useFinanceDashboard(userId: string | undefined) {
+export function useFinanceDashboard(userId: string | undefined, initialData?: FinanceDashboard) {
     return useQuery<FinanceDashboard>({
         queryKey: financeKeys.dashboard(userId),
         queryFn: () => financeApi.getDashboard(userId!),
         enabled: Boolean(userId),
+        initialData,
     });
 }
 
@@ -30,38 +38,38 @@ export function useFinanceMutations(userId: string | undefined) {
     };
 
     const bootstrapMutation = useMutation({
-        mutationFn: () => financeApi.bootstrapInitialData(userId!),
+        mutationFn: bootstrapFinanceDashboardAction,
         onSuccess: invalidate,
     });
 
     const updatePaymentStatusMutation = useMutation({
         mutationFn: ({ scheduleId, status }: { scheduleId: string; status: PaymentScheduleStatus }) =>
-            financeApi.updatePaymentScheduleStatus(scheduleId, status),
+            updatePaymentScheduleStatusAction({ scheduleId, status }),
         onSuccess: invalidate,
     });
 
     const createTransactionMutation = useMutation({
-        mutationFn: (input: CreateFinanceTransactionInput) => financeApi.createTransaction(input),
+        mutationFn: (input: CreateFinanceTransactionInput) => createFinanceTransactionAction(input),
         onSuccess: invalidate,
     });
 
     const updateProfileMutation = useMutation({
-        mutationFn: (input: UpdateFinanceProfileInput) => financeApi.updateProfile(input),
+        mutationFn: (input: UpdateFinanceProfileInput) => updateFinanceProfileAction(input),
         onSuccess: invalidate,
     });
 
     const updateAccountMutation = useMutation({
-        mutationFn: (input: UpdateFinanceAccountInput) => financeApi.updateAccount(input),
+        mutationFn: updateFinanceAccountAction,
         onSuccess: invalidate,
     });
 
     const updateLiabilityMutation = useMutation({
-        mutationFn: (input: UpdateFinanceLiabilityInput) => financeApi.updateLiability(input),
+        mutationFn: updateFinanceLiabilityAction,
         onSuccess: invalidate,
     });
 
     const createSnapshotMutation = useMutation({
-        mutationFn: (input: SnapshotInput) => financeApi.createMonthlySnapshot(input),
+        mutationFn: (input: SnapshotInput) => createFinanceMonthlySnapshotAction(input),
         onSuccess: invalidate,
     });
 

@@ -2,9 +2,13 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { familyApi } from '../api/familyApi';
-import type { TaskFilter } from '../types';
+import type { FamilyTask, TaskFilter } from '../types';
 
-export function useFamilyTasks(filter?: TaskFilter, activeMemberId?: string | null) {
+export function useFamilyTasks(
+    filter?: TaskFilter,
+    activeMemberId?: string | null,
+    initialData?: FamilyTask[],
+) {
     // Resolve 'mine' to the active member's id
     const resolvedAssignee =
         filter?.assignee === 'mine' && activeMemberId
@@ -23,6 +27,7 @@ export function useFamilyTasks(filter?: TaskFilter, activeMemberId?: string | nu
                 assignee: queryFilter?.assignee,
                 category: queryFilter?.category,
             }),
+        initialData,
     });
 
     return {
