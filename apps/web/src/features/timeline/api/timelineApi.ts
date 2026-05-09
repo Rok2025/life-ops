@@ -1,4 +1,5 @@
-import { supabase } from '@/lib/supabase';
+import { supabase as browserSupabase } from '@/lib/supabase';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { TimelineDomain, TimelineEntry, TimelineFilters, TimelineMetadata, TimelineSourceType } from '../types';
 
 type TimelineRow = {
@@ -59,20 +60,24 @@ function normalizeRow(row: TimelineRow): TimelineEntry {
     };
 }
 
-export const timelineApi = {
-    getTimeline: async (filters: TimelineFilters): Promise<TimelineEntry[]> => {
-        const { data, error } = await supabase.rpc('get_global_timeline', {
-            p_date_from: filters.dateFrom,
-            p_date_to: filters.dateTo,
-            p_source_types: filters.sourceTypes && filters.sourceTypes.length > 0 ? filters.sourceTypes : null,
-            p_result_limit: filters.limit ?? 300,
-        });
+export function createTimelineApi(supabase: SupabaseClient) {
+    return {
+        getTimeline: async (filters: TimelineFilters): Promise<TimelineEntry[]> => {
+            const { data, error } = await supabase.rpc('get_global_timeline', {
+                p_date_from: filters.dateFrom,
+                p_date_to: filters.dateTo,
+                p_source_types: filters.sourceTypes && filters.sourceTypes.length > 0 ? filters.sourceTypes : null,
+                p_result_limit: filters.limit ?? 300,
+            });
 
-        if (error) throw normalizeError(error);
+            if (error) throw normalizeError(error);
 
-        const rows = (data ?? []) as TimelineRow[];
-        return rows
-            .map(normalizeRow)
-            .filter((entry) => entry.occurredDate.length > 0);
-    },
-};
+            const rows = (data ?? []) as TimelineRow[];
+            return rows
+                .map(normalizeRow)
+                .filter((entry) => entry.occurredDate.length > 0);
+        },
+    };
+}
+
+export const timelineApi = createTimelineApi(browserSupabase);

@@ -1,128 +1,92 @@
 'use client';
 
+import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CalendarClock, Loader2, RefreshCw, RotateCcw } from 'lucide-react';
 import { Button, Card, Input, PageHero, SegmentedControl } from '@/components/ui';
-import { getLocalDateStr, offsetDate } from '@/lib/utils/date';
+import { getLocalDateStr } from '@/lib/utils/date';
 import { useTimeline } from '../hooks/useTimeline';
-import type { TimelineDayGroup, TimelineFilters, TimelineSourceGroup, TimelineSourceType } from '../types';
+import {
+    buildTimelineFilters,
+    buildTimelineQueryString,
+    DEFAULT_TIMELINE_ROUTE_STATE,
+    getTimelineDateRangeLabel,
+    getTimelineDatesInRange,
+    getTimelinePresetRange,
+    getTimelineSourceGroup,
+    TIMELINE_DATE_PRESET_OPTIONS,
+    TIMELINE_SOURCE_GROUPS,
+    type TimelineDatePreset,
+    type TimelineRouteState,
+} from '../lib/timelineRouteState';
+import type { TimelineDayGroup, TimelineEntry, TimelineFilters, TimelineSourceGroup } from '../types';
 import { TimelineDaySection } from './TimelineDaySection';
 
-type DatePreset = 'today' | 'yesterday' | '7d' | '30d' | 'custom';
-
-type SourceGroupOption = {
-    value: TimelineSourceGroup;
-    label: string;
-    sourceTypes: TimelineSourceType[] | null;
+type TimelinePageProps = {
+    initialState?: TimelineRouteState;
+    initialEntries?: TimelineEntry[];
 };
 
-const DATE_PRESET_OPTIONS = [
-    { value: 'today', label: '今天' },
-    { value: 'yesterday', label: '昨天' },
-    { value: '7d', label: '近 7 天' },
-    { value: '30d', label: '近 30 天' },
-    { value: 'custom', label: '自定义' },
-] as const;
-
-const SOURCE_GROUPS: SourceGroupOption[] = [
-    { value: 'all', label: '全部', sourceTypes: null },
-    { value: 'capture', label: '输入', sourceTypes: ['note', 'todo', 'til', 'frog'] },
-    { value: 'growth', label: '成长', sourceTypes: ['growth_project', 'project_todo', 'project_note'] },
-    {
-        value: 'youyou',
-        label: '又又',
-        sourceTypes: ['youyou_diary', 'youyou_milestone', 'youyou_growth', 'youyou_vaccination', 'youyou_medical'],
-    },
-    { value: 'fitness', label: '健身', sourceTypes: ['workout'] },
-    { value: 'output', label: '输出', sourceTypes: ['output'] },
-    { value: 'english', label: '英语', sourceTypes: ['english_query', 'english_card'] },
-    { value: 'family', label: '家庭', sourceTypes: ['family_task'] },
-];
-
-function normalizeRange(start: string, end: string, today: string): { dateFrom: string; dateTo: string } {
-    let dateFrom = start > today ? today : start;
-    let dateTo = end > today ? today : end;
-
-    if (dateFrom > dateTo) {
-        [dateFrom, dateTo] = [dateTo, dateFrom];
-    }
-
-    return { dateFrom, dateTo };
-}
-
-function getPresetRange(
-    preset: DatePreset,
-    today: string,
-    customDateFrom: string,
-    customDateTo: string,
-): { dateFrom: string; dateTo: string } {
-    if (preset === 'today') {
-        return { dateFrom: today, dateTo: today };
-    }
-
-    if (preset === 'yesterday') {
-        const yesterday = offsetDate(today, -1);
-        return { dateFrom: yesterday, dateTo: yesterday };
-    }
-
-    if (preset === '30d') {
-        return { dateFrom: offsetDate(today, -29), dateTo: today };
-    }
-
-    if (preset === 'custom') {
-        return normalizeRange(customDateFrom || offsetDate(today, -6), customDateTo || today, today);
-    }
-
-    return { dateFrom: offsetDate(today, -6), dateTo: today };
-}
-
-function getDatesInRange(start: string, end: string): string[] {
-    const dates: string[] = [];
-    let cursor = start;
-
-    while (cursor <= end && dates.length < 370) {
-        dates.push(cursor);
-        cursor = offsetDate(cursor, 1);
-    }
-
-    return dates;
-}
-
-function getDateRangeLabel(dateFrom: string, dateTo: string): string {
-    if (dateFrom === dateTo) return dateFrom;
-    return `${dateFrom} 至 ${dateTo}`;
-}
-
-export default function TimelinePage() {
+export default function TimelinePage({
+    initialState = DEFAULT_TIMELINE_ROUTE_STATE,
+    initialEntries,
+}: TimelinePageProps) {
+    const router = useRouter();
+    const pathname = usePathname();
     const today = getLocalDateStr();
     const todaySectionRef = useRef<HTMLElement | null>(null);
     const autoScrolledRangeRef = useRef<string | null>(null);
-    const [datePreset, setDatePreset] = useState<DatePreset>('30d');
-    const [sourceGroup, setSourceGroup] = useState<TimelineSourceGroup>('all');
-    const [customDateFrom, setCustomDateFrom] = useState('');
-    const [customDateTo, setCustomDateTo] = useState('');
+    const [datePreset, setDatePreset] = useState<TimelineDatePreset>(initialState.datePreset);
+    const [sourceGroup, setSourceGroup] = useState<TimelineSourceGroup>(initialState.sourceGroup);
+    const [customDateFrom, setCustomDateFrom] = useState(initialState.customDateFrom);
+    const [customDateTo, setCustomDateTo] = useState(initialState.customDateTo);
+
+    const routeState = useMemo<TimelineRouteState>(
+        () => ({
+            datePreset,
+            sourceGroup,
+            customDateFrom,
+            customDateTo,
+        }),
+        [customDateFrom, customDateTo, datePreset, sourceGroup],
+    );
+
+    const routeQueryString = useMemo(() => buildTimelineQueryString(routeState), [routeState]);
+
+    useEffect(() => {
+        const nextPath = routeQueryString ? `${pathname}?${routeQueryString}` : pathname;
+        const currentPath = `${window.location.pathname}${window.location.search}`;
+
+        if (currentPath !== nextPath) {
+            router.replace(nextPath, { scroll: false });
+        }
+    }, [pathname, routeQueryString, router]);
 
     const selectedSourceGroup = useMemo(
-        () => SOURCE_GROUPS.find((item) => item.value === sourceGroup) ?? SOURCE_GROUPS[0],
+        () => getTimelineSourceGroup(sourceGroup),
         [sourceGroup],
     );
 
     const dateRange = useMemo(
-        () => getPresetRange(datePreset, today, customDateFrom, customDateTo),
+        () => getTimelinePresetRange(datePreset, today, customDateFrom, customDateTo),
         [customDateFrom, customDateTo, datePreset, today],
     );
 
     const filters = useMemo<TimelineFilters>(
-        () => ({
-            dateFrom: dateRange.dateFrom,
-            dateTo: dateRange.dateTo,
-            sourceTypes: selectedSourceGroup.sourceTypes ?? undefined,
-            limit: datePreset === '30d' ? 600 : 360,
-        }),
-        [datePreset, dateRange.dateFrom, dateRange.dateTo, selectedSourceGroup.sourceTypes],
+        () => buildTimelineFilters(routeState, today),
+        [routeState, today],
     );
 
-    const { data: entries = [], error, isFetching, refetch } = useTimeline(filters);
+    const isInitialQuery =
+        datePreset === initialState.datePreset &&
+        sourceGroup === initialState.sourceGroup &&
+        customDateFrom === initialState.customDateFrom &&
+        customDateTo === initialState.customDateTo;
+
+    const { data: entries = [], error, isFetching, refetch } = useTimeline(
+        filters,
+        isInitialQuery ? initialEntries : undefined,
+    );
 
     const dayGroups = useMemo<TimelineDayGroup[]>(() => {
         const entriesByDate = new Map<string, typeof entries>();
@@ -133,7 +97,7 @@ export default function TimelinePage() {
             entriesByDate.set(entry.occurredDate, list);
         }
 
-        return getDatesInRange(dateRange.dateFrom, dateRange.dateTo).map((date) => ({
+        return getTimelineDatesInRange(dateRange.dateFrom, dateRange.dateTo).map((date) => ({
             date,
             items: entriesByDate.get(date) ?? [],
             isToday: date === today,
@@ -155,7 +119,7 @@ export default function TimelinePage() {
     }, [includesToday, rangeKey]);
 
     const handleDatePresetChange = useCallback((value: string) => {
-        setDatePreset(value as DatePreset);
+        setDatePreset(value as TimelineDatePreset);
     }, []);
 
     const handleSourceGroupChange = useCallback((value: string) => {
@@ -169,7 +133,7 @@ export default function TimelinePage() {
         });
     }, []);
 
-    const rangeLabel = getDateRangeLabel(dateRange.dateFrom, dateRange.dateTo);
+    const rangeLabel = getTimelineDateRangeLabel(dateRange.dateFrom, dateRange.dateTo);
 
     return (
         <div className="flex h-[calc(100dvh-3rem)] min-h-0 flex-col gap-2.5">
@@ -194,7 +158,7 @@ export default function TimelinePage() {
                         <SegmentedControl
                             value={datePreset}
                             onChange={handleDatePresetChange}
-                            options={DATE_PRESET_OPTIONS}
+                            options={TIMELINE_DATE_PRESET_OPTIONS}
                             wrap
                             aria-label="流水记时间范围"
                         />
@@ -204,7 +168,7 @@ export default function TimelinePage() {
                         <SegmentedControl
                             value={sourceGroup}
                             onChange={handleSourceGroupChange}
-                            options={SOURCE_GROUPS.map(({ value, label }) => ({ value, label }))}
+                            options={TIMELINE_SOURCE_GROUPS.map(({ value, label }) => ({ value, label }))}
                             wrap
                             aria-label="流水记领域"
                         />

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { Baby, BookHeart, Trophy, Calendar, Sparkles, Ruler, Syringe, Stethoscope } from 'lucide-react';
 import { useDiaryStats } from '../hooks/useDiary';
 import { useMilestoneStats } from '../hooks/useMilestones';
@@ -67,10 +68,13 @@ export default function YouyouDashboard() {
             <div className={`relative overflow-hidden rounded-card ${photoUrl ? 'youyou-hero-photo' : ''}`}>
                 {photoUrl && (
                     <>
-                        <img
+                        <Image
                             src={photoUrl}
                             alt=""
-                            className="absolute inset-0 h-full w-full object-cover"
+                            fill
+                            priority
+                            sizes="(min-width: 1024px) 720px, 100vw"
+                            className="object-cover"
                             style={{
                                 transform: `translate(${(px - 50) * 0.5}%, ${(py - 50) * 0.5}%) scale(${pz / 100})`,
                             }}

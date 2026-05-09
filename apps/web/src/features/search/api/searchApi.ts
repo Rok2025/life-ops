@@ -1,4 +1,5 @@
-import { supabase } from '@/lib/supabase';
+import { supabase as browserSupabase } from '@/lib/supabase';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { SearchFilters, SearchMetadata, SearchResult, SearchSourceType } from '../types';
 
 type SearchResultRow = {
@@ -55,25 +56,29 @@ function normalizeResult(row: SearchResultRow): SearchResult {
     };
 }
 
-export const searchApi = {
-    search: async (keyword: string, filters: SearchFilters = {}): Promise<SearchResult[]> => {
-        const trimmedKeyword = keyword.trim();
+export function createSearchApi(supabase: SupabaseClient) {
+    return {
+        search: async (keyword: string, filters: SearchFilters = {}): Promise<SearchResult[]> => {
+            const trimmedKeyword = keyword.trim();
 
-        if (!trimmedKeyword) {
-            return [];
-        }
+            if (!trimmedKeyword) {
+                return [];
+            }
 
-        const { data, error } = await supabase.rpc('search_global', {
-            p_keyword: trimmedKeyword,
-            p_source_types: filters.sourceTypes && filters.sourceTypes.length > 0 ? filters.sourceTypes : null,
-            p_date_from: filters.dateFrom ?? null,
-            p_date_to: filters.dateTo ?? null,
-            p_result_limit: filters.limit ?? 50,
-        });
+            const { data, error } = await supabase.rpc('search_global', {
+                p_keyword: trimmedKeyword,
+                p_source_types: filters.sourceTypes && filters.sourceTypes.length > 0 ? filters.sourceTypes : null,
+                p_date_from: filters.dateFrom ?? null,
+                p_date_to: filters.dateTo ?? null,
+                p_result_limit: filters.limit ?? 50,
+            });
 
-        if (error) throw normalizeError(error);
+            if (error) throw normalizeError(error);
 
-        const rows = (data ?? []) as SearchResultRow[];
-        return rows.map(normalizeResult);
-    },
-};
+            const rows = (data ?? []) as SearchResultRow[];
+            return rows.map(normalizeResult);
+        },
+    };
+}
+
+export const searchApi = createSearchApi(browserSupabase);
