@@ -9,7 +9,7 @@ export const authApi = {
 
     /** 邮箱注册 */
     signUp: async (email: string, password: string) => {
-        const callbackUrl = `${window.location.origin}${process.env.NODE_ENV === 'production' ? '/life-ops' : ''}/auth/callback`;
+        const callbackUrl = `${window.location.origin}/auth/callback`;
 
         const { data, error } = await supabase.auth.signUp({
             email,

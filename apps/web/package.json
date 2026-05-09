@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 9999",
-    "build": "next build && node scripts/inject-chunk-recovery.mjs",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "lint:styles": "stylelint \"src/**/*.css\"",

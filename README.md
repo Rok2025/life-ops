@@ -2,8 +2,6 @@
 
 > 个人控制台 - 行动与节奏
 
-**[在线演示 🌐](https://rok2025.github.io/life-ops/)**
-
 **Life OPS**（Life Operating System）是一个个人控制台网站，帮助你一眼扫完、立即行动。
 
 ![Life OPS Screenshot](docs/screenshot.png)
@@ -21,7 +19,7 @@
 
 | 层级 | 技术选型 |
 |------|----------|
-| 前端框架 | Next.js 15 (App Router) + TypeScript |
+| 前端框架 | Next.js 16 (App Router) + TypeScript |
 | 样式 | Tailwind CSS 4 |
 | 数据库 | Supabase (PostgreSQL) |
 | 认证 | Supabase Auth |
@@ -58,10 +56,13 @@ pnpm dev
 
 访问 http://localhost:9999
 ### 部署
-项目支持静态导出并托管于 GitHub Pages：
-1. **GitHub Actions**：代码推送至 `main` 分支后自动触发构建。
-2. **Supabase 配置**：需要在 GitHub Repo Settings -> Secrets -> Actions 中配置 `NEXT_PUBLIC_SUPABASE_URL` 和 `NEXT_PUBLIC_SUPABASE_ANON_KEY`。
-3. **输出模式**：使用 `next build` 导出静态资源至 `apps/web/out`。
+
+项目部署到 Vercel：
+
+1. **Root Directory**：选择 `apps/web`。
+2. **Build Command**：使用 `pnpm build`。
+3. **环境变量**：在 Vercel Project Settings -> Environment Variables 中配置 `NEXT_PUBLIC_SUPABASE_URL` 和 `NEXT_PUBLIC_SUPABASE_ANON_KEY`。
+4. **Supabase Auth**：在 Supabase Authentication -> URL Configuration 中添加 Vercel 域名和 `/auth/callback` 回调地址。
 
 ## 📁 项目结构
 

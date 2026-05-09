@@ -10,13 +10,11 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import QueryProvider from '@/providers/QueryProvider';
 
-const appBasePath = process.env.NODE_ENV === 'production' ? '/life-ops' : '';
-
 export const metadata: Metadata = {
   title: "Life OPS",
   description: "个人控制台 - 行动与节奏",
   icons: {
-    icon: `${appBasePath}/icon.svg`,
+    icon: "/icon.svg",
   },
 };
 
