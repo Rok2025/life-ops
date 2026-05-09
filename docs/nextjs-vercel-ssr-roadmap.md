@@ -1,6 +1,6 @@
 # Next.js Vercel SSR 改造路线
 
-> 状态：P0/P1/P2 第一轮已落地，P3 待推进
+> 状态：P0/P1/P2 第一轮已落地，P3 第一批已落地，配置缓存待推进
 > 背景：项目已从 GitHub Pages 静态导出切换到 Vercel。后续改造目标是恢复 Next.js App Router 的服务端渲染、服务端鉴权、Server Actions、流式渲染和图片优化能力。
 
 ## 1. 当前判断
@@ -32,10 +32,8 @@
 仍待推进：
 
 - TIL、随手记、待办、健身记录、输出记录等写操作继续迁移到 Server Actions。
-- Search / Timeline 改为 URL 驱动并提供服务端初始结果。
 - 配置类数据引入 cache tag 与按需 revalidate。
-- Supabase Storage 图片逐步迁移到 `next/image`。
-- 删除剩余 Pages 静态导出痕迹，例如 `apps/web/public/.nojekyll`。
+- 更多 Supabase Storage 图片逐步迁移到 `next/image`。
 
 ## 3. 改造优先级
 
@@ -107,18 +105,22 @@ src/features/{feature}/
     - 筛选条件进入 `searchParams`。
     - 服务端提供初始结果。
     - 客户端负责输入 debounce、局部刷新、滚动定位。
+    - 状态：已完成第一批。`/search` 与 `/timeline` 已改为 URL 驱动，页面入口由 Server Component 预取初始结果，Client island 继续负责交互。
 
 12. **配置类数据加缓存标签**
     - `system_configs`、运动类型、家庭分类、命令模板等低频变化数据可用 cache tag。
     - 配置变更后通过 Server Action revalidate。
+    - 状态：待推进。这个步骤需要先把设置页相关写操作迁到 Server Actions，再统一接入 `revalidateTag`。
 
 13. **恢复 Next Image 优化**
     - Supabase Storage 图片配置 `remotePatterns`。
     - 渐进迁移到 `next/image`。
+    - 状态：已完成第一批。又又封面图已迁到 `next/image`，`next.config.ts` 已按 `NEXT_PUBLIC_SUPABASE_URL` 配置 Supabase Storage remote pattern。
 
 14. **清理剩余 Pages 痕迹**
     - 删除 `apps/web/public/.nojekyll`。
     - 避免重新引入 `output: 'export'`、`basePath: '/life-ops'`、`apps/web/out` 检查脚本。
+    - 状态：已完成第一批。`.nojekyll` 已删除，并补齐 `/icon.svg`，避免 Vercel 环境继续出现旧 Pages 路径资源缺失。
 
 ## 4. 组件与公共层抽取策略
 

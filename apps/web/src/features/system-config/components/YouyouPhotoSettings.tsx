@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useRef, useState } from 'react';
 import { ImagePlus, Trash2, Upload, RotateCcw } from 'lucide-react';
 import { Card, Button } from '@/components/ui';
@@ -74,10 +75,12 @@ export function YouyouPhotoSettings() {
                 <div className="space-y-4">
                     {/* 实时预览 */}
                     <div className="relative group overflow-hidden rounded-card border border-glass-border" style={{ height: 180 }}>
-                        <img
+                        <Image
                             src={photoUrl}
                             alt="又又封面"
-                            className="absolute inset-0 h-full w-full object-cover transition-all duration-150"
+                            fill
+                            sizes="320px"
+                            className="object-cover transition-all duration-150"
                             style={{
                                 transform: `translate(${(t.x - 50) * 0.5}%, ${(t.y - 50) * 0.5}%) scale(${t.zoom / 100})`,
                             }}

@@ -1,5 +1,31 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {};
+function getSupabaseImageRemotePatterns(): NonNullable<NextConfig["images"]>["remotePatterns"] {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+  if (!supabaseUrl) {
+    return [];
+  }
+
+  try {
+    const { hostname } = new URL(supabaseUrl);
+
+    return [
+      {
+        protocol: "https",
+        hostname,
+        pathname: "/storage/v1/object/public/**",
+      },
+    ];
+  } catch {
+    return [];
+  }
+}
+
+const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: getSupabaseImageRemotePatterns(),
+  },
+};
 
 export default nextConfig;

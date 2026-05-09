@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     ArrowUpRight,
@@ -26,23 +27,25 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button, Card, Input, PageHero, SectionHeader, SegmentedControl } from '@/components/ui';
-import { formatDisplayDate, getLocalDateStr, offsetDate } from '@/lib/utils/date';
+import { formatDisplayDate } from '@/lib/utils/date';
 import { useGlobalSearch } from '../hooks/useGlobalSearch';
-import type { SearchFilters, SearchMetadata, SearchResult, SearchSourceGroup, SearchSourceType } from '../types';
-
-type DatePreset = 'all' | '7d' | '30d' | 'custom';
+import {
+    buildSearchFilters,
+    buildSearchQueryString,
+    DEFAULT_SEARCH_ROUTE_STATE,
+    getSearchSourceGroup,
+    SEARCH_DATE_PRESET_OPTIONS,
+    SEARCH_SOURCE_GROUPS,
+    type SearchDatePreset,
+    type SearchRouteState,
+} from '../lib/searchRouteState';
+import type { SearchMetadata, SearchResult, SearchSourceGroup, SearchSourceType } from '../types';
 
 type SourceConfig = {
     label: string;
     icon: LucideIcon;
     toneClass: string;
     badgeClass: string;
-};
-
-type SourceGroupOption = {
-    value: SearchSourceGroup;
-    label: string;
-    sourceTypes: SearchSourceType[] | null;
 };
 
 const SOURCE_CONFIG: Record<SearchSourceType, SourceConfig> = {
@@ -143,27 +146,6 @@ const SOURCE_CONFIG: Record<SearchSourceType, SourceConfig> = {
         badgeClass: 'border-accent/30 bg-accent/14',
     },
 };
-
-const SOURCE_GROUPS: SourceGroupOption[] = [
-    { value: 'all', label: '全部', sourceTypes: null },
-    { value: 'capture', label: '输入', sourceTypes: ['note', 'todo', 'til', 'frog'] },
-    { value: 'growth', label: '成长', sourceTypes: ['growth_project', 'project_todo', 'project_note'] },
-    {
-        value: 'youyou',
-        label: '又又',
-        sourceTypes: ['youyou_diary', 'youyou_milestone', 'youyou_growth', 'youyou_vaccination', 'youyou_medical'],
-    },
-    { value: 'fitness', label: '健身', sourceTypes: ['workout'] },
-    { value: 'output', label: '输出', sourceTypes: ['output'] },
-    { value: 'english', label: '英语', sourceTypes: ['english_query', 'english_card'] },
-];
-
-const DATE_PRESET_OPTIONS = [
-    { value: 'all', label: '全部时间' },
-    { value: '7d', label: '近 7 天' },
-    { value: '30d', label: '近 30 天' },
-    { value: 'custom', label: '自定义' },
-] as const;
 
 const PRIORITY_LABELS: Record<string, string> = {
     normal: '普通',
@@ -330,54 +312,73 @@ function SearchResultItem({ result, keyword }: { result: SearchResult; keyword: 
     );
 }
 
-export default function SearchPage() {
-    const [keywordInput, setKeywordInput] = useState('');
-    const [keyword, setKeyword] = useState('');
-    const [sourceGroup, setSourceGroup] = useState<SearchSourceGroup>('all');
-    const [datePreset, setDatePreset] = useState<DatePreset>('all');
-    const [customDateFrom, setCustomDateFrom] = useState('');
-    const [customDateTo, setCustomDateTo] = useState('');
+type SearchPageProps = {
+    initialState?: SearchRouteState;
+    initialResults?: SearchResult[];
+};
+
+export default function SearchPage({
+    initialState = DEFAULT_SEARCH_ROUTE_STATE,
+    initialResults,
+}: SearchPageProps) {
+    const router = useRouter();
+    const pathname = usePathname();
+    const [keywordInput, setKeywordInput] = useState(initialState.keyword);
+    const [keyword, setKeyword] = useState(initialState.keyword);
+    const [sourceGroup, setSourceGroup] = useState<SearchSourceGroup>(initialState.sourceGroup);
+    const [datePreset, setDatePreset] = useState<SearchDatePreset>(initialState.datePreset);
+    const [customDateFrom, setCustomDateFrom] = useState(initialState.customDateFrom);
+    const [customDateTo, setCustomDateTo] = useState(initialState.customDateTo);
 
     useEffect(() => {
         const timer = window.setTimeout(() => setKeyword(keywordInput.trim()), 250);
         return () => window.clearTimeout(timer);
     }, [keywordInput]);
 
+    const routeState = useMemo<SearchRouteState>(
+        () => ({
+            keyword,
+            sourceGroup,
+            datePreset,
+            customDateFrom,
+            customDateTo,
+        }),
+        [customDateFrom, customDateTo, datePreset, keyword, sourceGroup],
+    );
+
+    const routeQueryString = useMemo(() => buildSearchQueryString(routeState), [routeState]);
+
+    useEffect(() => {
+        const nextPath = routeQueryString ? `${pathname}?${routeQueryString}` : pathname;
+        const currentPath = `${window.location.pathname}${window.location.search}`;
+
+        if (currentPath !== nextPath) {
+            router.replace(nextPath, { scroll: false });
+        }
+    }, [pathname, routeQueryString, router]);
+
     const selectedGroup = useMemo(
-        () => SOURCE_GROUPS.find((item) => item.value === sourceGroup) ?? SOURCE_GROUPS[0],
+        () => getSearchSourceGroup(sourceGroup),
         [sourceGroup],
     );
 
-    const dateRange = useMemo((): Pick<SearchFilters, 'dateFrom' | 'dateTo'> => {
-        if (datePreset === 'all') {
-            return { dateFrom: null, dateTo: null };
-        }
-
-        if (datePreset === 'custom') {
-            return {
-                dateFrom: customDateFrom || null,
-                dateTo: customDateTo || null,
-            };
-        }
-
-        const today = getLocalDateStr();
-        return {
-            dateFrom: offsetDate(today, datePreset === '7d' ? -6 : -29),
-            dateTo: today,
-        };
-    }, [customDateFrom, customDateTo, datePreset]);
-
-    const filters = useMemo<SearchFilters>(
-        () => ({
-            sourceTypes: selectedGroup.sourceTypes ?? undefined,
-            dateFrom: dateRange.dateFrom,
-            dateTo: dateRange.dateTo,
-            limit: 60,
-        }),
-        [dateRange.dateFrom, dateRange.dateTo, selectedGroup.sourceTypes],
+    const filters = useMemo(
+        () => buildSearchFilters(routeState),
+        [routeState],
     );
 
-    const { data: results = [], error, isFetching, refetch } = useGlobalSearch(keyword, filters);
+    const isInitialQuery =
+        keyword === initialState.keyword &&
+        sourceGroup === initialState.sourceGroup &&
+        datePreset === initialState.datePreset &&
+        customDateFrom === initialState.customDateFrom &&
+        customDateTo === initialState.customDateTo;
+
+    const { data: results = [], error, isFetching, refetch } = useGlobalSearch(
+        keyword,
+        filters,
+        isInitialQuery ? initialResults : undefined,
+    );
 
     const groupedResults = useMemo(() => {
         const groups = new Map<SearchSourceType, SearchResult[]>();
@@ -420,7 +421,7 @@ export default function SearchPage() {
     }, []);
 
     const handleDatePresetChange = useCallback((value: string) => {
-        setDatePreset(value as DatePreset);
+        setDatePreset(value as SearchDatePreset);
     }, []);
 
     const handleClearKeyword = useCallback(() => {
@@ -493,7 +494,7 @@ export default function SearchPage() {
                         <SegmentedControl
                             value={sourceGroup}
                             onChange={handleSourceGroupChange}
-                            options={SOURCE_GROUPS.map(({ value, label }) => ({ value, label }))}
+                            options={SEARCH_SOURCE_GROUPS.map(({ value, label }) => ({ value, label }))}
                             wrap
                             aria-label="搜索范围"
                         />
@@ -504,7 +505,7 @@ export default function SearchPage() {
                         <SegmentedControl
                             value={datePreset}
                             onChange={handleDatePresetChange}
-                            options={DATE_PRESET_OPTIONS}
+                            options={SEARCH_DATE_PRESET_OPTIONS}
                             wrap
                             aria-label="搜索时间"
                         />
