@@ -19,10 +19,16 @@ const AuthContext = createContext<AuthContextType>({
     signOut: async () => { },
 });
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-    const [user, setUser] = useState<User | null>(null);
+export const AuthProvider = ({
+    children,
+    initialUser = null,
+}: {
+    children: React.ReactNode;
+    initialUser?: User | null;
+}) => {
+    const [user, setUser] = useState<User | null>(initialUser);
     const [session, setSession] = useState<Session | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(!initialUser);
     const router = useRouter();
 
     useEffect(() => {

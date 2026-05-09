@@ -80,6 +80,7 @@ life-ops/
 ## 📖 文档
 
 - [设计总览](docs/DESIGN.md) - 项目设计理念、功能规划、技术决策
+- [Next.js Vercel SSR 改造路线](docs/nextjs-vercel-ssr-roadmap.md) - Vercel 迁移后的 SSR/CSR 改造清单与渲染策略说明
 
 ## 💾 数据备份
 

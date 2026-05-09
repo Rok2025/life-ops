@@ -38,10 +38,17 @@ export default function PromptTemplateList({
                 const preview = template.content.replace(/\s+/g, ' ').slice(0, 90);
 
                 return (
-                    <button
+                    <div
                         key={template.id}
-                        type="button"
+                        role="button"
+                        tabIndex={0}
                         onClick={() => onSelect(template.id)}
+                        onKeyDown={(event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                onSelect(template.id);
+                            }
+                        }}
                         className={`glass-list-row w-full rounded-card p-3 text-left ${
                             isSelected
                                 ? 'border-selection-border bg-selection-bg'
@@ -111,7 +118,7 @@ export default function PromptTemplateList({
                                 </button>
                             </div>
                         </div>
-                    </button>
+                    </div>
                 );
             })}
         </div>

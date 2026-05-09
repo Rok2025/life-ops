@@ -1,6 +1,7 @@
-import { supabase } from '@/lib/supabase';
+import { supabase as browserSupabase } from '@/lib/supabase';
 import { getLocalDateStr, getWeekDateRange } from '@/lib/utils/date';
 import { WEEKLY_GOAL } from '../types';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type {
     WorkoutSession,
     WorkoutsByDate,
@@ -69,7 +70,8 @@ function getMonthlyWorkoutGoal(date: Date): number {
     return Math.round((daysInMonth / 7) * WEEKLY_GOAL);
 }
 
-export const fitnessApi = {
+export function createFitnessApi(supabase: SupabaseClient) {
+    return {
     /** 获取最近训练记录（按日期分组） */
     getWorkouts: async (limit = 10): Promise<WorkoutsByDate[]> => {
         const { data: sessions, error: sessionError } = await supabase
@@ -695,4 +697,7 @@ export const fitnessApi = {
         }
         return [...new Set(data?.map(s => s.workout_date) || [])];
     },
-};
+    };
+}
+
+export const fitnessApi = createFitnessApi(browserSupabase);

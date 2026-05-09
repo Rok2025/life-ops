@@ -3,10 +3,20 @@
 import { useQuery } from '@tanstack/react-query';
 import { familyApi } from '../api/familyApi';
 
-export function useFamilyStats() {
+type FamilyStats = {
+    total: number;
+    todo: number;
+    inProgress: number;
+    done: number;
+    overdue: number;
+    doneThisWeek: number;
+};
+
+export function useFamilyStats(initialData?: FamilyStats) {
     const query = useQuery({
         queryKey: ['family-stats'],
         queryFn: () => familyApi.getStats(),
+        initialData,
     });
 
     return {

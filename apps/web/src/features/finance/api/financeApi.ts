@@ -1,4 +1,5 @@
-import { supabase } from '@/lib/supabase';
+import { supabase as browserSupabase } from '@/lib/supabase';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type {
     CreateFinanceTransactionInput,
     FinanceAccount,
@@ -96,7 +97,8 @@ type FinanceTransactionSubset = {
     transaction_type: string;
 };
 
-export const financeApi = {
+export function createFinanceApi(supabase: SupabaseClient) {
+    return {
     getDashboard: async (userId: string): Promise<FinanceDashboard> => {
         const today = getTodayISO();
         const currentMonthStart = getMonthStartISO();
@@ -623,4 +625,7 @@ export const financeApi = {
         );
         throwIfError(error);
     },
-};
+    };
+}
+
+export const financeApi = createFinanceApi(browserSupabase);

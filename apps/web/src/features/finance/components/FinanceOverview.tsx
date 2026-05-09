@@ -94,10 +94,18 @@ function parseOptionalDay(value: string): number | null {
     return Math.min(Math.max(Math.trunc(parsed), 1), 31);
 }
 
-export default function FinanceOverview() {
+type FinanceOverviewProps = {
+    initialUserId?: string;
+    initialDashboard?: FinanceDashboard;
+};
+
+export default function FinanceOverview({
+    initialUserId,
+    initialDashboard,
+}: FinanceOverviewProps) {
     const { user, loading: authLoading } = useAuth();
-    const userId = user?.id;
-    const dashboardQuery = useFinanceDashboard(userId);
+    const userId = user?.id ?? initialUserId;
+    const dashboardQuery = useFinanceDashboard(userId, initialDashboard);
     const {
         bootstrapMutation,
         updatePaymentStatusMutation,

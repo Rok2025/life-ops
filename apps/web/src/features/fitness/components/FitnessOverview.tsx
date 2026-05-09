@@ -11,8 +11,17 @@ import { WorkoutDetailDialog } from './WorkoutDetailDialog';
 import { FitnessCalendar } from './FitnessCalendar';
 import { TopExercises } from './TopExercises';
 import { Button, PageHero } from '@/components/ui';
+import type { WeeklyStats, WorkoutsByDate } from '../types';
 
-export default function FitnessOverview() {
+type FitnessOverviewProps = {
+    initialWorkoutsByDate?: WorkoutsByDate[];
+    initialStats?: WeeklyStats;
+};
+
+export default function FitnessOverview({
+    initialWorkoutsByDate,
+    initialStats,
+}: FitnessOverviewProps) {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [detailSessionId, setDetailSessionId] = useState<string | null>(null);
     const [detailEditMode, setDetailEditMode] = useState(false);
@@ -20,11 +29,13 @@ export default function FitnessOverview() {
     const { data: workoutsByDate = [], isLoading: workoutsLoading } = useQuery({
         queryKey: ['fitness-workouts'],
         queryFn: () => fitnessApi.getWorkouts(),
+        initialData: initialWorkoutsByDate,
     });
 
     const { data: stats, isLoading: statsLoading } = useQuery({
         queryKey: ['fitness-weekly-stats'],
         queryFn: () => fitnessApi.getWeeklyStats(),
+        initialData: initialStats,
     });
 
     const loading = workoutsLoading || statsLoading;

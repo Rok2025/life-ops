@@ -3,9 +3,8 @@
 import { CheckCircle2, Circle, Clock, Loader2 } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { FamilyTask } from '../types';
-import { PRIORITY_CONFIG } from '../types';
 import { MemberAvatarGroup } from './MemberAvatar';
-import { familyApi } from '../api/familyApi';
+import { advanceFamilyTaskStatusAction } from '../actions';
 
 /** Format due_date as relative text */
 function formatDue(dateStr: string): string {
@@ -31,14 +30,13 @@ export function TaskCard({ task, categoryLabel, onEdit }: TaskCardProps) {
     const queryClient = useQueryClient();
 
     const advanceMutation = useMutation({
-        mutationFn: () => familyApi.advanceStatus(task.id, task.status),
+        mutationFn: () => advanceFamilyTaskStatusAction({ id: task.id, currentStatus: task.status }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['family-tasks'] });
             queryClient.invalidateQueries({ queryKey: ['family-stats'] });
         },
     });
 
-    const priorityCfg = PRIORITY_CONFIG[task.priority];
     const isDone = task.status === 'done';
 
     const isOverdue =

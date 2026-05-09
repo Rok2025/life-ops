@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getLocalDateStr, formatDisplayDate, offsetDate } from '@/lib/utils/date';
 import DataCalendar, { type DataCalendarHandle } from '@/components/DataCalendar';
-import { frogsApi } from '../api/frogsApi';
+import { deleteFrogAction, saveFrogAction, toggleFrogAction } from '../actions';
 import { FrogItem } from './FrogItem';
 import { FrogForm } from './FrogForm';
 import { useFrogsByDate } from '../hooks/useFrogsByDate';
@@ -39,23 +39,17 @@ export default function FrogsWidget({ initialDate }: FrogsWidgetProps) {
 
     const toggleMutation = useMutation({
         mutationFn: ({ id, completed }: { id: string; completed: boolean }) =>
-            frogsApi.toggleComplete(id, completed),
+            toggleFrogAction({ id, completed }),
         onSuccess: () => refreshDateData(selectedDate),
     });
 
     const deleteMutation = useMutation({
-        mutationFn: (id: string) => frogsApi.delete(id),
+        mutationFn: (id: string) => deleteFrogAction(id),
         onSuccess: () => refreshDateData(selectedDate),
     });
 
     const saveMutation = useMutation({
-        mutationFn: async ({ id, title, date }: { id?: string; title: string; date: string }) => {
-            if (id) {
-                await frogsApi.update(id, { title, frog_date: date });
-            } else {
-                await frogsApi.create({ title, frog_date: date });
-            }
-        },
+        mutationFn: saveFrogAction,
         onSuccess: (_, variables) => {
             setShowForm(false);
             setEditingFrog(null);

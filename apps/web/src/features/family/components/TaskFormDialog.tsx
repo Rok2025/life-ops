@@ -3,7 +3,11 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { DatePicker, Dialog, Input, Select, Button, Checkbox } from '@/components/ui';
-import { familyApi } from '../api/familyApi';
+import {
+    createFamilyTaskAction,
+    deleteFamilyTaskAction,
+    updateFamilyTaskAction,
+} from '../actions';
 import { useActiveMember } from '../contexts/ActiveMemberContext';
 import type {
     FamilyTask,
@@ -56,7 +60,7 @@ export function TaskFormDialog({
     };
 
     const createMutation = useMutation({
-        mutationFn: (input: CreateTaskInput) => familyApi.createTask(input),
+        mutationFn: (input: CreateTaskInput) => createFamilyTaskAction(input),
         onSuccess: () => {
             invalidate();
             onClose();
@@ -65,15 +69,18 @@ export function TaskFormDialog({
 
     const updateMutation = useMutation({
         mutationFn: () =>
-            familyApi.updateTask(task!.id, {
-                title,
-                description: description || null,
-                category: category || null,
-                priority,
-                status,
-                due_date: dueDate || null,
-                assignee_ids: assigneeIds,
-                completed_at: status === 'done' ? (task!.completed_at ?? new Date().toISOString()) : null,
+            updateFamilyTaskAction({
+                id: task!.id,
+                updates: {
+                    title,
+                    description: description || null,
+                    category: category || null,
+                    priority,
+                    status,
+                    due_date: dueDate || null,
+                    assignee_ids: assigneeIds,
+                    completed_at: status === 'done' ? (task!.completed_at ?? new Date().toISOString()) : null,
+                },
             }),
         onSuccess: () => {
             invalidate();
@@ -82,7 +89,7 @@ export function TaskFormDialog({
     });
 
     const deleteMutation = useMutation({
-        mutationFn: () => familyApi.deleteTask(task!.id),
+        mutationFn: () => deleteFamilyTaskAction(task!.id),
         onSuccess: () => {
             invalidate();
             onClose();

@@ -11,22 +11,51 @@ import { useFamilyCategories } from '../hooks/useFamilyCategories';
 import { TaskFilterBar } from './TaskFilter';
 import { TaskBoard } from './TaskBoard';
 import { TaskFormDialog } from './TaskFormDialog';
-import type { FamilyTask, TaskFilter } from '../types';
+import type { FamilyMember, FamilyTask, TaskCategoryConfig, TaskFilter } from '../types';
 
-export default function FamilyOverview() {
-    const { members } = useFamilyMembers();
+type FamilyStats = {
+    total: number;
+    todo: number;
+    inProgress: number;
+    done: number;
+    overdue: number;
+    doneThisWeek: number;
+};
+
+type FamilyOverviewProps = {
+    initialMembers?: FamilyMember[];
+    initialCategories?: TaskCategoryConfig[];
+    initialStats?: FamilyStats;
+    initialTasks?: FamilyTask[];
+};
+
+export default function FamilyOverview({
+    initialMembers,
+    initialCategories,
+    initialStats,
+    initialTasks,
+}: FamilyOverviewProps) {
+    const { members } = useFamilyMembers(initialMembers);
 
     return (
         <ActiveMemberProvider members={members}>
-            <FamilyOverviewInner />
+            <FamilyOverviewInner
+                initialCategories={initialCategories}
+                initialStats={initialStats}
+                initialTasks={initialTasks}
+            />
         </ActiveMemberProvider>
     );
 }
 
-function FamilyOverviewInner() {
+function FamilyOverviewInner({
+    initialCategories,
+    initialStats,
+    initialTasks,
+}: Pick<FamilyOverviewProps, 'initialCategories' | 'initialStats' | 'initialTasks'>) {
     const { members } = useFamilyMembers();
-    const { categories } = useFamilyCategories();
-    const { stats } = useFamilyStats();
+    const { categories } = useFamilyCategories(initialCategories);
+    const { stats } = useFamilyStats(initialStats);
 
     const [filter, setFilter] = useState<TaskFilter>({
         status: 'all',
@@ -34,7 +63,9 @@ function FamilyOverviewInner() {
         category: 'all',
     });
 
-    const { tasks, loading } = useFamilyTasks(filter);
+    const useInitialTasks =
+        filter.status === 'all' && filter.assignee === 'all' && filter.category === 'all';
+    const { tasks, loading } = useFamilyTasks(filter, null, useInitialTasks ? initialTasks : undefined);
 
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingTask, setEditingTask] = useState<FamilyTask | null>(null);
