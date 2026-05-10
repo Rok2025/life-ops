@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     AlertTriangle,
+    BarChart3,
     CalendarClock,
     CheckCircle2,
     CircleDollarSign,
@@ -10,6 +11,7 @@ import {
     FilePlus2,
     Landmark,
     Plus,
+    ReceiptText,
     Save,
     Settings2,
     TrendingDown,
@@ -50,6 +52,13 @@ import {
     getTodayISO,
     toNumber,
 } from '../lib/financeFormat';
+import { getExpenseDetailRows, type FinanceExpenseDetailRow } from '../lib/transactionDisplay';
+import {
+    getSnapshotTrendSeries,
+    getSnapshotViewModels,
+    type SnapshotTrendPoint,
+    type SnapshotViewModel,
+} from '../lib/snapshotInsights';
 
 function getStatusTone(status: PaymentScheduleStatus): 'default' | 'success' | 'warning' | 'danger' {
     if (status === 'paid') return 'success';
@@ -92,6 +101,19 @@ function parseOptionalDay(value: string): number | null {
     const parsed = parseOptionalNumber(value);
     if (parsed == null) return null;
     return Math.min(Math.max(Math.trunc(parsed), 1), 31);
+}
+
+function formatDateTime(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+
+    return new Intl.DateTimeFormat('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+    }).format(date);
 }
 
 type FinanceOverviewProps = {
@@ -543,6 +565,7 @@ function SpendingPanel({ dashboard }: { dashboard: FinanceDashboard }) {
     const budget = dashboard.metrics.livingBudget;
     const spent = dashboard.metrics.currentMonthExpense;
     const pct = budget > 0 ? (spent / budget) * 100 : 0;
+    const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null);
     const categoryTotals = useMemo(() => {
         const totals = new Map<string, number>();
         dashboard.transactions
@@ -555,86 +578,471 @@ function SpendingPanel({ dashboard }: { dashboard: FinanceDashboard }) {
             .sort((a, b) => b.amount - a.amount)
             .slice(0, 5);
     }, [dashboard.transactions]);
+    const expenseRows = useMemo(
+        () => getExpenseDetailRows(dashboard.transactions, dashboard.accounts),
+        [dashboard.accounts, dashboard.transactions],
+    );
+    const selectedExpense = useMemo(
+        () => expenseRows.find((row) => row.id === selectedExpenseId) ?? null,
+        [expenseRows, selectedExpenseId],
+    );
 
     return (
-        <Card className="p-card">
-            <div className="mb-4 flex items-center gap-2">
-                <CircleDollarSign size={17} className="text-accent" />
-                <h2 className="text-h3 text-text-primary">支出记录</h2>
-            </div>
-            <div className="rounded-inner-card border border-glass-border/75 bg-panel-bg/70 p-3">
-                <div className="flex items-end justify-between">
-                    <div>
-                        <p className="text-body-sm font-semibold text-text-primary">日常预算</p>
-                        <p className="mt-1 text-caption text-text-tertiary">本月已记录支出</p>
-                    </div>
-                    <div className="text-right">
-                        <p className="text-h3 text-text-primary">{formatCurrency(spent)}</p>
-                        <p className="text-caption text-text-tertiary">/ {formatCurrency(budget)}</p>
-                    </div>
+        <>
+            <Card className="p-card">
+                <div className="mb-4 flex items-center gap-2">
+                    <CircleDollarSign size={17} className="text-accent" />
+                    <h2 className="text-h3 text-text-primary">支出记录</h2>
                 </div>
-                <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-bg-tertiary">
-                    <div
-                        className={['h-full rounded-full', pct > 100 ? 'bg-danger' : pct > 80 ? 'bg-warning' : 'bg-success'].join(' ')}
-                        style={{ width: `${Math.min(pct, 100)}%` }}
-                    />
-                </div>
-                <div className="mt-2 text-right text-caption text-text-tertiary">{formatPct(pct)}</div>
-            </div>
-
-            <div className="mt-3 space-y-2">
-                {categoryTotals.length === 0 ? (
-                    <p className="rounded-inner-card border border-dashed border-glass-border px-4 py-4 text-center text-body-sm text-text-tertiary">
-                        本月还没有支出记录。
-                    </p>
-                ) : (
-                    categoryTotals.map((item) => (
-                        <div key={item.category} className="flex items-center justify-between rounded-control bg-bg-tertiary px-3 py-2 text-body-sm">
-                            <span className="text-text-secondary">{getCategoryLabel(item.category)}</span>
-                            <span className="font-semibold text-text-primary">{formatCurrency(item.amount)}</span>
+                <div className="rounded-inner-card border border-glass-border/75 bg-panel-bg/70 p-3">
+                    <div className="flex items-end justify-between">
+                        <div>
+                            <p className="text-body-sm font-semibold text-text-primary">日常预算</p>
+                            <p className="mt-1 text-caption text-text-tertiary">本月已记录支出</p>
                         </div>
-                    ))
-                )}
-            </div>
-        </Card>
+                        <div className="text-right">
+                            <p className="text-h3 text-text-primary">{formatCurrency(spent)}</p>
+                            <p className="text-caption text-text-tertiary">/ {formatCurrency(budget)}</p>
+                        </div>
+                    </div>
+                    <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-bg-tertiary">
+                        <div
+                            className={['h-full rounded-full', pct > 100 ? 'bg-danger' : pct > 80 ? 'bg-warning' : 'bg-success'].join(' ')}
+                            style={{ width: `${Math.min(pct, 100)}%` }}
+                        />
+                    </div>
+                    <div className="mt-2 text-right text-caption text-text-tertiary">{formatPct(pct)}</div>
+                </div>
+
+                <div className="mt-4">
+                    <div className="mb-2 flex items-center justify-between">
+                        <p className="text-body-sm font-semibold text-text-primary">分类汇总</p>
+                        <span className="text-caption text-text-tertiary">Top 5</span>
+                    </div>
+                    <div className="space-y-2">
+                        {categoryTotals.length === 0 ? (
+                            <p className="rounded-inner-card border border-dashed border-glass-border px-4 py-4 text-center text-body-sm text-text-tertiary">
+                                本月还没有支出记录。
+                            </p>
+                        ) : (
+                            categoryTotals.map((item) => (
+                                <div key={item.category} className="flex items-center justify-between rounded-control bg-bg-tertiary px-3 py-2 text-body-sm">
+                                    <span className="text-text-secondary">{getCategoryLabel(item.category)}</span>
+                                    <span className="font-semibold text-text-primary">{formatCurrency(item.amount)}</span>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+
+                <div className="mt-4">
+                    <div className="mb-2 flex items-center justify-between">
+                        <p className="text-body-sm font-semibold text-text-primary">本月明细</p>
+                        <span className="text-caption text-text-tertiary">{expenseRows.length} 笔</span>
+                    </div>
+                    <div className="max-h-80 space-y-2 overflow-y-auto pr-1">
+                        {expenseRows.length === 0 ? (
+                            <p className="rounded-inner-card border border-dashed border-glass-border px-4 py-4 text-center text-body-sm text-text-tertiary">
+                                记一笔支出后会在这里查看详情。
+                            </p>
+                        ) : (
+                            expenseRows.map((row) => (
+                                <button
+                                    key={row.id}
+                                    type="button"
+                                    onClick={() => setSelectedExpenseId(row.id)}
+                                    className="w-full rounded-inner-card border border-glass-border/75 bg-panel-bg/70 px-3 py-2 text-left transition-colors duration-normal ease-standard hover:border-accent/25 hover:bg-card-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+                                    aria-label={`查看支出详情：${row.title}`}
+                                >
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="min-w-0">
+                                            <p className="truncate text-body-sm font-semibold text-text-primary">{row.title}</p>
+                                            <p className="mt-1 truncate text-caption text-text-tertiary">
+                                                {row.occurredDate} · {row.categoryLabel} · {row.accountName}
+                                            </p>
+                                        </div>
+                                        <div className="shrink-0 text-right">
+                                            <p className="text-body-sm font-semibold text-text-primary">{formatCurrency(row.amount)}</p>
+                                            <p className="mt-1 inline-flex items-center gap-1 text-caption text-accent">
+                                                <ReceiptText size={12} />
+                                                详情
+                                            </p>
+                                        </div>
+                                    </div>
+                                </button>
+                            ))
+                        )}
+                    </div>
+                </div>
+            </Card>
+            <ExpenseDetailDialog expense={selectedExpense} onClose={() => setSelectedExpenseId(null)} />
+        </>
     );
 }
 
-function SnapshotPanel({ dashboard }: { dashboard: FinanceDashboard }) {
+function ExpenseDetailDialog({
+    expense,
+    onClose,
+}: {
+    expense: FinanceExpenseDetailRow | null;
+    onClose: () => void;
+}) {
     return (
-        <Card className="p-card">
-            <div className="mb-4 flex items-center gap-2">
-                <FilePlus2 size={17} className="text-accent" />
-                <h2 className="text-h3 text-text-primary">月度快照</h2>
-            </div>
-            <div className="grid gap-3 lg:grid-cols-3">
-                {dashboard.snapshots.length === 0 ? (
-                    <div className="rounded-inner-card border border-dashed border-glass-border px-4 py-4 text-center text-body-sm text-text-tertiary lg:col-span-3">
-                        暂无快照。月底点击“月度快照”保存一次结算。
+        <Dialog open={expense != null} onClose={onClose} title="支出详情" maxWidth="lg" bodyClassName="min-h-0 flex-1 overflow-y-auto p-5">
+            {expense ? (
+                <div className="space-y-4">
+                    <div className="rounded-inner-card border border-glass-border/75 bg-panel-bg/70 p-4">
+                        <p className="text-caption text-text-tertiary">金额</p>
+                        <p className="mt-1 text-h2 text-text-primary">{formatCurrency(expense.amount)}</p>
                     </div>
-                ) : (
-                    dashboard.snapshots.slice(0, 3).map((snapshot) => (
-                        <div key={snapshot.id} className="rounded-inner-card border border-glass-border/75 bg-panel-bg/70 p-3">
-                            <div className="flex items-center justify-between">
-                                <p className="text-body-sm font-semibold text-text-primary">{snapshot.snapshot_month.slice(0, 7)}</p>
-                                <span className="text-caption text-text-tertiary">{snapshot.snapshot_date}</span>
-                            </div>
-                            <div className="mt-3 grid grid-cols-2 gap-2 text-caption">
-                                <div className="rounded-control bg-bg-tertiary px-2 py-1.5">
-                                    <p className="text-text-tertiary">总负债</p>
-                                    <p className="mt-1 font-semibold text-text-primary">{formatCurrency(snapshot.total_liabilities)}</p>
-                                </div>
-                                <div className="rounded-control bg-bg-tertiary px-2 py-1.5">
-                                    <p className="text-text-tertiary">净值</p>
-                                    <p className="mt-1 font-semibold text-text-primary">{formatCurrency(snapshot.net_worth)}</p>
-                                </div>
-                            </div>
-                            {snapshot.notes ? <p className="mt-2 text-caption text-text-tertiary">{snapshot.notes}</p> : null}
+                    <div className="grid gap-3 md:grid-cols-2">
+                        <ExpenseDetailField label="日期" value={expense.occurredDate} />
+                        <ExpenseDetailField label="分类" value={expense.categoryLabel} />
+                        <ExpenseDetailField label="账户" value={expense.accountName} />
+                        <ExpenseDetailField label="商户/对象" value={expense.title} />
+                        <ExpenseDetailField label="记录时间" value={formatDateTime(expense.createdAt)} />
+                        <ExpenseDetailField label="备注" value={expense.note ?? '无'} className="md:col-span-2" />
+                    </div>
+                </div>
+            ) : null}
+        </Dialog>
+    );
+}
+
+function ExpenseDetailField({
+    label,
+    value,
+    className,
+}: {
+    label: string;
+    value: string;
+    className?: string;
+}) {
+    return (
+        <div className={['rounded-control bg-bg-tertiary px-3 py-2', className].filter(Boolean).join(' ')}>
+            <p className="text-caption text-text-tertiary">{label}</p>
+            <p className="mt-1 break-words text-body-sm font-semibold text-text-primary">{value}</p>
+        </div>
+    );
+}
+
+function formatSignedCurrency(value: number | null): string {
+    if (value == null) return '暂无上月';
+    const prefix = value > 0 ? '+' : '';
+    return `${prefix}${formatCurrency(value)}`;
+}
+
+function getDeltaTone(
+    value: number | null,
+    direction: 'lower-better' | 'higher-better',
+): 'default' | 'success' | 'warning' | 'danger' {
+    if (value == null || value === 0) return 'default';
+    if (direction === 'lower-better') return value < 0 ? 'success' : 'danger';
+    return value > 0 ? 'success' : 'warning';
+}
+
+function getToneTextClass(tone: 'default' | 'success' | 'warning' | 'danger'): string {
+    const classes = {
+        default: 'text-text-primary',
+        success: 'text-success',
+        warning: 'text-warning',
+        danger: 'text-danger',
+    };
+    return classes[tone];
+}
+
+function getTrendBarPct(value: number, values: number[]): number {
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    if (min === max) return 60;
+    return 12 + ((value - min) / (max - min)) * 88;
+}
+
+function getTrendFillClass(tone: 'blue' | 'danger' | 'success' | 'warning'): string {
+    const classes = {
+        blue: 'bg-info',
+        danger: 'bg-danger',
+        success: 'bg-success',
+        warning: 'bg-warning',
+    };
+    return classes[tone];
+}
+
+function SnapshotPanel({ dashboard }: { dashboard: FinanceDashboard }) {
+    const [selectedSnapshotId, setSelectedSnapshotId] = useState<string | null>(null);
+    const snapshotViewModels = useMemo(
+        () =>
+            getSnapshotViewModels({
+                snapshots: dashboard.snapshots,
+                profile: dashboard.profile,
+                transactions: dashboard.transactions,
+                currentMonthStart: getMonthStartISO(),
+            }),
+        [dashboard.profile, dashboard.snapshots, dashboard.transactions],
+    );
+    const selectedSnapshot = useMemo(
+        () => snapshotViewModels.find((snapshot) => snapshot.id === selectedSnapshotId) ?? null,
+        [selectedSnapshotId, snapshotViewModels],
+    );
+    const trendSeries = useMemo(() => getSnapshotTrendSeries(dashboard.snapshots), [dashboard.snapshots]);
+
+    return (
+        <>
+            <Card className="p-card">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                        <FilePlus2 size={17} className="text-accent" />
+                        <h2 className="text-h3 text-text-primary">月度快照</h2>
+                    </div>
+                    <span className="text-caption text-text-tertiary">点击卡片查看详情</span>
+                </div>
+                <div className="grid gap-3 lg:grid-cols-3">
+                    {snapshotViewModels.length === 0 ? (
+                        <div className="rounded-inner-card border border-dashed border-glass-border px-4 py-4 text-center text-body-sm text-text-tertiary lg:col-span-3">
+                            暂无快照。月底点击“月度快照”保存一次结算。
                         </div>
-                    ))
-                )}
+                    ) : (
+                        snapshotViewModels.slice(0, 3).map((viewModel) => (
+                            <button
+                                key={viewModel.id}
+                                type="button"
+                                onClick={() => setSelectedSnapshotId(viewModel.id)}
+                                className="rounded-inner-card border border-glass-border/75 bg-panel-bg/70 p-3 text-left transition-colors duration-normal ease-standard hover:border-accent/25 hover:bg-card-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+                                aria-label={`查看 ${viewModel.monthLabel} 快照详情`}
+                            >
+                                <div className="flex items-center justify-between">
+                                    <p className="text-body-sm font-semibold text-text-primary">{viewModel.monthLabel}</p>
+                                    <span className="text-caption text-text-tertiary">{viewModel.snapshot.snapshot_date}</span>
+                                </div>
+                                <div className="mt-3 grid grid-cols-2 gap-2 text-caption">
+                                    <div className="rounded-control bg-bg-tertiary px-2 py-1.5">
+                                        <p className="text-text-tertiary">总负债</p>
+                                        <p className="mt-1 font-semibold text-text-primary">{formatCurrency(viewModel.snapshot.total_liabilities)}</p>
+                                    </div>
+                                    <div className="rounded-control bg-bg-tertiary px-2 py-1.5">
+                                        <p className="text-text-tertiary">净值</p>
+                                        <p className="mt-1 font-semibold text-text-primary">{formatCurrency(viewModel.snapshot.net_worth)}</p>
+                                    </div>
+                                </div>
+                                <div className="mt-3 grid grid-cols-2 gap-2 text-caption">
+                                    <div>
+                                        <p className="text-text-tertiary">负债变化</p>
+                                        <p className={['mt-1 font-semibold', getToneTextClass(getDeltaTone(viewModel.comparison.totalLiabilitiesDelta, 'lower-better'))].join(' ')}>
+                                            {formatSignedCurrency(viewModel.comparison.totalLiabilitiesDelta)}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p className="text-text-tertiary">支出</p>
+                                        <p className="mt-1 font-semibold text-text-primary">{formatCurrency(viewModel.snapshot.monthly_expense)}</p>
+                                    </div>
+                                </div>
+                                {viewModel.snapshot.notes ? <p className="mt-2 line-clamp-2 text-caption text-text-tertiary">{viewModel.snapshot.notes}</p> : null}
+                            </button>
+                        ))
+                    )}
+                </div>
+                <SnapshotTrendPanel trendSeries={trendSeries} />
+            </Card>
+            <SnapshotDetailDialog snapshot={selectedSnapshot} onClose={() => setSelectedSnapshotId(null)} />
+        </>
+    );
+}
+
+function SnapshotTrendPanel({ trendSeries }: { trendSeries: SnapshotTrendPoint[] }) {
+    if (trendSeries.length < 2) {
+        return (
+            <div className="mt-4 rounded-inner-card border border-dashed border-glass-border px-4 py-4 text-center text-body-sm text-text-tertiary">
+                快照累计 2 个以上后，会显示总负债、净值、月支出和月还款趋势。
             </div>
-        </Card>
+        );
+    }
+
+    const metrics = [
+        { label: '总负债', tone: 'danger' as const, getValue: (point: SnapshotTrendPoint) => point.totalLiabilities },
+        { label: '净值', tone: 'success' as const, getValue: (point: SnapshotTrendPoint) => point.netWorth },
+        { label: '月支出', tone: 'warning' as const, getValue: (point: SnapshotTrendPoint) => point.monthlyExpense },
+        { label: '月还款', tone: 'blue' as const, getValue: (point: SnapshotTrendPoint) => point.monthlyRepayment },
+    ];
+
+    return (
+        <div className="mt-4 rounded-inner-card border border-glass-border/75 bg-panel-bg/70 p-3">
+            <div className="mb-3 flex items-center gap-2">
+                <BarChart3 size={16} className="text-accent" />
+                <p className="text-body-sm font-semibold text-text-primary">趋势视图</p>
+            </div>
+            <div className="grid gap-3 lg:grid-cols-2">
+                {metrics.map((metric) => {
+                    const values = trendSeries.map(metric.getValue);
+                    const latestValue = values[values.length - 1] ?? 0;
+
+                    return (
+                        <div key={metric.label} className="rounded-control bg-bg-tertiary px-3 py-2">
+                            <div className="flex items-center justify-between gap-3">
+                                <p className="text-caption text-text-tertiary">{metric.label}</p>
+                                <p className="text-caption font-semibold text-text-primary">{formatCurrency(latestValue)}</p>
+                            </div>
+                            <div className="mt-3 grid min-h-20 grid-flow-col items-end gap-2">
+                                {trendSeries.map((point) => {
+                                    const value = metric.getValue(point);
+                                    const pct = getTrendBarPct(value, values);
+
+                                    return (
+                                        <div key={point.id} className="flex min-w-0 flex-col items-center gap-1">
+                                            <div className="flex h-14 w-full max-w-8 items-end rounded-full bg-panel-bg">
+                                                <div
+                                                    className={['w-full rounded-full', getTrendFillClass(metric.tone)].join(' ')}
+                                                    style={{ height: `${pct}%` }}
+                                                />
+                                            </div>
+                                            <span className="max-w-12 truncate text-[10px] leading-tight text-text-tertiary">{point.monthLabel.slice(5)}</span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+function SnapshotDetailDialog({
+    snapshot,
+    onClose,
+}: {
+    snapshot: SnapshotViewModel | null;
+    onClose: () => void;
+}) {
+    const comparisonItems = snapshot
+        ? [
+            {
+                label: '总负债',
+                value: snapshot.comparison.totalLiabilitiesDelta,
+                direction: 'lower-better' as const,
+            },
+            {
+                label: '净值',
+                value: snapshot.comparison.netWorthDelta,
+                direction: 'higher-better' as const,
+            },
+            {
+                label: '月支出',
+                value: snapshot.comparison.monthlyExpenseDelta,
+                direction: 'lower-better' as const,
+            },
+            {
+                label: '月还款',
+                value: snapshot.comparison.monthlyRepaymentDelta,
+                direction: 'higher-better' as const,
+            },
+        ]
+        : [];
+
+    return (
+        <Dialog
+            open={snapshot != null}
+            onClose={onClose}
+            title={snapshot ? `${snapshot.monthLabel} 快照详情` : '快照详情'}
+            maxWidth="2xl"
+            bodyClassName="min-h-0 flex-1 overflow-y-auto p-5"
+        >
+            {snapshot ? (
+                <div className="space-y-4">
+                    <div className="grid gap-3 md:grid-cols-3">
+                        <SnapshotDetailField label="总资产" value={formatCurrency(snapshot.snapshot.total_assets)} />
+                        <SnapshotDetailField label="总负债" value={formatCurrency(snapshot.snapshot.total_liabilities)} />
+                        <SnapshotDetailField label="净值" value={formatCurrency(snapshot.snapshot.net_worth)} />
+                        <SnapshotDetailField label="信用卡债务" value={formatCurrency(snapshot.snapshot.credit_card_debt)} />
+                        <SnapshotDetailField label="月收入" value={formatCurrency(snapshot.snapshot.monthly_income)} />
+                        <SnapshotDetailField label="月支出" value={formatCurrency(snapshot.snapshot.monthly_expense)} />
+                        <SnapshotDetailField label="月还款" value={formatCurrency(snapshot.snapshot.monthly_repayment)} />
+                        <SnapshotDetailField label="快照日期" value={snapshot.snapshot.snapshot_date} />
+                        <SnapshotDetailField label="备注" value={snapshot.snapshot.notes ?? '无'} className="md:col-span-3" />
+                    </div>
+
+                    <div className="rounded-inner-card border border-glass-border/75 bg-panel-bg/70 p-3">
+                        <p className="text-body-sm font-semibold text-text-primary">与上月相比</p>
+                        <div className="mt-3 grid gap-2 md:grid-cols-4">
+                            {comparisonItems.map((item) => {
+                                const tone = getDeltaTone(item.value, item.direction);
+
+                                return (
+                                    <div key={item.label} className="rounded-control bg-bg-tertiary px-3 py-2">
+                                        <p className="text-caption text-text-tertiary">{item.label}</p>
+                                        <p className={['mt-1 text-body-sm font-semibold', getToneTextClass(tone)].join(' ')}>
+                                            {formatSignedCurrency(item.value)}
+                                        </p>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    <div className="grid gap-3 md:grid-cols-3">
+                        <SnapshotReviewCard
+                            label="预算使用"
+                            value={snapshot.budgetUsedPct == null ? '未设置预算' : formatPct(snapshot.budgetUsedPct)}
+                            tone={snapshot.budgetExceeded ? 'danger' : 'success'}
+                            description={snapshot.budgetExceeded ? '当月支出超过预算' : '当月支出在预算内'}
+                        />
+                        <SnapshotReviewCard
+                            label="还款目标"
+                            value={snapshot.repaymentTargetMet ? '已达标' : '未达标'}
+                            tone={snapshot.repaymentTargetMet ? 'success' : 'warning'}
+                            description="按当前基础信息中的目标还款额判断"
+                        />
+                        <SnapshotReviewCard
+                            label="本月实时最大分类"
+                            value={snapshot.topExpenseCategory ? snapshot.topExpenseCategory.categoryLabel : '暂无分类'}
+                            tone="default"
+                            description={
+                                snapshot.topExpenseCategory
+                                    ? `${formatCurrency(snapshot.topExpenseCategory.amount)} · 根据当前本月交易计算`
+                                    : '根据当前本月交易计算，不是历史快照存档'
+                            }
+                        />
+                    </div>
+                </div>
+            ) : null}
+        </Dialog>
+    );
+}
+
+function SnapshotDetailField({
+    label,
+    value,
+    className,
+}: {
+    label: string;
+    value: string;
+    className?: string;
+}) {
+    return (
+        <div className={['rounded-control bg-bg-tertiary px-3 py-2', className].filter(Boolean).join(' ')}>
+            <p className="text-caption text-text-tertiary">{label}</p>
+            <p className="mt-1 break-words text-body-sm font-semibold text-text-primary">{value}</p>
+        </div>
+    );
+}
+
+function SnapshotReviewCard({
+    label,
+    value,
+    tone,
+    description,
+}: {
+    label: string;
+    value: string;
+    tone: 'default' | 'success' | 'warning' | 'danger';
+    description: string;
+}) {
+    return (
+        <div className="rounded-inner-card border border-glass-border/75 bg-panel-bg/70 p-3">
+            <p className="text-caption text-text-tertiary">{label}</p>
+            <p className={['mt-1 text-body-sm font-semibold', getToneTextClass(tone)].join(' ')}>{value}</p>
+            <p className="mt-2 text-caption text-text-tertiary">{description}</p>
+        </div>
     );
 }
 
