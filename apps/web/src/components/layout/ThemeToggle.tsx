@@ -24,7 +24,11 @@ function getThemeIconClass(theme: ThemeName) {
     return 'text-accent';
 }
 
-export default function ThemeToggle() {
+type ThemeToggleProps = {
+    variant?: 'full' | 'icon';
+};
+
+export default function ThemeToggle({ variant = 'full' }: ThemeToggleProps) {
     const [theme, setTheme] = useState<ThemeName>(() => resolveInitialTheme());
     const [isOpen, setIsOpen] = useState(false);
     const [popoverStyle, setPopoverStyle] = useState<CSSProperties | null>(null);
@@ -44,11 +48,13 @@ export default function ThemeToggle() {
         const preferredLeft = rect.right + 12;
         const maxLeft = window.innerWidth - width - 12;
         const left = Math.max(12, Math.min(preferredLeft, maxLeft));
-        const bottom = Math.max(12, window.innerHeight - rect.bottom);
+        const opensDown = rect.top < window.innerHeight / 2;
 
         setPopoverStyle({
             left,
-            bottom,
+            ...(opensDown
+                ? { top: Math.min(rect.bottom + 8, window.innerHeight - 12) }
+                : { bottom: Math.max(12, window.innerHeight - rect.bottom) }),
             width,
         });
     }, []);
@@ -106,6 +112,7 @@ export default function ThemeToggle() {
 
     const activeTheme = THEME_OPTIONS.find((option) => option.id === theme) ?? THEME_OPTIONS[0];
     const ActiveIcon = THEME_ICONS[activeTheme.id];
+    const isIconVariant = variant === 'icon';
     const popover =
         isOpen && popoverStyle && typeof document !== 'undefined'
             ? createPortal(
@@ -198,43 +205,55 @@ export default function ThemeToggle() {
             : null;
 
     return (
-        <div className="px-1">
+        <div className={isIconVariant ? '' : 'px-1'}>
             <button
                 ref={triggerRef}
                 type="button"
                 onClick={handleToggle}
                 aria-haspopup="menu"
                 aria-expanded={isOpen}
-                className="glass-list-row flex w-full items-center gap-3 rounded-popover px-3 py-2.5 text-left shadow-sm"
+                className={
+                    isIconVariant
+                        ? 'flex h-9 w-9 items-center justify-center rounded-control text-text-secondary transition-colors duration-normal ease-standard hover:bg-panel-bg hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30'
+                        : 'glass-list-row flex w-full items-center gap-3 rounded-popover px-3 py-2.5 text-left shadow-sm'
+                }
+                title="主题"
+                aria-label="主题"
             >
-                <div className="glass-icon-badge h-8 w-8 shrink-0">
-                    <Palette size={15} className="text-accent" />
-                </div>
-                <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                        <span className="text-body-sm font-medium text-text-primary">主题</span>
-                    </div>
-                    <div className="mt-0.5 flex items-center gap-1.5 text-caption text-text-tertiary">
-                        <ActiveIcon size={13} className={`${getThemeIconClass(activeTheme.id)} shrink-0`} />
-                        <span className="truncate">{activeTheme.label}</span>
-                    </div>
-                </div>
-                <div className="flex shrink-0 items-center gap-1">
-                    {activeTheme.swatches.map((swatch) => (
-                        <span
-                            key={swatch}
-                            className="h-2.5 w-2.5 rounded-full border border-white/12 shadow-sm"
-                            style={{ backgroundColor: swatch }}
-                            aria-hidden="true"
+                {isIconVariant ? (
+                    <Palette size={17} />
+                ) : (
+                    <>
+                        <div className="glass-icon-badge h-8 w-8 shrink-0">
+                            <Palette size={15} className="text-accent" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                                <span className="text-body-sm font-medium text-text-primary">主题</span>
+                            </div>
+                            <div className="mt-0.5 flex items-center gap-1.5 text-caption text-text-tertiary">
+                                <ActiveIcon size={13} className={`${getThemeIconClass(activeTheme.id)} shrink-0`} />
+                                <span className="truncate">{activeTheme.label}</span>
+                            </div>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-1">
+                            {activeTheme.swatches.map((swatch) => (
+                                <span
+                                    key={swatch}
+                                    className="h-2.5 w-2.5 rounded-full border border-white/12 shadow-sm"
+                                    style={{ backgroundColor: swatch }}
+                                    aria-hidden="true"
+                                />
+                            ))}
+                        </div>
+                        <ChevronUp
+                            size={15}
+                            className={`shrink-0 text-text-tertiary transition-transform duration-normal ease-standard ${
+                                isOpen ? '' : 'rotate-180'
+                            }`}
                         />
-                    ))}
-                </div>
-                <ChevronUp
-                    size={15}
-                    className={`shrink-0 text-text-tertiary transition-transform duration-normal ease-standard ${
-                        isOpen ? '' : 'rotate-180'
-                    }`}
-                />
+                    </>
+                )}
             </button>
             {popover}
         </div>

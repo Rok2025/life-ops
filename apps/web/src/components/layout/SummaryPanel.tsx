@@ -8,8 +8,13 @@ import { BookOpen, Dumbbell, Hourglass, ListTodo, PenLine, Users } from 'lucide-
 import Link from 'next/link';
 import { Card, SectionHeader, getButtonClassName } from '@/components/ui';
 import { notesApi } from '@/features/quick-notes';
+import { getAppShellPanelClassName } from './appShellLayout';
 
-export default function SummaryPanel() {
+type SummaryPanelProps = {
+    visible?: boolean;
+};
+
+export default function SummaryPanel({ visible = true }: SummaryPanelProps) {
     const horizons = formatHorizons();
     const monthProgress = getMonthProgress();
     const weekDays = ['一', '二', '三', '四', '五', '六', '日'];
@@ -18,12 +23,13 @@ export default function SummaryPanel() {
     const { data: incompleteTodoCount = 0 } = useQuery({
         queryKey: ['incomplete-todo-count'],
         queryFn: () => notesApi.getIncompleteTodoCount(),
+        enabled: visible,
     });
 
-    if (!user && !loading && pathname === '/login') return null;
+    if (!visible || (!user && !loading && pathname === '/login')) return null;
 
     return (
-        <aside className="fixed right-0 top-0 h-screen w-(--summary-width) overflow-y-auto border-l border-glass-border bg-sidebar-bg p-3 backdrop-blur-2xl">
+        <aside className={getAppShellPanelClassName('right')}>
             {/* Horizons */}
             <section className="mb-5">
                 <SectionHeader title="时间节奏" className="mb-3" />

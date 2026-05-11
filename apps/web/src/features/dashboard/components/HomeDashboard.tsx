@@ -1,21 +1,97 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useQuery } from '@tanstack/react-query';
 import WelcomeHeader from '@/components/WelcomeHeader';
-import { FrogsWidget, frogsApi } from '@/features/daily-frogs';
-import { TilWidget, tilApi } from '@/features/daily-til';
-import { NotesWidget, notesApi } from '@/features/quick-notes';
-import { ClientFitnessAreaCard, fitnessApi } from '@/features/fitness';
-import { GrowthAreaCard } from '@/features/growth-projects';
-import { OutputAreaCard } from '@/features/output';
-import { EnglishDailyWidget } from '@/features/english-learning';
+import { frogsApi } from '@/features/daily-frogs/api/frogsApi';
+import { tilApi } from '@/features/daily-til/api/tilApi';
+import { notesApi } from '@/features/quick-notes/api/notesApi';
+import { fitnessApi } from '@/features/fitness/api/fitnessApi';
 import { getLocalDateStr } from '@/lib/utils/date';
-import { SectionHeader } from '@/components/ui';
+import { Card, SectionHeader } from '@/components/ui';
 import type { HomeDashboardSnapshot } from '../types';
 
 type HomeDashboardProps = {
     initialData?: HomeDashboardSnapshot;
 };
+
+type DateWidgetProps = {
+    initialDate?: string;
+};
+
+type FitnessAreaCardProps = {
+    target: number;
+    unit: string;
+};
+
+const FrogsWidget = dynamic<DateWidgetProps>(
+    () => import('@/features/daily-frogs/components/FrogsWidget'),
+    { loading: () => <DashboardWidgetSkeleton title="三只青蛙" /> },
+);
+
+const TilWidget = dynamic<DateWidgetProps>(
+    () => import('@/features/daily-til/components/TilWidget'),
+    { loading: () => <DashboardWidgetSkeleton title="TIL" /> },
+);
+
+const NotesWidget = dynamic<DateWidgetProps>(
+    () => import('@/features/quick-notes/components/NotesWidget'),
+    { loading: () => <DashboardWidgetSkeleton title="随手记" tall /> },
+);
+
+const EnglishDailyWidget = dynamic(
+    () => import('@/features/english-learning/components/EnglishDailyWidget'),
+    { loading: () => <DashboardWidgetSkeleton title="今日英语" tall /> },
+);
+
+const ClientFitnessAreaCard = dynamic<FitnessAreaCardProps>(
+    () => import('@/features/fitness/components/ClientFitnessAreaCard').then((mod) => mod.ClientFitnessAreaCard),
+    { loading: () => <AreaCardSkeleton title="健身" /> },
+);
+
+const GrowthAreaCard = dynamic(
+    () => import('@/features/growth-projects/components/GrowthAreaCard').then((mod) => mod.GrowthAreaCard),
+    { loading: () => <AreaCardSkeleton title="成长" /> },
+);
+
+const OutputAreaCard = dynamic(
+    () => import('@/features/output/components/OutputAreaCard').then((mod) => mod.OutputAreaCard),
+    { loading: () => <AreaCardSkeleton title="输出" /> },
+);
+
+function DashboardWidgetSkeleton({ title, tall = false }: { title: string; tall?: boolean }) {
+    return (
+        <Card className={['p-card', tall ? 'min-h-[18rem]' : 'min-h-[13rem]'].join(' ')}>
+            <div className="mb-widget-header flex items-center justify-between">
+                <div className="h-5 w-24 rounded bg-bg-tertiary" aria-label={`${title} 加载中`} />
+                <div className="h-8 w-16 rounded-control bg-bg-tertiary" />
+            </div>
+            <div className="space-y-2">
+                <div className="h-10 rounded-inner-card bg-bg-tertiary" />
+                <div className="h-10 rounded-inner-card bg-bg-tertiary" />
+                <div className="h-10 rounded-inner-card bg-bg-tertiary" />
+            </div>
+        </Card>
+    );
+}
+
+function AreaCardSkeleton({ title }: { title: string }) {
+    return (
+        <Card className="h-full min-h-[10rem] p-card">
+            <div className="mb-widget-header flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-full bg-bg-tertiary" />
+                    <div className="h-4 w-14 rounded bg-bg-tertiary" aria-label={`${title} 加载中`} />
+                </div>
+                <div className="h-6 w-16 rounded-full bg-bg-tertiary" />
+            </div>
+            <div className="space-y-2">
+                <div className="h-4 rounded bg-bg-tertiary" />
+                <div className="h-2 rounded-full bg-bg-tertiary" />
+            </div>
+        </Card>
+    );
+}
 
 export default function HomeDashboard({ initialData }: HomeDashboardProps) {
     const today = initialData?.today ?? getLocalDateStr();

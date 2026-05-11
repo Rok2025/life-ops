@@ -1,18 +1,16 @@
 'use client';
 
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
     Home, Dumbbell, Sprout, Languages, BookOpen, Bot, Sparkles,
-    PenLine, Users, Wallet, LogOut, Settings, ListTodo, Baby, Search, History,
+    PenLine, Users, Wallet, LogOut, ListTodo, Baby, Search, History,
     TerminalSquare,
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { formatHorizons } from '@/lib/horizons';
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import NavLink from './NavLink';
 import NavGroup from './NavGroup';
-import ThemeToggle from './ThemeToggle';
+import { getAppShellPanelClassName } from './appShellLayout';
 
 interface NavChild {
     href: string;
@@ -52,16 +50,14 @@ const navItems: NavItem[] = [
     { href: '/finance', label: '财务', icon: Wallet },
 ];
 
-export default function Sidebar() {
+type SidebarProps = {
+    visible?: boolean;
+};
+
+export default function Sidebar({ visible = true }: SidebarProps) {
     const pathname = usePathname();
-    const [horizons, setHorizons] = useState(formatHorizons());
     const [expandedGroups, setExpandedGroups] = useState<string[]>(['成长']);
     const { user, signOut, loading } = useAuth();
-
-    useEffect(() => {
-        const interval = setInterval(() => setHorizons(formatHorizons()), 60000);
-        return () => clearInterval(interval);
-    }, []);
 
     const toggleGroup = (label: string) => {
         setExpandedGroups(prev =>
@@ -69,18 +65,10 @@ export default function Sidebar() {
         );
     };
 
-    if (!user && !loading && pathname === '/login') return null;
+    if (!visible || (!user && !loading && pathname === '/login')) return null;
 
     return (
-        <aside className="fixed left-0 top-0 h-screen w-(--sidebar-width) bg-sidebar-bg border-r border-glass-border backdrop-blur-2xl flex flex-col">
-            {/* Logo */}
-            <div className="p-4 border-b border-glass-border">
-                <Link href="/" className="hover:opacity-80 transition-opacity">
-                    <h1 className="text-h2 text-text-primary">Life OPS</h1>
-                </Link>
-                <p className="text-caption text-text-secondary mt-1">{horizons.week}</p>
-            </div>
-
+        <aside className={getAppShellPanelClassName('left')}>
             {/* Navigation */}
             <nav className="flex-1 overflow-y-auto px-3 py-3">
                 <div className="rounded-nav-container border border-glass-border/70 bg-panel-bg/40 p-1.5 shadow-glass-idle backdrop-blur-xl">
@@ -146,19 +134,9 @@ export default function Sidebar() {
                             >
                                 <LogOut size={18} />
                             </button>
-                            <Link
-                                href="/settings"
-                                className="p-2 text-text-tertiary hover:text-accent hover:bg-panel-bg rounded-card transition-all"
-                                title="系统配置"
-                            >
-                                <Settings size={18} />
-                            </Link>
                         </div>
-                        <ThemeToggle />
                     </div>
-                ) : (
-                    <ThemeToggle />
-                )}
+                ) : null}
             </div>
         </aside>
     );

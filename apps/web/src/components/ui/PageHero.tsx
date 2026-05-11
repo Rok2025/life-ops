@@ -1,6 +1,7 @@
 import type { PropsWithChildren, ReactNode } from 'react';
 import { DEFAULT_TONE, TONES } from '@/design-system/tokens';
 import { Card } from './Card';
+import { getPageHeroClassName } from './pageHeroLayout';
 
 type PageHeroTone = keyof typeof TONES;
 
@@ -20,6 +21,7 @@ export interface PageHeroProps extends PropsWithChildren {
   stats?: PageHeroStat[];
   className?: string;
   compact?: boolean;
+  sticky?: boolean;
 }
 
 export function PageHero({
@@ -31,12 +33,13 @@ export function PageHero({
   stats = [],
   className,
   compact = false,
+  sticky = true,
   children,
 }: PageHeroProps) {
   const hasStats = stats.length > 0;
 
   return (
-    <Card className={['overflow-hidden', compact ? 'p-3 sm:p-4' : 'p-card', className].filter(Boolean).join(' ')}>
+    <Card className={getPageHeroClassName({ compact, sticky, className })}>
       <div className={['pointer-events-none absolute inset-x-0 top-0 bg-gradient-to-r from-white/18 via-white/8 to-transparent dark:from-white/[0.06] dark:via-white/[0.03]', compact ? 'h-16' : 'h-24'].join(' ')} />
       <div className={['pointer-events-none absolute left-[-3rem] top-[-4rem] rounded-full bg-accent/8 blur-3xl dark:bg-white/[0.035]', compact ? 'h-24 w-24' : 'h-32 w-32'].join(' ')} />
       <div className={['relative grid xl:items-start', hasStats ? 'xl:grid-cols-[minmax(0,1fr)_minmax(260px,340px)]' : '', compact ? 'gap-3' : 'gap-4'].join(' ')}>
