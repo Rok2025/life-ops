@@ -1,4 +1,4 @@
-import assert from 'node:assert/strict';
+import { describe, expect, it } from 'vitest';
 import type { FinanceMonthlySnapshot, FinanceProfile, FinanceTransaction } from '../types';
 import { getSnapshotTrendSeries, getSnapshotViewModels } from './snapshotInsights';
 
@@ -70,33 +70,37 @@ const transactions = [
     },
 ] as FinanceTransaction[];
 
-const viewModels = getSnapshotViewModels({
-    snapshots,
-    profile,
-    transactions,
-    currentMonthStart: '2026-05-01',
-});
+describe('snapshot insights', () => {
+    it('builds monthly comparison view models', () => {
+        const viewModels = getSnapshotViewModels({
+            snapshots,
+            profile,
+            transactions,
+            currentMonthStart: '2026-05-01',
+        });
 
-assert.equal(viewModels[0].id, 'may');
-assert.equal(viewModels[0].comparison.totalLiabilitiesDelta, -100);
-assert.equal(viewModels[0].comparison.netWorthDelta, 200);
-assert.equal(viewModels[0].comparison.monthlyExpenseDelta, -30);
-assert.equal(viewModels[0].comparison.monthlyRepaymentDelta, 100);
-assert.equal(viewModels[0].budgetUsedPct, 60);
-assert.equal(viewModels[0].budgetExceeded, false);
-assert.equal(viewModels[0].repaymentTargetMet, true);
-assert.deepEqual(viewModels[0].topExpenseCategory, {
-    category: 'dining',
-    categoryLabel: '餐饮',
-    amount: 90,
-});
-assert.equal(viewModels[1].comparison.totalLiabilitiesDelta, null);
-assert.equal(viewModels[1].topExpenseCategory, null);
+        expect(viewModels[0].id).toBe('may');
+        expect(viewModels[0].comparison.totalLiabilitiesDelta).toBe(-100);
+        expect(viewModels[0].comparison.netWorthDelta).toBe(200);
+        expect(viewModels[0].comparison.monthlyExpenseDelta).toBe(-30);
+        expect(viewModels[0].comparison.monthlyRepaymentDelta).toBe(100);
+        expect(viewModels[0].budgetUsedPct).toBe(60);
+        expect(viewModels[0].budgetExceeded).toBe(false);
+        expect(viewModels[0].repaymentTargetMet).toBe(true);
+        expect(viewModels[0].topExpenseCategory).toEqual({
+            category: 'dining',
+            categoryLabel: '餐饮',
+            amount: 90,
+        });
+        expect(viewModels[1].comparison.totalLiabilitiesDelta).toBeNull();
+        expect(viewModels[1].topExpenseCategory).toBeNull();
+    });
 
-const trendSeries = getSnapshotTrendSeries(snapshots);
-assert.deepEqual(
-    trendSeries.map((point) => point.monthLabel),
-    ['2026-04', '2026-05'],
-);
-assert.equal(trendSeries[0].totalLiabilities, 1000);
-assert.equal(trendSeries[1].netWorth, -400);
+    it('sorts snapshot trend points by month', () => {
+        const trendSeries = getSnapshotTrendSeries(snapshots);
+
+        expect(trendSeries.map((point) => point.monthLabel)).toEqual(['2026-04', '2026-05']);
+        expect(trendSeries[0].totalLiabilities).toBe(1000);
+        expect(trendSeries[1].netWorth).toBe(-400);
+    });
+});

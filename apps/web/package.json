@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "lint:styles": "stylelint \"src/**/*.css\"",
+    "test": "vitest run",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
@@ -40,6 +41,7 @@
     "stylelint": "^16",
     "stylelint-config-standard": "^36",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^2.1.9"
   }
 }

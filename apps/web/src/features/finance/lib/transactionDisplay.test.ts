@@ -1,4 +1,4 @@
-import assert from 'node:assert/strict';
+import { describe, expect, it } from 'vitest';
 import type { FinanceAccount, FinanceTransaction } from '../types';
 import { getExpenseDetailRows } from './transactionDisplay';
 
@@ -45,16 +45,17 @@ const transactions = [
     },
 ] as FinanceTransaction[];
 
-const rows = getExpenseDetailRows(transactions, accounts);
+describe('getExpenseDetailRows', () => {
+    it('returns newest expense rows with display labels', () => {
+        const rows = getExpenseDetailRows(transactions, accounts);
 
-assert.deepEqual(
-    rows.map((row) => row.id),
-    ['expense-new', 'expense-old'],
-);
-assert.equal(rows[0].title, '咖啡店');
-assert.equal(rows[0].accountName, '招商储蓄卡');
-assert.equal(rows[0].categoryLabel, '餐饮');
-assert.equal(rows[0].note, '和客户聊天');
-assert.equal(rows[1].title, '未填写对象');
-assert.equal(rows[1].accountName, '未关联账户');
-assert.equal(rows[1].note, null);
+        expect(rows.map((row) => row.id)).toEqual(['expense-new', 'expense-old']);
+        expect(rows[0].title).toBe('咖啡店');
+        expect(rows[0].accountName).toBe('招商储蓄卡');
+        expect(rows[0].categoryLabel).toBe('餐饮');
+        expect(rows[0].note).toBe('和客户聊天');
+        expect(rows[1].title).toBe('未填写对象');
+        expect(rows[1].accountName).toBe('未关联账户');
+        expect(rows[1].note).toBeNull();
+    });
+});
