@@ -3,9 +3,22 @@
 import { useState, useCallback } from 'react';
 import { Check, Trash2, Plus, ChevronDown, ChevronRight } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { ChipGroup, DatePicker } from '@/components/ui';
+import { formatDisplayDate, getLocalDateStr } from '@/lib/utils/date';
 import { projectsApi } from '../api/projectsApi';
 import type { ProjectTodo } from '../types';
 import { handleCommandEnterFormSubmit } from '@/lib/shortcuts';
+import { PRIORITY_CONFIG, TODO_PRIORITIES } from '@/features/quick-notes/types';
+import type { TodoPriority } from '@/features/quick-notes/types';
+import { buildCreateProjectTodoInput } from '../lib/projectTodoForm';
+
+const PRIORITY_OPTIONS = TODO_PRIORITIES.map((priority) => {
+    const config = PRIORITY_CONFIG[priority];
+    return {
+        value: priority,
+        label: config.emoji ? `${config.emoji} ${config.label}` : config.label,
+    };
+});
 
 interface TodoItemProps {
     todo: ProjectTodo;
@@ -15,6 +28,8 @@ interface TodoItemProps {
 
 export function TodoItem({ todo, projectId, highlighted = false }: TodoItemProps) {
     const queryClient = useQueryClient();
+    const priority = todo.priority ?? 'normal';
+    const priorityCfg = PRIORITY_CONFIG[priority];
 
     const toggleMutation = useMutation({
         mutationFn: () => projectsApi.toggleTodo(todo.id, !todo.is_completed),
@@ -53,6 +68,14 @@ export function TodoItem({ todo, projectId, highlighted = false }: TodoItemProps
             <span className={`text-body-sm flex-1 min-w-0 truncate ${todo.is_completed ? 'line-through text-text-secondary' : 'text-text-primary'}`}>
                 {todo.title}
             </span>
+            <div className="hidden items-center gap-1.5 sm:flex">
+                <span className={`rounded-full px-1.5 py-0.5 text-[11px] ${priorityCfg.bg} ${priorityCfg.color}`}>
+                    {priorityCfg.emoji ? `${priorityCfg.emoji} ${priorityCfg.label}` : priorityCfg.label}
+                </span>
+                <span className="rounded-full bg-bg-tertiary px-1.5 py-0.5 text-[11px] text-text-secondary">
+                    {todo.execute_date ? formatDisplayDate(todo.execute_date) : '未安排'}
+                </span>
+            </div>
             <button
                 onClick={() => deleteMutation.mutate()}
                 className="p-0.5 text-text-tertiary hover:text-danger hover:bg-danger/10 rounded-control transition-colors duration-normal ease-standard shrink-0"
@@ -72,6 +95,8 @@ interface TodoListProps {
 export function TodoList({ projectId, todos, highlightedTodoId = null }: TodoListProps) {
     const queryClient = useQueryClient();
     const [newTitle, setNewTitle] = useState('');
+    const [executeDate, setExecuteDate] = useState(getLocalDateStr());
+    const [priority, setPriority] = useState<TodoPriority>('normal');
     const [showCompleted, setShowCompleted] = useState(false);
 
     const activeTodos = todos.filter(t => !t.is_completed);
@@ -79,9 +104,16 @@ export function TodoList({ projectId, todos, highlightedTodoId = null }: TodoLis
     const highlightedCompleted = completedTodos.some((todo) => todo.id === highlightedTodoId);
 
     const createMutation = useMutation({
-        mutationFn: (title: string) => projectsApi.createTodo({ project_id: projectId, title }),
+        mutationFn: (title: string) => projectsApi.createTodo(buildCreateProjectTodoInput({
+            projectId,
+            title,
+            executeDate,
+            priority,
+        })),
         onSuccess: () => {
             setNewTitle('');
+            setExecuteDate(getLocalDateStr());
+            setPriority('normal');
             queryClient.invalidateQueries({ queryKey: ['project-todos', projectId] });
             queryClient.invalidateQueries({ queryKey: ['projects'] });
         },
@@ -112,15 +144,33 @@ export function TodoList({ projectId, todos, highlightedTodoId = null }: TodoLis
             )}
 
             {/* 添加待办 */}
-            <form onSubmit={handleSubmit} onKeyDown={handleCommandEnterFormSubmit} className="glass-list-row mt-2 flex items-center gap-1.5 px-2 py-2">
-                <Plus size={14} className="shrink-0 text-text-tertiary" />
-                <input
-                    type="text"
-                    value={newTitle}
-                    onChange={e => setNewTitle(e.target.value)}
-                    placeholder="添加待办...（⌘ Enter）"
-                    className="flex-1 text-body-sm bg-transparent border-none outline-none text-text-primary placeholder:text-text-tertiary"
-                />
+            <form onSubmit={handleSubmit} onKeyDown={handleCommandEnterFormSubmit} className="glass-list-row mt-2 space-y-2 px-2 py-2">
+                <div className="flex items-center gap-1.5">
+                    <Plus size={14} className="shrink-0 text-text-tertiary" />
+                    <input
+                        type="text"
+                        value={newTitle}
+                        onChange={e => setNewTitle(e.target.value)}
+                        placeholder="添加待办...（⌘ Enter）"
+                        className="flex-1 text-body-sm bg-transparent border-none outline-none text-text-primary placeholder:text-text-tertiary"
+                    />
+                </div>
+                <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+                    <DatePicker
+                        value={executeDate}
+                        onChange={setExecuteDate}
+                        clearable
+                        placeholder="暂不指定执行日期"
+                        ariaLabel="项目待办执行日期"
+                    />
+                    <ChipGroup<TodoPriority>
+                        label="项目待办优先级"
+                        name={`project-todo-priority-${projectId}`}
+                        value={priority}
+                        options={PRIORITY_OPTIONS}
+                        onChange={setPriority}
+                    />
+                </div>
             </form>
 
             {/* 已完成待办（折叠区） */}
