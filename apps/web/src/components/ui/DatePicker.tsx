@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { formatFullDate } from '@/lib/utils/date';
+import { formatFullDate, getLocalDateStr } from '@/lib/utils/date';
+import { getDatePickerDayClassName } from './datePickerDay';
 
 const WEEKDAYS = ['一', '二', '三', '四', '五', '六', '日'];
 
@@ -200,6 +201,7 @@ export function DatePicker({
   }, [onChange]);
 
   const showClear = clearable && Boolean(value) && !disabled;
+  const today = getLocalDateStr();
 
   return (
     <div className={['relative', className].filter(Boolean).join(' ')}>
@@ -278,6 +280,7 @@ export function DatePicker({
               const day = index + 1;
               const dateStr = toDateStr(viewYear, viewMonth, day);
               const isSelected = dateStr === value;
+              const isToday = dateStr === today;
               const isDisabled = isDateOutsideRange(dateStr, minDate, maxDate);
 
               return (
@@ -286,13 +289,20 @@ export function DatePicker({
                   type="button"
                   disabled={isDisabled}
                   onClick={() => handleSelectDate(day)}
-                  className={[
-                    'relative flex h-9 w-full items-center justify-center rounded-control text-body-sm transition-colors duration-normal ease-standard',
-                    isDisabled ? 'cursor-not-allowed text-text-secondary/30' : 'cursor-pointer text-text-primary hover:bg-panel-bg',
-                    isSelected ? 'border border-selection-border bg-selection-bg font-semibold text-selection-text' : '',
-                  ].join(' ')}
+                  aria-label={`${dateStr}${isToday ? '，今天' : ''}`}
+                  title={isToday ? '今天' : dateStr}
+                  className={getDatePickerDayClassName({ isDisabled, isSelected, isToday })}
                 >
                   {day}
+                  {isToday ? (
+                    <span
+                      aria-hidden="true"
+                      className={[
+                        'absolute bottom-1 h-1 w-1 rounded-full',
+                        isSelected ? 'bg-selection-text' : 'bg-accent',
+                      ].join(' ')}
+                    />
+                  ) : null}
                 </button>
               );
             })}
