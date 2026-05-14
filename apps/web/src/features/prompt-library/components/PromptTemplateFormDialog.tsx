@@ -5,7 +5,8 @@ import { Columns2, Edit3, Eye } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { PromptTemplate, PromptTemplateFormValues } from '../types';
-import { Button, Checkbox, Dialog, Input, SegmentedControl } from '@/components/ui';
+import { Button, Checkbox, Dialog, Input, SegmentedControl, ShortcutHint } from '@/components/ui';
+import { handleCommandEnterFormSubmit } from '@/lib/shortcuts';
 
 interface PromptTemplateFormDialogProps {
     editingTemplate: PromptTemplate | null;
@@ -72,7 +73,7 @@ export default function PromptTemplateFormDialog({
             maxWidth="2xl"
             bodyClassName="flex min-h-0 flex-1 flex-col"
         >
-            <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+            <form onSubmit={handleSubmit} onKeyDown={handleCommandEnterFormSubmit} className="flex min-h-0 flex-1 flex-col">
                 <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4">
                         {submitError && (
                             <div className="rounded-card border border-danger/30 bg-danger/10 px-3 py-2 text-body-sm text-danger">
@@ -178,6 +179,7 @@ export default function PromptTemplateFormDialog({
                     </Button>
                     <Button type="submit" disabled={submitting || !title.trim() || !content.trim()} size="sm">
                         {submitting ? '保存中...' : isEditing ? '保存' : '创建'}
+                        {!submitting ? <ShortcutHint /> : null}
                     </Button>
                 </div>
             </form>

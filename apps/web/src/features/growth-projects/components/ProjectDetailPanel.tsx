@@ -11,11 +11,12 @@ import { getProjectProgressMetrics } from '../utils/projectProgress';
 
 interface ProjectDetailPanelProps {
     project: ProjectWithStats;
+    highlightedTodoId?: string | null;
     /** 移动端返回按钮回调 */
     onBack?: () => void;
 }
 
-export function ProjectDetailPanel({ project, onBack }: ProjectDetailPanelProps) {
+export function ProjectDetailPanel({ project, highlightedTodoId, onBack }: ProjectDetailPanelProps) {
     const { data: todos = [], isLoading: todosLoading } = useProjectTodos(project.id);
     const { data: notes = [], isLoading: notesLoading } = useProjectNotes(project.id);
 
@@ -120,7 +121,7 @@ export function ProjectDetailPanel({ project, onBack }: ProjectDetailPanelProps)
                     <div className="divide-y divide-border/70">
                         {/* 待办事项区块 */}
                         <div className="p-card">
-                            <TodoList projectId={project.id} todos={todos} />
+                            <TodoList projectId={project.id} todos={todos} highlightedTodoId={highlightedTodoId} />
                         </div>
 
                         {/* 灵感 & 成果区块 */}

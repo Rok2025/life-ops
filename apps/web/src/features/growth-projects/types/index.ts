@@ -1,4 +1,5 @@
 import { TONES, type ToneTokenClasses } from '@/design-system/tokens';
+import type { TodoPriority } from '@/features/quick-notes/types';
 
 /** 成长领域 */
 export type GrowthArea = 'ai' | 'english' | 'reading';
@@ -167,14 +168,30 @@ export type ProjectTodo = {
     title: string;
     is_completed: boolean;
     completed_at: string | null;
+    execute_date: string | null;
+    priority: TodoPriority;
     sort_order: number;
     created_at: string;
+};
+
+/** 项目待办 + 项目信息（用于待办收件箱聚合） */
+export type ProjectTodoWithProject = ProjectTodo & {
+    growth_projects: Pick<Project, 'id' | 'title' | 'area' | 'status'> | null;
 };
 
 /** 创建待办输入 */
 export type CreateTodoInput = {
     project_id: string;
     title: string;
+    execute_date?: string | null;
+    priority?: TodoPriority;
+};
+
+/** 更新待办输入 */
+export type UpdateTodoInput = {
+    title?: string;
+    execute_date?: string | null;
+    priority?: TodoPriority | null;
 };
 
 /** 项目灵感/成果 */

@@ -20,7 +20,8 @@ import {
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Button, SegmentedControl } from '@/components/ui';
+import { Button, SegmentedControl, ShortcutHint } from '@/components/ui';
+import { isCommandEnterEvent } from '@/lib/shortcuts';
 
 type EditorMode = 'edit' | 'preview' | 'split';
 
@@ -90,7 +91,7 @@ export function MarkdownEditor({
                 onClose();
                 return;
             }
-            if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+            if (((e.metaKey || e.ctrlKey) && e.key === 's') || isCommandEnterEvent(e)) {
                 e.preventDefault();
                 onSave();
             }
@@ -188,6 +189,7 @@ export function MarkdownEditor({
                     {/* 保存 */}
                     <Button onClick={onSave} disabled={saving} size="sm">
                         {saving ? '保存中…' : '保存'}
+                        {!saving ? <ShortcutHint /> : null}
                     </Button>
                 </div>
             </div>
@@ -205,7 +207,7 @@ export function MarkdownEditor({
                         ),
                     )}
                     <span className="ml-auto text-caption text-text-tertiary hidden sm:block">
-                        ⌘S 保存 · Esc 退出
+                        ⌘S / ⌘Enter 保存 · Esc 退出
                     </span>
                 </div>
             )}

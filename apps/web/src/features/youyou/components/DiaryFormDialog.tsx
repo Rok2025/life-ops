@@ -6,7 +6,8 @@ import { getLocalDateStr } from '@/lib/utils/date';
 import { youyouApi } from '../api/youyouApi';
 import { MOOD_CONFIG } from '../types';
 import type { DiaryEntry, DiaryMood, CreateDiaryInput, UpdateDiaryInput } from '../types';
-import { Button, DatePicker, Dialog, Input } from '@/components/ui';
+import { Button, DatePicker, Dialog, Input, ShortcutHint } from '@/components/ui';
+import { handleCommandEnterFormSubmit } from '@/lib/shortcuts';
 
 interface DiaryFormDialogProps {
     open: boolean;
@@ -112,7 +113,7 @@ export function DiaryFormDialog({ open, onClose, editingEntry }: DiaryFormDialog
             maxWidth="lg"
             bodyClassName="flex min-h-0 flex-1 flex-col"
         >
-            <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+            <form onSubmit={handleSubmit} onKeyDown={handleCommandEnterFormSubmit} className="flex min-h-0 flex-1 flex-col">
                 <div className="space-y-4 overflow-y-auto px-5 py-4">
                     {/* 日期 */}
                     <div>
@@ -221,6 +222,7 @@ export function DiaryFormDialog({ open, onClose, editingEntry }: DiaryFormDialog
                     </Button>
                     <Button type="submit" size="sm" disabled={!date || saving}>
                         {saving ? '保存中...' : isEditing ? '更新' : '保存'}
+                        {!saving ? <ShortcutHint /> : null}
                     </Button>
                 </div>
             </form>

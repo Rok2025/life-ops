@@ -35,6 +35,27 @@ export default function KeyboardShortcutsHUD({ show, onClose, shortcuts, prefix 
 
     const navShortcuts = shortcuts.filter(s => s.category === 'nav');
     const createShortcuts = shortcuts.filter(s => s.category === 'create');
+    const saveShortcuts: ShortcutDef[] = [
+        { keys: '⌘ Enter', label: '保存 / 提交当前编辑', category: 'save' },
+        ...shortcuts.filter(s => s.category === 'save'),
+    ];
+
+    const renderKeys = (keys: string, separator: 'chord' | 'sequence' = 'chord') => {
+        const parts = keys.split(' ');
+        if (parts.length === 1) return <Kbd>{parts[0]}</Kbd>;
+        const separatorLabel = separator === 'sequence' ? '→' : '+';
+
+        return (
+            <>
+                {parts.map((part, index) => (
+                    <span key={`${keys}-${part}-${index}`} className="inline-flex items-center gap-1">
+                        {index > 0 ? <span className="text-text-secondary/40 text-caption">{separatorLabel}</span> : null}
+                        <Kbd>{part}</Kbd>
+                    </span>
+                ))}
+            </>
+        );
+    };
 
     return (
         <>
@@ -74,7 +95,7 @@ export default function KeyboardShortcutsHUD({ show, onClose, shortcuts, prefix 
                         </div>
 
                         {/* Body */}
-                        <div className="px-6 py-5 grid grid-cols-2 gap-8">
+                        <div className="px-6 py-5 grid grid-cols-1 gap-8 sm:grid-cols-3">
                             {/* 导航 */}
                             <div>
                                 <h3 className="text-caption font-semibold text-text-secondary uppercase tracking-wider mb-3">
@@ -82,14 +103,11 @@ export default function KeyboardShortcutsHUD({ show, onClose, shortcuts, prefix 
                                 </h3>
                                 <div className="space-y-2">
                                     {navShortcuts.map((s) => {
-                                        const [first, second] = s.keys.split(' ');
                                         return (
                                             <div key={s.keys} className="flex items-center justify-between py-1">
                                                 <span className="text-body-sm text-text-primary">{s.label}</span>
                                                 <div className="flex items-center gap-1">
-                                                    <Kbd>{first}</Kbd>
-                                                    <span className="text-text-secondary/40 text-caption">→</span>
-                                                    <Kbd>{second}</Kbd>
+                                                    {renderKeys(s.keys, 'sequence')}
                                                 </div>
                                             </div>
                                         );
@@ -104,18 +122,32 @@ export default function KeyboardShortcutsHUD({ show, onClose, shortcuts, prefix 
                                 </h3>
                                 <div className="space-y-2">
                                     {createShortcuts.map((s) => {
-                                        const [first, second] = s.keys.split(' ');
                                         return (
                                             <div key={s.keys} className="flex items-center justify-between py-1">
                                                 <span className="text-body-sm text-text-primary">{s.label}</span>
                                                 <div className="flex items-center gap-1">
-                                                    <Kbd>{first}</Kbd>
-                                                    <span className="text-text-secondary/40 text-caption">→</span>
-                                                    <Kbd>{second}</Kbd>
+                                                    {renderKeys(s.keys, 'sequence')}
                                                 </div>
                                             </div>
                                         );
                                     })}
+                                </div>
+                            </div>
+
+                            {/* 保存 */}
+                            <div>
+                                <h3 className="text-caption font-semibold text-text-secondary uppercase tracking-wider mb-3">
+                                    保存 <span className="text-text-secondary/60 normal-case">Save</span>
+                                </h3>
+                                <div className="space-y-2">
+                                    {saveShortcuts.map((s) => (
+                                        <div key={s.keys} className="flex items-center justify-between py-1">
+                                            <span className="text-body-sm text-text-primary">{s.label}</span>
+                                            <div className="flex items-center gap-1">
+                                                {renderKeys(s.keys)}
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         </div>

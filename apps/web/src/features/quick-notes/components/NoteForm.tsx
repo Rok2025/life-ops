@@ -5,6 +5,7 @@ import { getLocalDateStr } from '@/lib/utils/date';
 import type { QuickNote, NoteType, TodoPriority } from '../types';
 import { NOTE_TYPE_CONFIG, NOTE_TYPES, PRIORITY_CONFIG, TODO_PRIORITIES } from '../types';
 import { ChipGroup, DatePicker, Dialog, FormActions, Input } from '@/components/ui';
+import { handleCommandEnterFormSubmit } from '@/lib/shortcuts';
 import type { ChipOption } from '@/components/ui';
 
 interface NoteFormProps {
@@ -71,6 +72,7 @@ export function NoteForm({
                     event.preventDefault();
                     handleSubmit();
                 }}
+                onKeyDown={handleCommandEnterFormSubmit}
                 className="flex min-h-0 flex-1 flex-col"
             >
                 <div className="space-y-3 px-5 py-4">
@@ -121,7 +123,6 @@ export function NoteForm({
                             rows={3}
                             className="resize-none"
                             autoFocus
-                            onCmdEnter={handleSubmit}
                         />
                     </div>
                 </div>

@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { getLocalDateStr } from '@/lib/utils/date';
 import type { TIL } from '../types';
 import { ChipGroup, DatePicker, Dialog, FormActions, Input } from '@/components/ui';
+import { handleCommandEnterFormSubmit } from '@/lib/shortcuts';
 import type { ChipOption } from '@/components/ui';
 
 interface TilFormProps {
@@ -44,6 +45,7 @@ export function TilForm({ editingTil, defaultDate, saving, categories, onSave, o
                     event.preventDefault();
                     handleSubmit();
                 }}
+                onKeyDown={handleCommandEnterFormSubmit}
                 className="flex min-h-0 flex-1 flex-col"
             >
                 <div className="space-y-3 px-5 py-4">
@@ -71,7 +73,6 @@ export function TilForm({ editingTil, defaultDate, saving, categories, onSave, o
                             rows={3}
                             className="resize-none"
                             autoFocus
-                            onCmdEnter={handleSubmit}
                         />
                     </div>
                 </div>

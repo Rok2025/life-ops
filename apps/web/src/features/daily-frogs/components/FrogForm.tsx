@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { getLocalDateStr } from '@/lib/utils/date';
 import type { Frog } from '../types';
 import { DatePicker, Dialog, FormActions, Input } from '@/components/ui';
+import { handleCommandEnterFormSubmit } from '@/lib/shortcuts';
 
 interface FrogFormProps {
     editingFrog: Frog | null;
@@ -35,6 +36,7 @@ export function FrogForm({ editingFrog, defaultDate, saving, onSave, onCancel }:
                     event.preventDefault();
                     handleSubmit();
                 }}
+                onKeyDown={handleCommandEnterFormSubmit}
                 className="flex min-h-0 flex-1 flex-col"
             >
                 <div className="space-y-3 px-5 py-4">
@@ -50,9 +52,6 @@ export function FrogForm({ editingFrog, defaultDate, saving, onSave, onCancel }:
                             onChange={(e) => setTitle(e.target.value)}
                             placeholder="今天要完成的重要事情..."
                             autoFocus
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') handleSubmit();
-                            }}
                         />
                     </div>
                 </div>

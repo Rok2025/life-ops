@@ -9,7 +9,8 @@ import { AREA_CONFIG, type GrowthArea } from '@/features/growth-projects';
 import { OUTPUT_TYPE_CONFIG, OUTPUT_STATUS_CONFIG } from '../types';
 import { MarkdownEditor } from './MarkdownEditor';
 import type { OutputWithProject, OutputType, OutputStatus, CreateOutputInput, UpdateOutputInput } from '../types';
-import { Button, Dialog, Input, Select } from '@/components/ui';
+import { Button, Dialog, Input, Select, ShortcutHint } from '@/components/ui';
+import { handleCommandEnterFormSubmit } from '@/lib/shortcuts';
 
 interface OutputFormProps {
     open: boolean;
@@ -119,7 +120,7 @@ export function OutputForm({ open, onClose, editingOutput, defaultProjectId }: O
                 maxWidth="lg"
                 bodyClassName="flex min-h-0 flex-1 flex-col"
             >
-                <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+                <form onSubmit={handleSubmit} onKeyDown={handleCommandEnterFormSubmit} className="flex min-h-0 flex-1 flex-col">
                     <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4">
                     {/* 标题 */}
                     <div>
@@ -214,6 +215,7 @@ export function OutputForm({ open, onClose, editingOutput, defaultProjectId }: O
                             size="sm"
                         >
                             {saving ? '保存中...' : isEditing ? '保存' : '创建'}
+                            {!saving ? <ShortcutHint /> : null}
                         </Button>
                     </div>
                 </form>

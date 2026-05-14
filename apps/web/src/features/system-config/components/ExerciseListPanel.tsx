@@ -1,6 +1,7 @@
 import { Plus, Edit2, Check, X, Trash2 } from 'lucide-react';
 import type { ExerciseType } from '../hooks/useExerciseManagerState';
 import { Button, Input } from '@/components/ui';
+import { isCommandEnterEvent } from '@/lib/shortcuts';
 
 interface ExerciseListPanelProps {
     exercises: ExerciseType[];
@@ -95,7 +96,12 @@ export function ExerciseListPanel({
                                             type="text"
                                             value={editName}
                                             onChange={e => onEditNameChange(e.target.value)}
-                                            onKeyDown={e => { if (e.key === 'Enter') onSaveEdit(exercise.id); }}
+                                            onKeyDown={e => {
+                                                if (isCommandEnterEvent(e) || e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    onSaveEdit(exercise.id);
+                                                }
+                                            }}
                                             size="sm"
                                             className="mr-2 flex-1 bg-card-bg"
                                             autoFocus
@@ -108,6 +114,8 @@ export function ExerciseListPanel({
                                             <>
                                                 <button
                                                     onClick={() => onSaveEdit(exercise.id)}
+                                                    title="保存（⌘ Enter）"
+                                                    aria-label="保存（⌘ Enter）"
                                                     className="p-1 text-success hover:bg-success/10 rounded-control transition-colors duration-normal ease-standard"
                                                 >
                                                     <Check size={14} />

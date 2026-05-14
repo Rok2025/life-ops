@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { DatePicker, Dialog, Input, Select, Button, Checkbox } from '@/components/ui';
+import { DatePicker, Dialog, Input, Select, Button, Checkbox, ShortcutHint } from '@/components/ui';
+import { handleCommandEnterFormSubmit } from '@/lib/shortcuts';
 import {
     createFamilyTaskAction,
     deleteFamilyTaskAction,
@@ -124,7 +125,7 @@ export function TaskFormDialog({
             title={isEdit ? '编辑任务' : '新建家庭任务'}
             maxWidth="md"
         >
-            <form onSubmit={handleSubmit} className="space-y-4 p-4 pt-0">
+            <form onSubmit={handleSubmit} onKeyDown={handleCommandEnterFormSubmit} className="space-y-4 p-4 pt-0">
                 {/* Title */}
                 <div>
                     <label className="text-caption text-text-secondary mb-1 block">标题</label>
@@ -248,6 +249,7 @@ export function TaskFormDialog({
                         </Button>
                         <Button type="submit" disabled={saving || !title.trim()}>
                             {saving ? '保存中...' : '保存'}
+                            {!saving ? <ShortcutHint /> : null}
                         </Button>
                     </div>
                 </div>

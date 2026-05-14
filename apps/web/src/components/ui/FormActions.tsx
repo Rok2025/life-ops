@@ -1,4 +1,5 @@
 import { Button } from './Button';
+import { ShortcutHint } from './ShortcutHint';
 
 export interface FormActionsProps {
   onCancel: () => void;
@@ -23,6 +24,7 @@ export function FormActions({
       </Button>
       <Button type="submit" disabled={disabled || saving} className="flex-1">
         {saving ? '保存中...' : submitLabel}
+        {!saving ? <ShortcutHint /> : null}
       </Button>
     </div>
   );

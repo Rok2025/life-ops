@@ -1,12 +1,13 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { BookmarkPlus, Check } from 'lucide-react';
 import { DIFFICULTY_CONFIG } from '../constants';
 import { useEnglishMutations } from '../hooks/useEnglishMutations';
 import type { AIQueryResponse } from '../types';
 import { getYouglishEnglishUrl } from '../utils/youglish';
-import { Card } from '@/components/ui';
+import { Card, ShortcutHint } from '@/components/ui';
+import { useCommandEnterAction } from '@/hooks/useCommandEnterAction';
 import PronunciationButton from './PronunciationButton';
 
 interface QueryResultCardProps {
@@ -15,6 +16,7 @@ interface QueryResultCardProps {
 }
 
 export default function QueryResultCard({ response, queryId }: QueryResultCardProps) {
+    const shortcutScopeRef = useRef<HTMLDivElement>(null);
     const { saveQueryToCardMutation } = useEnglishMutations();
     const isSaved = saveQueryToCardMutation.isSuccess;
     const canSave = Boolean(queryId);
@@ -61,6 +63,12 @@ export default function QueryResultCard({ response, queryId }: QueryResultCardPr
         });
     }, [response, queryId, isSaved, saveQueryToCardMutation]);
 
+    useCommandEnterAction({
+        disabled: !canSave || isSaved || saveQueryToCardMutation.isPending,
+        scopeRef: shortcutScopeRef,
+        onAction: handleSaveToCard,
+    });
+
     // Handle parse error fallback
     if (response.parse_error && response.raw_text) {
         return (
@@ -75,6 +83,7 @@ export default function QueryResultCard({ response, queryId }: QueryResultCardPr
     const youglishUrl = getYouglishEnglishUrl(response.input);
 
     return (
+        <div ref={shortcutScopeRef}>
         <Card className="p-card space-y-4">
             {/* Header: word + phonetic + difficulty */}
             <div className="flex items-start justify-between">
@@ -112,6 +121,7 @@ export default function QueryResultCard({ response, queryId }: QueryResultCardPr
                     >
                         {isSaved ? <Check size={14} /> : <BookmarkPlus size={14} />}
                         {!canSave ? '未保存' : isSaved ? '已存卡' : '存为闪卡'}
+                        {canSave && !isSaved && !saveQueryToCardMutation.isPending ? <ShortcutHint /> : null}
                     </button>
                 </div>
             </div>
@@ -246,5 +256,6 @@ export default function QueryResultCard({ response, queryId }: QueryResultCardPr
                 </div>
             )}
         </Card>
+        </div>
     );
 }

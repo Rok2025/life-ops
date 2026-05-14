@@ -3,7 +3,8 @@
 import { useCallback, useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { BookCopy, CheckCircle2, FileUp, LoaderCircle, Sparkles, SkipForward } from 'lucide-react';
-import { Button, Card, Input, SectionHeader } from '@/components/ui';
+import { Button, Card, Input, SectionHeader, ShortcutHint } from '@/components/ui';
+import { useCommandEnterAction } from '@/hooks/useCommandEnterAction';
 import { formatDisplayDate, getLocalDateStr } from '@/lib/utils/date';
 import { ASSIGNMENT_STATUS_CONFIG, ASSIGNMENT_TYPE_CONFIG, FAMILIARITY_LABELS } from '../constants';
 import { useDailyAssignments, useDailyVocabularyMutations, useRecentWordLogs, useWordBankStats } from '../hooks/useDailyVocabulary';
@@ -52,6 +53,7 @@ function AssignmentEditor({
     skipAssignmentMutation,
     onSelectAssignment,
 }: AssignmentEditorProps) {
+    const shortcutScopeRef = useRef<HTMLDivElement>(null);
     const { data: recentLogs = [] } = useRecentWordLogs(assignment.word_id, 3);
     const [familiarity, setFamiliarity] = useState<Familiarity | null>(assignment.familiarity ?? null);
     const [studyNote, setStudyNote] = useState(assignment.study_note ?? '');
@@ -106,8 +108,14 @@ function AssignmentEditor({
         });
     }, [assignment.id, moveToNextAssignment, skipAssignmentMutation]);
 
+    useCommandEnterAction({
+        disabled: !canComplete || isBusy,
+        scopeRef: shortcutScopeRef,
+        onAction: () => handleSaveRecord('completed'),
+    });
+
     return (
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
+        <div ref={shortcutScopeRef} className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
             <div className="space-y-4 rounded-inner-card border border-glass-border bg-panel-bg/72 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
@@ -216,6 +224,7 @@ function AssignmentEditor({
                     >
                         {saveAssignmentRecordMutation.isPending ? <LoaderCircle size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
                         完成并进入下一词
+                        {!saveAssignmentRecordMutation.isPending ? <ShortcutHint /> : null}
                     </Button>
                     <Button
                         variant="ghost"

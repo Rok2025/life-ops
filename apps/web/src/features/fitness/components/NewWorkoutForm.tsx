@@ -8,7 +8,8 @@ import { fitnessApi, useExerciseTypes } from '@/features/fitness';
 import type { AggregatedExercise } from '@/features/fitness';
 import { useExerciseCategories } from '@/features/fitness/hooks/useExerciseCategories';
 import { getLocalDateStr } from '@/lib/utils/date';
-import { Button, DatePicker, Input, Select } from '@/components/ui';
+import { Button, DatePicker, Input, Select, ShortcutHint } from '@/components/ui';
+import { handleCommandEnterFormSubmit } from '@/lib/shortcuts';
 import { DailyWorkoutRecords } from './DailyWorkoutRecords';
 
 type ExerciseSet = {
@@ -159,7 +160,7 @@ export default function NewWorkoutForm({ onSaved }: NewWorkoutFormProps) {
     }
 
     return (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} onKeyDown={handleCommandEnterFormSubmit} className="flex flex-col gap-4">
 
             {/* 日期 + 当天记录 */}
             <div>
@@ -292,6 +293,7 @@ export default function NewWorkoutForm({ onSaved }: NewWorkoutFormProps) {
                 className="w-full"
             >
                 {saveMutation.isPending ? '保存中...' : '保存训练记录'}
+                {!saveMutation.isPending ? <ShortcutHint /> : null}
             </Button>
         </form>
     );

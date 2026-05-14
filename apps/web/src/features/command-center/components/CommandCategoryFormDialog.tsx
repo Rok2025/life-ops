@@ -2,7 +2,8 @@
 
 import { useCallback, useState } from 'react';
 import type { CommandCategory, CommandCategoryFormValues } from '../types';
-import { Button, Checkbox, Dialog, Input } from '@/components/ui';
+import { Button, Checkbox, Dialog, Input, ShortcutHint } from '@/components/ui';
+import { handleCommandEnterFormSubmit } from '@/lib/shortcuts';
 
 interface CommandCategoryFormDialogProps {
     editingCategory: CommandCategory | null;
@@ -50,7 +51,7 @@ export default function CommandCategoryFormDialog({
             maxWidth="lg"
             bodyClassName="flex min-h-0 flex-1 flex-col"
         >
-            <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+            <form onSubmit={handleSubmit} onKeyDown={handleCommandEnterFormSubmit} className="flex min-h-0 flex-1 flex-col">
                 <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4">
                     {submitError ? (
                         <div className="rounded-card border border-danger/30 bg-danger/10 px-3 py-2 text-body-sm text-danger">
@@ -119,6 +120,7 @@ export default function CommandCategoryFormDialog({
                     </Button>
                     <Button type="submit" disabled={submitting || !name.trim() || !slug.trim()} size="sm">
                         {submitting ? '保存中...' : isEditing ? '保存' : '创建'}
+                        {!submitting ? <ShortcutHint /> : null}
                     </Button>
                 </div>
             </form>

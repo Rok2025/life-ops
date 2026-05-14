@@ -4,7 +4,8 @@ import { useState, useCallback, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { healthApi } from '../api/healthApi';
 import type { CreateVaccinationInput } from '../types';
-import { Button, DatePicker, Dialog, Input } from '@/components/ui';
+import { Button, DatePicker, Dialog, Input, ShortcutHint } from '@/components/ui';
+import { handleCommandEnterFormSubmit } from '@/lib/shortcuts';
 
 interface VaccinationFormDialogProps {
     open: boolean;
@@ -64,7 +65,7 @@ export function VaccinationFormDialog({ open, onClose }: VaccinationFormDialogPr
             maxWidth="lg"
             bodyClassName="flex min-h-0 flex-1 flex-col"
         >
-            <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+            <form onSubmit={handleSubmit} onKeyDown={handleCommandEnterFormSubmit} className="flex min-h-0 flex-1 flex-col">
                 <div className="space-y-4 px-5 py-4">
                     <div>
                         <label className="block text-caption text-text-secondary mb-1">疫苗名称 *</label>
@@ -122,7 +123,10 @@ export function VaccinationFormDialog({ open, onClose }: VaccinationFormDialogPr
 
                 <div className="flex justify-end gap-2 border-t border-glass-border px-5 py-3">
                     <Button type="button" variant="ghost" size="sm" onClick={onClose}>取消</Button>
-                    <Button type="submit" size="sm" disabled={createMutation.isPending}>添加</Button>
+                    <Button type="submit" size="sm" disabled={createMutation.isPending}>
+                        添加
+                        {!createMutation.isPending ? <ShortcutHint /> : null}
+                    </Button>
                 </div>
             </form>
         </Dialog>

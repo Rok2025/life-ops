@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Plus, FolderOpen } from 'lucide-react';
 import { useProjects } from '../hooks/useProjects';
 import { ProjectCard } from './ProjectCard';
@@ -17,6 +18,9 @@ interface ProjectListProps {
 
 export default function ProjectList({ area }: ProjectListProps) {
     const areaConfig = AREA_CONFIG[area];
+    const searchParams = useSearchParams();
+    const projectParam = searchParams.get('project');
+    const todoParam = searchParams.get('todo');
     const [scopeFilter, setScopeFilter] = useState<ProjectScope | null>(null);
     const [showArchived, setShowArchived] = useState(false);
     const [showForm, setShowForm] = useState(false);
@@ -32,7 +36,11 @@ export default function ProjectList({ area }: ProjectListProps) {
     const archivedProjects = [...projects.filter(p => p.status === 'completed' || p.status === 'archived')]
         .sort(compareProjectsByDisplayStatus);
 
-    const selectedProject = projects.find(p => p.id === selectedId) ?? null;
+    const selectedProjectId = projectParam && projects.some((project) => project.id === projectParam)
+        ? projectParam
+        : selectedId;
+    const selectedProject = projects.find(p => p.id === selectedProjectId) ?? null;
+    const showMobileDetail = mobileDetail || Boolean(projectParam && selectedProject);
 
     const handleAdd = useCallback(() => {
         setEditingProject(null);
@@ -144,7 +152,7 @@ export default function ProjectList({ area }: ProjectListProps) {
                                 key={project.id}
                                 project={project}
                                 area={area}
-                                selected={selectedId === project.id}
+                                selected={selectedProjectId === project.id}
                                 onSelect={handleSelect}
                                 onEdit={handleEdit}
                             />
@@ -161,7 +169,7 @@ export default function ProjectList({ area }: ProjectListProps) {
                                             key={project.id}
                                             project={project}
                                             area={area}
-                                            selected={selectedId === project.id}
+                                            selected={selectedProjectId === project.id}
                                             onSelect={handleSelect}
                                             onEdit={handleEdit}
                                         />
@@ -177,7 +185,7 @@ export default function ProjectList({ area }: ProjectListProps) {
 
     // 右侧 - 详情面板
     const detailPanel = selectedProject ? (
-        <ProjectDetailPanel project={selectedProject} onBack={handleMobileBack} />
+        <ProjectDetailPanel project={selectedProject} highlightedTodoId={todoParam} onBack={handleMobileBack} />
     ) : (
         <ProjectDetailEmpty />
     );
@@ -198,9 +206,9 @@ export default function ProjectList({ area }: ProjectListProps) {
             {/* 移动端：列表/详情切换 */}
             <div className="space-y-4 md:hidden">
                 {hero}
-                {mobileDetail && selectedProject ? (
+                {showMobileDetail && selectedProject ? (
                     <Card className="min-h-[60vh]">
-                        <ProjectDetailPanel project={selectedProject} onBack={handleMobileBack} />
+                        <ProjectDetailPanel project={selectedProject} highlightedTodoId={todoParam} onBack={handleMobileBack} />
                     </Card>
                 ) : (
                     listPanel

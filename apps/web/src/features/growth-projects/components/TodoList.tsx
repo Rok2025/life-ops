@@ -5,13 +5,15 @@ import { Check, Trash2, Plus, ChevronDown, ChevronRight } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { projectsApi } from '../api/projectsApi';
 import type { ProjectTodo } from '../types';
+import { handleCommandEnterFormSubmit } from '@/lib/shortcuts';
 
 interface TodoItemProps {
     todo: ProjectTodo;
     projectId: string;
+    highlighted?: boolean;
 }
 
-export function TodoItem({ todo, projectId }: TodoItemProps) {
+export function TodoItem({ todo, projectId, highlighted = false }: TodoItemProps) {
     const queryClient = useQueryClient();
 
     const toggleMutation = useMutation({
@@ -31,7 +33,13 @@ export function TodoItem({ todo, projectId }: TodoItemProps) {
     });
 
     return (
-        <div className={`glass-list-row flex items-center gap-2 px-2 py-1.5 ${todo.is_completed ? 'opacity-50' : ''}`}>
+        <div
+            className={[
+                'glass-list-row flex items-center gap-2 px-2 py-1.5',
+                todo.is_completed ? 'opacity-50' : '',
+                highlighted ? 'border-accent/35 bg-accent/10 ring-1 ring-accent/24' : '',
+            ].filter(Boolean).join(' ')}
+        >
             <button
                 onClick={() => toggleMutation.mutate()}
                 className={`w-4 h-4 rounded-control border flex items-center justify-center shrink-0 transition-colors duration-normal ease-standard ${
@@ -58,15 +66,17 @@ export function TodoItem({ todo, projectId }: TodoItemProps) {
 interface TodoListProps {
     projectId: string;
     todos: ProjectTodo[];
+    highlightedTodoId?: string | null;
 }
 
-export function TodoList({ projectId, todos }: TodoListProps) {
+export function TodoList({ projectId, todos, highlightedTodoId = null }: TodoListProps) {
     const queryClient = useQueryClient();
     const [newTitle, setNewTitle] = useState('');
     const [showCompleted, setShowCompleted] = useState(false);
 
     const activeTodos = todos.filter(t => !t.is_completed);
     const completedTodos = todos.filter(t => t.is_completed);
+    const highlightedCompleted = completedTodos.some((todo) => todo.id === highlightedTodoId);
 
     const createMutation = useMutation({
         mutationFn: (title: string) => projectsApi.createTodo({ project_id: projectId, title }),
@@ -94,7 +104,7 @@ export function TodoList({ projectId, todos }: TodoListProps) {
             {activeTodos.length > 0 ? (
                 <div className="space-y-0.5">
                     {activeTodos.map(todo => (
-                        <TodoItem key={todo.id} todo={todo} projectId={projectId} />
+                        <TodoItem key={todo.id} todo={todo} projectId={projectId} highlighted={todo.id === highlightedTodoId} />
                     ))}
                 </div>
             ) : (
@@ -102,13 +112,13 @@ export function TodoList({ projectId, todos }: TodoListProps) {
             )}
 
             {/* 添加待办 */}
-            <form onSubmit={handleSubmit} className="glass-list-row mt-2 flex items-center gap-1.5 px-2 py-2">
+            <form onSubmit={handleSubmit} onKeyDown={handleCommandEnterFormSubmit} className="glass-list-row mt-2 flex items-center gap-1.5 px-2 py-2">
                 <Plus size={14} className="shrink-0 text-text-tertiary" />
                 <input
                     type="text"
                     value={newTitle}
                     onChange={e => setNewTitle(e.target.value)}
-                    placeholder="添加待办..."
+                    placeholder="添加待办...（⌘ Enter）"
                     className="flex-1 text-body-sm bg-transparent border-none outline-none text-text-primary placeholder:text-text-tertiary"
                 />
             </form>
@@ -123,10 +133,10 @@ export function TodoList({ projectId, todos }: TodoListProps) {
                         {showCompleted ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
                         已完成 ({completedTodos.length})
                     </button>
-                    {showCompleted && (
+                    {(showCompleted || highlightedCompleted) && (
                         <div className="mt-1 space-y-0.5">
                             {completedTodos.map(todo => (
-                                <TodoItem key={todo.id} todo={todo} projectId={projectId} />
+                                <TodoItem key={todo.id} todo={todo} projectId={projectId} highlighted={todo.id === highlightedTodoId} />
                             ))}
                         </div>
                     )}

@@ -11,3 +11,4 @@ export * from './PageHero';
 export * from './Select';
 export * from './SegmentedControl';
 export * from './SectionHeader';
+export * from './ShortcutHint';
