@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { Check, Trash2, Plus, ChevronDown, ChevronRight } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { ChipGroup, DatePicker } from '@/components/ui';
+import { ChipGroup, DatePicker, Input } from '@/components/ui';
 import { formatDisplayDate, getLocalDateStr } from '@/lib/utils/date';
 import { projectsApi } from '../api/projectsApi';
 import type { ProjectTodo } from '../types';
@@ -144,15 +144,16 @@ export function TodoList({ projectId, todos, highlightedTodoId = null }: TodoLis
             )}
 
             {/* 添加待办 */}
-            <form onSubmit={handleSubmit} onKeyDown={handleCommandEnterFormSubmit} className="glass-list-row mt-2 space-y-2 px-2 py-2">
-                <div className="flex items-center gap-1.5">
-                    <Plus size={14} className="shrink-0 text-text-tertiary" />
-                    <input
-                        type="text"
+            <form onSubmit={handleSubmit} onKeyDown={handleCommandEnterFormSubmit} className="glass-list-row mt-2 space-y-3 px-2 py-2">
+                <div>
+                    <label className="mb-1 flex items-center gap-1.5 text-caption text-text-secondary">
+                        <Plus size={14} className="shrink-0 text-text-tertiary" />
+                        待办事项名称
+                    </label>
+                    <Input
                         value={newTitle}
                         onChange={e => setNewTitle(e.target.value)}
-                        placeholder="添加待办...（⌘ Enter）"
-                        className="flex-1 text-body-sm bg-transparent border-none outline-none text-text-primary placeholder:text-text-tertiary"
+                        placeholder="输入项目待办内容...（⌘ Enter）"
                     />
                 </div>
                 <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
