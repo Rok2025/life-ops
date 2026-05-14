@@ -20,7 +20,9 @@ export type {
     CreateProjectInput,
     UpdateProjectInput,
     ProjectTodo,
+    ProjectTodoWithProject,
     CreateTodoInput,
+    UpdateTodoInput,
     ProjectNote,
     CreateNoteInput,
 } from './types';

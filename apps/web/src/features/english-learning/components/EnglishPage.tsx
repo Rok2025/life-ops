@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Languages } from 'lucide-react';
 import { getLocalDateStr } from '@/lib/utils/date';
 import { ENGLISH_TABS } from '../constants';
@@ -16,7 +17,9 @@ import DailyVocabularyPanel from './DailyVocabularyPanel';
 import { PageHero } from '@/components/ui';
 
 export default function EnglishPage() {
-    const [tab, setTab] = useState<EnglishTab>('learning');
+    const searchParams = useSearchParams();
+    const shouldOpenProjects = searchParams.get('tab') === 'projects' || searchParams.has('project');
+    const [tab, setTab] = useState<EnglishTab>(shouldOpenProjects ? 'projects' : 'learning');
     const today = getLocalDateStr();
     const { data: queryCount = 0 } = useQueryCount(today);
     const { data: reviewCount = 0 } = useCardReviewCount();

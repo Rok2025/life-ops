@@ -5,7 +5,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { getLocalDateStr } from '@/lib/utils/date';
 import { growthApi } from '../api/growthApi';
 import type { GrowthRecord, CreateGrowthRecordInput, UpdateGrowthRecordInput } from '../types';
-import { Button, DatePicker, Dialog, Input } from '@/components/ui';
+import { Button, DatePicker, Dialog, Input, ShortcutHint } from '@/components/ui';
+import { handleCommandEnterFormSubmit } from '@/lib/shortcuts';
 
 interface GrowthRecordFormDialogProps {
     open: boolean;
@@ -84,7 +85,7 @@ export function GrowthRecordFormDialog({ open, onClose, editingRecord }: GrowthR
             maxWidth="lg"
             bodyClassName="flex min-h-0 flex-1 flex-col"
         >
-            <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+            <form onSubmit={handleSubmit} onKeyDown={handleCommandEnterFormSubmit} className="flex min-h-0 flex-1 flex-col">
                 <div className="space-y-4 px-5 py-4">
                     <div>
                         <label className="block text-caption text-text-secondary mb-1">日期 *</label>
@@ -143,6 +144,7 @@ export function GrowthRecordFormDialog({ open, onClose, editingRecord }: GrowthR
                         disabled={createMutation.isPending || updateMutation.isPending}
                     >
                         {isEditing ? '保存' : '新增'}
+                        {!(createMutation.isPending || updateMutation.isPending) ? <ShortcutHint /> : null}
                     </Button>
                 </div>
             </form>

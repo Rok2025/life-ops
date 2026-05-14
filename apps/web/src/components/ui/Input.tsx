@@ -1,4 +1,5 @@
 import { forwardRef, useCallback } from 'react';
+import { isCommandEnterEvent } from '@/lib/shortcuts';
 
 type InputSize = 'sm' | 'md';
 
@@ -50,9 +51,10 @@ export const Input = forwardRef<HTMLInputElement | HTMLTextAreaElement, InputPro
 
     const handleKeyDown = useCallback(
       (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        if (onCmdEnter && e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        if (onCmdEnter && isCommandEnterEvent(e)) {
           e.preventDefault();
           onCmdEnter();
+          return;
         }
         onKeyDown?.(e as React.KeyboardEvent<HTMLInputElement>);
       },

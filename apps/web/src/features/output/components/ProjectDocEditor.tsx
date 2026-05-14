@@ -32,7 +32,8 @@ import { OUTPUT_TYPE_CONFIG } from '../types';
 import { AREA_CONFIG, SCOPE_CONFIG, STATUS_CONFIG, type GrowthArea, type ProjectWithStats } from '@/features/growth-projects';
 import { MarkdownEditor } from './MarkdownEditor';
 import type { Output, OutputType } from '../types';
-import { Button, Card, SegmentedControl } from '@/components/ui';
+import { Button, Card, SegmentedControl, ShortcutHint } from '@/components/ui';
+import { isCommandEnterEvent } from '@/lib/shortcuts';
 
 interface ProjectDocEditorProps {
     project: ProjectWithStats;
@@ -170,10 +171,10 @@ export function ProjectDocEditor({ project, area, onClose }: ProjectDocEditorPro
 
     const saving = createMutation.isPending || updateMutation.isPending;
 
-    // ⌘S 快捷键
+    // ⌘S / ⌘Enter 快捷键
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === 's' && (isNew || selectedDoc)) {
+            if ((((e.metaKey || e.ctrlKey) && e.key === 's') || isCommandEnterEvent(e)) && (isNew || selectedDoc)) {
                 e.preventDefault();
                 handleSave();
             }
@@ -319,6 +320,7 @@ export function ProjectDocEditor({ project, area, onClose }: ProjectDocEditorPro
                                 <Button onClick={handleSave} disabled={saving} size="sm" className="gap-1.5">
                                     <Save size={12} />
                                     {saving ? '保存中…' : '保存'}
+                                    {!saving ? <ShortcutHint /> : null}
                                 </Button>
                                 {selectedDoc && (
                                     <button
@@ -342,7 +344,7 @@ export function ProjectDocEditor({ project, area, onClose }: ProjectDocEditorPro
                                             <TbBtn key={item.label} icon={item.icon} label={item.label} onClick={item.action} />
                                         ),
                                     )}
-                                    <span className="ml-auto text-caption text-text-tertiary">⌘S 保存</span>
+                                    <span className="ml-auto text-caption text-text-tertiary">⌘S / ⌘Enter 保存</span>
                                 </div>
                             )}
 

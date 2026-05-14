@@ -5,7 +5,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { youyouApi } from '../api/youyouApi';
 import { MILESTONE_CATEGORY_CONFIG } from '../types';
 import type { MilestoneCategory, CreateMilestoneInput } from '../types';
-import { Button, Dialog, Input, Select } from '@/components/ui';
+import { Button, Dialog, Input, Select, ShortcutHint } from '@/components/ui';
+import { handleCommandEnterFormSubmit } from '@/lib/shortcuts';
 
 interface MilestoneFormDialogProps {
     open: boolean;
@@ -65,7 +66,7 @@ export function MilestoneFormDialog({ open, onClose }: MilestoneFormDialogProps)
             maxWidth="lg"
             bodyClassName="flex min-h-0 flex-1 flex-col"
         >
-            <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+            <form onSubmit={handleSubmit} onKeyDown={handleCommandEnterFormSubmit} className="flex min-h-0 flex-1 flex-col">
                 <div className="space-y-4 px-5 py-4">
                     {/* 标题 */}
                     <div>
@@ -128,6 +129,7 @@ export function MilestoneFormDialog({ open, onClose }: MilestoneFormDialogProps)
                     </Button>
                     <Button type="submit" size="sm" disabled={!title.trim() || createMutation.isPending}>
                         {createMutation.isPending ? '保存中...' : '保存'}
+                        {!createMutation.isPending ? <ShortcutHint /> : null}
                     </Button>
                 </div>
             </form>

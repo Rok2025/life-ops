@@ -1,9 +1,10 @@
 'use client';
 
 import Image from 'next/image';
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { ImagePlus, Trash2, Upload, RotateCcw } from 'lucide-react';
-import { Card, Button } from '@/components/ui';
+import { Card, Button, ShortcutHint } from '@/components/ui';
+import { useCommandEnterAction } from '@/hooks/useCommandEnterAction';
 import { useYouyouPhoto, useUploadYouyouPhoto, useDeleteYouyouPhoto, usePhotoTransform, useSavePhotoTransform } from '../../youyou/hooks/usePhoto';
 import type { PhotoTransform } from '../../youyou/api/photoApi';
 
@@ -37,6 +38,7 @@ function SliderRow({ label, min, max, step, value, unit, leftLabel, rightLabel, 
 
 export function YouyouPhotoSettings() {
     const fileRef = useRef<HTMLInputElement>(null);
+    const shortcutScopeRef = useRef<HTMLDivElement>(null);
     const { data: photoUrl, isLoading } = useYouyouPhoto();
     const upload = useUploadYouyouPhoto();
     const remove = useDeleteYouyouPhoto();
@@ -60,7 +62,19 @@ export function YouyouPhotoSettings() {
         ? t.x !== saved.x || t.y !== saved.y || t.zoom !== saved.zoom || t.blurL !== saved.blurL || t.blurC !== saved.blurC || t.blurR !== saved.blurR
         : draft !== null;
 
+    const handleSave = useCallback(() => {
+        if (save.isPending || !isDirty) return;
+        save.mutate(t);
+    }, [isDirty, save, t]);
+
+    useCommandEnterAction({
+        disabled: save.isPending || !isDirty,
+        scopeRef: shortcutScopeRef,
+        onAction: handleSave,
+    });
+
     return (
+        <div ref={shortcutScopeRef}>
         <Card className="p-card space-y-4">
             <div>
                 <h3 className="text-body font-semibold text-text-primary">又又封面照片</h3>
@@ -186,11 +200,12 @@ export function YouyouPhotoSettings() {
                         <Button
                             variant="primary"
                             size="sm"
-                            onClick={() => save.mutate(t)}
+                            onClick={handleSave}
                             disabled={save.isPending || !isDirty}
                             className="w-full"
                         >
                             {save.isPending ? '保存中...' : '保存位置'}
+                            {!save.isPending ? <ShortcutHint /> : null}
                         </Button>
                     </div>
                 </div>
@@ -220,5 +235,6 @@ export function YouyouPhotoSettings() {
                 <p className="text-body-sm text-danger">上传失败，请重试。</p>
             )}
         </Card>
+        </div>
     );
 }

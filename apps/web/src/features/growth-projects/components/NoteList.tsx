@@ -5,6 +5,7 @@ import { Trash2, Maximize2 } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { projectsApi } from '../api/projectsApi';
 import { MarkdownEditor } from '@/features/output/components/MarkdownEditor';
+import { ShortcutHint } from '@/components/ui';
 import type { ProjectNote, ProjectNoteType } from '../types';
 import { NOTE_TYPE_CONFIG } from '../types';
 
@@ -148,8 +149,14 @@ export function NoteList({ projectId, notes }: NoteListProps) {
                             <Maximize2 size={14} />
                         </button>
                         {newContent.trim() && (
-                            <button type="submit" className="text-caption text-accent hover:underline">
+                            <button
+                                type="submit"
+                                className="inline-flex items-center gap-1 text-caption text-accent hover:underline"
+                                title="添加（⌘ Enter）"
+                                aria-label="添加（⌘ Enter）"
+                            >
                                 添加
+                                <ShortcutHint />
                             </button>
                         )}
                     </div>

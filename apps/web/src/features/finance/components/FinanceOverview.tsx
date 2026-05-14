@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     AlertTriangle,
     BarChart3,
@@ -19,7 +19,9 @@ import {
     Wallet,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Badge, Button, Card, Dialog, Input, PageHero, Select } from '@/components/ui';
+import { Badge, Button, Card, Dialog, Input, PageHero, Select, ShortcutHint } from '@/components/ui';
+import { useCommandEnterAction } from '@/hooks/useCommandEnterAction';
+import { handleCommandEnterFormSubmit } from '@/lib/shortcuts';
 import { useFinanceDashboard, useFinanceMutations } from '../hooks/useFinanceDashboard';
 import type {
     CreateFinanceTransactionInput,
@@ -1124,6 +1126,7 @@ function ProfileEditor({
     isSaving: boolean;
     onSave: (input: UpdateFinanceProfileInput) => void;
 }) {
+    const shortcutScopeRef = useRef<HTMLElement>(null);
     const [monthlyIncome, setMonthlyIncome] = useState(numberToInput(profile?.monthly_income ?? 9500));
     const [livingBudget, setLivingBudget] = useState(numberToInput(profile?.living_budget ?? 1000));
     const [targetRepayment, setTargetRepayment] = useState(numberToInput(profile?.target_repayment_amount ?? 3000));
@@ -1139,8 +1142,14 @@ function ProfileEditor({
         });
     }, [livingBudget, monthlyIncome, notes, onSave, targetRepayment, userId]);
 
+    useCommandEnterAction({
+        disabled: isSaving,
+        scopeRef: shortcutScopeRef,
+        onAction: handleSave,
+    });
+
     return (
-        <section className="rounded-inner-card border border-glass-border/75 bg-panel-bg/70 p-4">
+        <section ref={shortcutScopeRef} className="rounded-inner-card border border-glass-border/75 bg-panel-bg/70 p-4">
             <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
                     <div className="flex items-center gap-2">
@@ -1152,6 +1161,7 @@ function ProfileEditor({
                 <Button size="sm" variant="tinted" onClick={handleSave} disabled={isSaving}>
                     <Save size={15} />
                     保存配置
+                    {!isSaving ? <ShortcutHint /> : null}
                 </Button>
             </div>
             <div className="grid gap-3 md:grid-cols-3">
@@ -1185,6 +1195,7 @@ function AccountEditor({
     isSaving: boolean;
     onSave: (input: UpdateFinanceAccountInput) => void;
 }) {
+    const shortcutScopeRef = useRef<HTMLDivElement>(null);
     const [name, setName] = useState(account.name);
     const [institution, setInstitution] = useState(account.institution ?? '');
     const [accountType, setAccountType] = useState<FinanceAccountType>(account.account_type);
@@ -1228,8 +1239,14 @@ function AccountEditor({
         statementDay,
     ]);
 
+    useCommandEnterAction({
+        disabled: isSaving,
+        scopeRef: shortcutScopeRef,
+        onAction: handleSave,
+    });
+
     return (
-        <div className="rounded-inner-card border border-glass-border/75 bg-panel-bg/70 p-4">
+        <div ref={shortcutScopeRef} className="rounded-inner-card border border-glass-border/75 bg-panel-bg/70 p-4">
             <div className="mb-3 flex items-center justify-between gap-3">
                 <div className="min-w-0">
                     <p className="truncate text-body-sm font-semibold text-text-primary">{account.name}</p>
@@ -1240,6 +1257,7 @@ function AccountEditor({
                 <Button size="sm" variant="tinted" onClick={handleSave} disabled={isSaving}>
                     <Save size={15} />
                     保存
+                    {!isSaving ? <ShortcutHint /> : null}
                 </Button>
             </div>
             <div className="grid gap-3 md:grid-cols-2">
@@ -1310,6 +1328,7 @@ function LiabilityEditor({
     isSaving: boolean;
     onSave: (input: UpdateFinanceLiabilityInput) => void;
 }) {
+    const shortcutScopeRef = useRef<HTMLDivElement>(null);
     const [name, setName] = useState(liability.name);
     const [liabilityType, setLiabilityType] = useState<LiabilityType>(liability.liability_type);
     const [originalAmount, setOriginalAmount] = useState(numberToInput(liability.original_amount));
@@ -1355,8 +1374,14 @@ function LiabilityEditor({
         status,
     ]);
 
+    useCommandEnterAction({
+        disabled: isSaving,
+        scopeRef: shortcutScopeRef,
+        onAction: handleSave,
+    });
+
     return (
-        <div className="rounded-inner-card border border-glass-border/75 bg-panel-bg/70 p-4">
+        <div ref={shortcutScopeRef} className="rounded-inner-card border border-glass-border/75 bg-panel-bg/70 p-4">
             <div className="mb-3 flex items-center justify-between gap-3">
                 <div className="min-w-0">
                     <p className="truncate text-body-sm font-semibold text-text-primary">{liability.name}</p>
@@ -1365,6 +1390,7 @@ function LiabilityEditor({
                 <Button size="sm" variant="tinted" onClick={handleSave} disabled={isSaving}>
                     <Save size={15} />
                     保存
+                    {!isSaving ? <ShortcutHint /> : null}
                 </Button>
             </div>
             <div className="grid gap-3 md:grid-cols-2">
@@ -1467,6 +1493,13 @@ function TransactionDialog({
 
     return (
         <Dialog open={open} onClose={onClose} title="记一笔" maxWidth="lg" bodyClassName="p-5">
+            <form
+                onSubmit={(event) => {
+                    event.preventDefault();
+                    handleSubmit();
+                }}
+                onKeyDown={handleCommandEnterFormSubmit}
+            >
             <div className="grid gap-4 md:grid-cols-2">
                 <label className="space-y-1.5">
                     <span className="text-caption text-text-secondary">日期</span>
@@ -1529,10 +1562,12 @@ function TransactionDialog({
             </div>
             <div className="mt-5 flex justify-end gap-2">
                 <Button variant="secondary" onClick={onClose}>取消</Button>
-                <Button onClick={handleSubmit} disabled={isSaving || Number(amount) <= 0}>
+                <Button type="submit" disabled={isSaving || Number(amount) <= 0}>
                     保存
+                    {!isSaving ? <ShortcutHint /> : null}
                 </Button>
             </div>
+            </form>
         </Dialog>
     );
 }

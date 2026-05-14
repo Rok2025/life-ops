@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X, Edit2, Plus, Trash2, Save } from 'lucide-react';
 import { fitnessApi, useExerciseTypes, useWorkoutDetail, getCategoryConfig } from '@/features/fitness';
 import type { AggregatedExercise } from '@/features/fitness';
 import { useExerciseCategories } from '@/features/fitness/hooks/useExerciseCategories';
-import { Button, DatePicker, Dialog, Input, Select } from '@/components/ui';
+import { Button, DatePicker, Dialog, Input, Select, ShortcutHint } from '@/components/ui';
+import { useCommandEnterAction } from '@/hooks/useCommandEnterAction';
 
 interface WorkoutDetailDialogProps {
     sessionId: string | null;
@@ -22,6 +23,7 @@ export function WorkoutDetailDialog({ sessionId, editMode = false, onClose }: Wo
 
 function WorkoutDetailDialogInner({ sessionId, editMode, onClose }: { sessionId: string; editMode: boolean; onClose: () => void }) {
     const queryClient = useQueryClient();
+    const shortcutScopeRef = useRef<HTMLDivElement>(null);
     const { session, sets, loading } = useWorkoutDetail(sessionId);
     const { exerciseTypes, categories } = useExerciseTypes();
     const { categories: categoryLabels } = useExerciseCategories();
@@ -118,6 +120,18 @@ function WorkoutDetailDialogInner({ sessionId, editMode, onClose }: { sessionId:
         },
     });
 
+    const handleSave = useCallback(() => {
+        if (saveMutation.isPending || editExercises.length === 0) return;
+        saveMutation.mutate();
+    }, [editExercises.length, saveMutation]);
+
+    useCommandEnterAction({
+        enabled: isEditing,
+        disabled: saveMutation.isPending || editExercises.length === 0,
+        scopeRef: shortcutScopeRef,
+        onAction: handleSave,
+    });
+
     const title = isEditing ? '编辑训练记录' : '训练详情';
 
     return (
@@ -146,7 +160,7 @@ function WorkoutDetailDialogInner({ sessionId, editMode, onClose }: { sessionId:
                     ) : !session ? (
                         <div className="text-center py-8 text-text-secondary text-body-sm">训练记录不存在</div>
                     ) : isEditing ? (
-                        <div className="flex flex-col gap-4">
+                        <div ref={shortcutScopeRef} className="flex flex-col gap-4">
                             <div className="flex items-center gap-3">
                                 <label className="text-body-sm font-medium text-text-secondary shrink-0">日期</label>
                                 <DatePicker value={editDate} onChange={setEditDate} className="flex-1" />
@@ -200,9 +214,10 @@ function WorkoutDetailDialogInner({ sessionId, editMode, onClose }: { sessionId:
                                     <X size={16} />
                                     取消
                                 </Button>
-                                <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending || editExercises.length === 0} className="flex-1 gap-2">
+                                <Button onClick={handleSave} disabled={saveMutation.isPending || editExercises.length === 0} className="flex-1 gap-2">
                                     <Save size={16} />
                                     {saveMutation.isPending ? '保存中...' : '保存修改'}
+                                    {!saveMutation.isPending ? <ShortcutHint /> : null}
                                 </Button>
                             </div>
                         </div>

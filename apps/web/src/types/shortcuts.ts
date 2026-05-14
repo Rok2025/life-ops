@@ -2,6 +2,6 @@
 export type ShortcutDef = {
     keys: string;
     label: string;
-    category: 'nav' | 'create';
+    category: 'nav' | 'create' | 'save';
     action?: () => void;
 };

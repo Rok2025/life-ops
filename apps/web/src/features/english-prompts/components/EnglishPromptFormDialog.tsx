@@ -3,7 +3,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import { ENGLISH_PROMPT_MODE_META } from '../types';
 import type { EnglishPromptMode, EnglishPromptTemplate, EnglishPromptTemplateFormValues } from '../types';
-import { Button, Checkbox, Dialog, Input } from '@/components/ui';
+import { Button, Checkbox, Dialog, Input, ShortcutHint } from '@/components/ui';
+import { handleCommandEnterFormSubmit } from '@/lib/shortcuts';
 
 interface EnglishPromptFormDialogProps {
     editingTemplate: EnglishPromptTemplate | null;
@@ -58,7 +59,7 @@ export default function EnglishPromptFormDialog({
             maxWidth="2xl"
             bodyClassName="flex min-h-0 flex-1 flex-col"
         >
-            <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+            <form onSubmit={handleSubmit} onKeyDown={handleCommandEnterFormSubmit} className="flex min-h-0 flex-1 flex-col">
                 <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4">
                         <p className="text-caption text-text-tertiary">
                             为英语学习模块维护专用提示词，并绑定到简洁 / 详细 / 语法模式
@@ -155,6 +156,7 @@ export default function EnglishPromptFormDialog({
                         size="sm"
                     >
                         {submitting ? '保存中...' : isEditing ? '保存' : '创建'}
+                        {!submitting ? <ShortcutHint /> : null}
                     </Button>
                 </div>
             </form>

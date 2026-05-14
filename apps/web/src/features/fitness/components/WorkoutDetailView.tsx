@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Dumbbell, Plus, Trash2, Edit2, Save, X } from 'lucide-react';
@@ -8,10 +8,12 @@ import Link from 'next/link';
 import { fitnessApi, useExerciseTypes, useWorkoutDetail, getCategoryConfig } from '@/features/fitness';
 import type { AggregatedExercise } from '@/features/fitness';
 import { useExerciseCategories } from '@/features/fitness/hooks/useExerciseCategories';
-import { Button, Card, DatePicker, Input, PageHero, Select } from '@/components/ui';
+import { Button, Card, DatePicker, Input, PageHero, Select, ShortcutHint } from '@/components/ui';
+import { useCommandEnterAction } from '@/hooks/useCommandEnterAction';
 
 export default function WorkoutDetailView() {
     const queryClient = useQueryClient();
+    const shortcutScopeRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
     const searchParams = useSearchParams();
     const id = searchParams.get('id') || '';
@@ -157,10 +159,17 @@ export default function WorkoutDetailView() {
         },
     });
 
-    const handleSave = () => {
+    const handleSave = useCallback(() => {
         if (!session) return;
         saveMutation.mutate();
-    };
+    }, [saveMutation, session]);
+
+    useCommandEnterAction({
+        enabled: isEditing,
+        disabled: saveMutation.isPending || editExercises.length === 0,
+        scopeRef: shortcutScopeRef,
+        onAction: handleSave,
+    });
 
     const handleDelete = () => {
         if (!session || !confirm('确定要删除这条训练记录吗？')) return;
@@ -222,6 +231,7 @@ export default function WorkoutDetailView() {
 
             {isEditing ? (
                 <Card className="flex flex-col gap-4 p-card">
+                    <div ref={shortcutScopeRef} className="flex flex-col gap-4">
                     {/* 日期 */}
                     <div className="flex items-center gap-3">
                         <label className="text-body-sm font-medium text-text-secondary shrink-0">日期</label>
@@ -340,7 +350,9 @@ export default function WorkoutDetailView() {
                         >
                             <Save size={16} />
                             {saveMutation.isPending ? '保存中...' : '保存修改'}
+                            {!saveMutation.isPending ? <ShortcutHint /> : null}
                         </Button>
+                    </div>
                     </div>
                 </Card>
             ) : (

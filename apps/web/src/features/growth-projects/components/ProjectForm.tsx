@@ -5,7 +5,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { projectsApi } from '../api/projectsApi';
 import { SCOPE_CONFIG, STATUS_CONFIG } from '../types';
 import type { GrowthArea, ProjectWithStats, ProjectScope, ProjectStatus, CreateProjectInput, UpdateProjectInput } from '../types';
-import { Button, DatePicker, Dialog, Input, SegmentedControl, Select } from '@/components/ui';
+import { Button, DatePicker, Dialog, Input, SegmentedControl, Select, ShortcutHint } from '@/components/ui';
+import { handleCommandEnterFormSubmit } from '@/lib/shortcuts';
 
 interface ProjectFormProps {
     open: boolean;
@@ -107,7 +108,7 @@ export function ProjectForm({ open, onClose, area, editingProject }: ProjectForm
             maxWidth="lg"
             bodyClassName="flex min-h-0 flex-1 flex-col"
         >
-            <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+            <form onSubmit={handleSubmit} onKeyDown={handleCommandEnterFormSubmit} className="flex min-h-0 flex-1 flex-col">
                 <div className="space-y-4 px-5 py-4">
                     {/* 标题 */}
                     <div>
@@ -199,6 +200,7 @@ export function ProjectForm({ open, onClose, area, editingProject }: ProjectForm
                     </Button>
                     <Button type="submit" disabled={saving || !title.trim() || dateRangeInvalid} size="sm">
                         {saving ? '保存中...' : isEditing ? '保存' : '创建'}
+                        {!saving ? <ShortcutHint /> : null}
                     </Button>
                 </div>
             </form>

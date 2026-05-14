@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -16,9 +17,16 @@ import {
 import { formatDisplayDate, formatFullDate, getLocalDateStr, getWeekDateRange } from '@/lib/utils/date';
 import { Button, Card, Dialog, SectionHeader, SegmentedControl } from '@/components/ui';
 import type { SegmentedControlOption } from '@/components/ui';
+import { projectsApi } from '@/features/growth-projects';
 import { notesApi } from '../api/notesApi';
-import { useTodos } from '../hooks/useTodos';
-import type { QuickNote, TodoPriority } from '../types';
+import { useUnifiedTodos } from '../hooks/useUnifiedTodos';
+import {
+    buildUnifiedCalendarSummaryMap,
+    compareUnifiedTodos,
+    matchesUnifiedTodoSource,
+} from '../lib/unifiedTodos';
+import type { CalendarDaySummary, UnifiedTodo, UnifiedTodoSourceFilter } from '../lib/unifiedTodos';
+import type { TodoPriority } from '../types';
 import { PRIORITY_CONFIG } from '../types';
 import { OverflowTooltipText } from './OverflowTooltipText';
 import { TodoFormDialog, type TodoFormValues } from './TodoFormDialog';
@@ -26,11 +34,6 @@ import { TodoTimelineView } from './TodoTimelineView';
 
 type TodoStatusFilter = 'open' | 'all' | 'completed';
 type TodoScope = 'all' | 'today' | 'week' | 'month' | 'overdue' | 'unscheduled' | 'date';
-type CalendarDaySummary = {
-    total: number;
-    open: number;
-    completed: number;
-};
 type DateRange = {
     start: string;
     end: string;
@@ -43,7 +46,7 @@ type TodoDateGroup = {
         className: string;
     };
     openCount: number;
-    todos: QuickNote[];
+    todos: UnifiedTodo[];
 };
 type TodoMetricTone = 'accent' | 'success' | 'warning' | 'danger' | 'neutral';
 
@@ -53,44 +56,22 @@ const STATUS_OPTIONS: SegmentedControlOption[] = [
     { value: 'completed', label: '已完成' },
 ];
 
-const WEEKDAYS = ['一', '二', '三', '四', '五', '六', '日'];
+const SOURCE_OPTIONS: Array<{ value: UnifiedTodoSourceFilter; label: string }> = [
+    { value: 'all', label: '全部来源' },
+    { value: 'standalone', label: '独立待办' },
+    { value: 'project', label: '项目待办' },
+    { value: 'ai', label: 'AI' },
+    { value: 'english', label: '英语' },
+    { value: 'reading', label: '阅读' },
+];
 
-const PRIORITY_ORDER: Record<TodoPriority, number> = {
-    critical: 0,
-    urgent: 1,
-    important: 2,
-    normal: 3,
-};
+const WEEKDAYS = ['一', '二', '三', '四', '五', '六', '日'];
 
 type ErrorWithMessage = {
     message?: string;
     details?: string;
     hint?: string;
 };
-
-function compareTodos(a: QuickNote, b: QuickNote) {
-    if (a.is_completed !== b.is_completed) {
-        return Number(a.is_completed) - Number(b.is_completed);
-    }
-
-    if (!a.is_completed) {
-        const executeA = a.execute_date ? new Date(`${a.execute_date}T00:00:00`).getTime() : Number.MAX_SAFE_INTEGER;
-        const executeB = b.execute_date ? new Date(`${b.execute_date}T00:00:00`).getTime() : Number.MAX_SAFE_INTEGER;
-        if (executeA !== executeB) return executeA - executeB;
-
-        const priorityA = PRIORITY_ORDER[a.priority ?? 'normal'];
-        const priorityB = PRIORITY_ORDER[b.priority ?? 'normal'];
-        if (priorityA !== priorityB) return priorityA - priorityB;
-
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    }
-
-    const completedA = a.completed_at ? new Date(a.completed_at).getTime() : 0;
-    const completedB = b.completed_at ? new Date(b.completed_at).getTime() : 0;
-    if (completedA !== completedB) return completedB - completedA;
-
-    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-}
 
 function formatTodoError(error: unknown) {
     const fallback = '请稍后重试。';
@@ -196,8 +177,8 @@ function getDateGroupChip(dateStr: string | null, today: string, weekRange: Date
     };
 }
 
-function buildTodoDateGroups(todos: QuickNote[], today: string, weekRange: DateRange, monthRange: DateRange): TodoDateGroup[] {
-    const groupMap = new Map<string, QuickNote[]>();
+function buildTodoDateGroups(todos: UnifiedTodo[], today: string, weekRange: DateRange, monthRange: DateRange): TodoDateGroup[] {
+    const groupMap = new Map<string, UnifiedTodo[]>();
 
     for (const todo of todos) {
         const key = todo.execute_date ?? 'unscheduled';
@@ -263,7 +244,7 @@ function getMetricButtonClass(active: boolean, tone: TodoMetricTone) {
     return `${base} border-glass-border bg-panel-bg/75 text-text-primary`;
 }
 
-function getTodoStatus(todo: QuickNote, today: string) {
+function getTodoStatus(todo: UnifiedTodo, today: string) {
     if (todo.is_completed) {
         return { label: '已完成', className: 'bg-success/10 text-success' };
     }
@@ -279,7 +260,7 @@ function getTodoStatus(todo: QuickNote, today: string) {
     return { label: '待执行', className: 'bg-selection-bg text-accent' };
 }
 
-function getTodoDateLabel(todo: QuickNote, today: string) {
+function getTodoDateLabel(todo: UnifiedTodo, today: string) {
     if (!todo.execute_date) {
         return { label: '未安排', className: 'text-text-secondary' };
     }
@@ -292,23 +273,8 @@ function getTodoDateLabel(todo: QuickNote, today: string) {
     return { label: formatDisplayDate(todo.execute_date), className: 'text-text-secondary' };
 }
 
-function buildCalendarSummaryMap(todos: QuickNote[]) {
-    const summaryMap = new Map<string, CalendarDaySummary>();
-
-    for (const todo of todos) {
-        if (!todo.execute_date) continue;
-
-        const current = summaryMap.get(todo.execute_date) ?? { total: 0, open: 0, completed: 0 };
-        current.total += 1;
-        if (todo.is_completed) {
-            current.completed += 1;
-        } else {
-            current.open += 1;
-        }
-        summaryMap.set(todo.execute_date, current);
-    }
-
-    return summaryMap;
+function buildCalendarSummaryMap(todos: UnifiedTodo[]): Map<string, CalendarDaySummary> {
+    return buildUnifiedCalendarSummaryMap(todos);
 }
 
 function getScopeSummaryLabel(scope: TodoScope, selectedDate: string | null) {
@@ -413,12 +379,12 @@ function TodoListRow({
     onEdit,
     onDelete,
 }: {
-    todo: QuickNote;
+    todo: UnifiedTodo;
     today: string;
     showDate?: boolean;
-    onToggleCompleted: (id: string, completed: boolean) => void;
-    onEdit: (todo: QuickNote) => void;
-    onDelete: (id: string) => void;
+    onToggleCompleted: (todo: UnifiedTodo, completed: boolean) => void;
+    onEdit: (todo: UnifiedTodo) => void;
+    onDelete: (todo: UnifiedTodo) => void;
 }) {
     const priority = todo.priority ?? 'normal';
     const priorityCfg = PRIORITY_CONFIG[priority];
@@ -431,15 +397,15 @@ function TodoListRow({
             className={[
                 'glass-list-row relative z-0 grid grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-3 px-3 py-2.5 hover:z-20 focus-within:z-20',
                 showDate
-                    ? 'md:grid-cols-[36px_minmax(0,1fr)_110px_110px_84px_56px]'
-                    : 'md:grid-cols-[36px_minmax(0,1fr)_110px_84px_56px]',
+                    ? 'md:grid-cols-[36px_minmax(0,1fr)_170px_110px_110px_84px_56px]'
+                    : 'md:grid-cols-[36px_minmax(0,1fr)_170px_110px_84px_56px]',
                 todo.is_completed ? 'opacity-75' : '',
                 isOverdue ? 'border-warning/30' : '',
             ].filter(Boolean).join(' ')}
         >
             <button
                 type="button"
-                onClick={() => onToggleCompleted(todo.id, !todo.is_completed)}
+                onClick={() => onToggleCompleted(todo, !todo.is_completed)}
                 className={[
                     'flex h-5 w-5 items-center justify-center rounded-full border-2 transition-colors duration-normal ease-standard',
                     todo.is_completed
@@ -460,12 +426,40 @@ function TodoListRow({
                     ].join(' ')}
                 />
                 <div className="mt-1 flex flex-wrap items-center gap-2 text-caption text-text-secondary md:hidden">
+                    {todo.projectHref ? (
+                        <Link
+                            href={todo.projectHref}
+                            className="rounded-full bg-accent/10 px-2 py-0.5 font-medium text-accent ring-1 ring-accent/18 transition-colors duration-normal ease-standard hover:bg-accent/14"
+                        >
+                            {todo.sourceLabel}
+                        </Link>
+                    ) : (
+                        <span className="rounded-full bg-bg-tertiary px-2 py-0.5 text-text-secondary ring-1 ring-text-primary/10">
+                            {todo.sourceLabel}
+                        </span>
+                    )}
                     {showDate ? <span className={dateInfo.className}>{dateInfo.label}</span> : null}
                     <span className={`rounded-full px-2 py-0.5 ${priorityCfg.bg} ${priorityCfg.color}`}>
                         {priorityCfg.emoji ? `${priorityCfg.emoji} ${priorityCfg.label}` : priorityCfg.label}
                     </span>
                     <span className={`rounded-full px-2 py-0.5 ${status.className}`}>{status.label}</span>
                 </div>
+            </div>
+
+            <div className="hidden md:flex min-w-0">
+                {todo.projectHref ? (
+                    <Link
+                        href={todo.projectHref}
+                        title={todo.sourceLabel}
+                        className="truncate rounded-full bg-accent/10 px-2 py-0.5 text-caption font-medium text-accent ring-1 ring-accent/18 transition-colors duration-normal ease-standard hover:bg-accent/14"
+                    >
+                        {todo.sourceLabel}
+                    </Link>
+                ) : (
+                    <span className="rounded-full bg-bg-tertiary px-2 py-0.5 text-caption text-text-secondary ring-1 ring-text-primary/10">
+                        {todo.sourceLabel}
+                    </span>
+                )}
             </div>
 
             {showDate ? (
@@ -495,7 +489,7 @@ function TodoListRow({
                 </button>
                 <button
                     type="button"
-                    onClick={() => onDelete(todo.id)}
+                    onClick={() => onDelete(todo)}
                     className="rounded-control p-1 text-danger transition-colors duration-normal ease-standard hover:bg-danger/10"
                     aria-label="删除待办"
                 >
@@ -512,7 +506,7 @@ function TodoCalendarPanel({
     selectedDate,
     onSelectDate,
 }: {
-    todos: QuickNote[];
+    todos: UnifiedTodo[];
     today: string;
     selectedDate: string | null;
     onSelectDate: (date: string | null) => void;
@@ -672,18 +666,22 @@ export default function TodoPage() {
     const queryClient = useQueryClient();
     const today = getLocalDateStr();
     const [statusFilter, setStatusFilter] = useState<TodoStatusFilter>('open');
+    const [sourceFilter, setSourceFilter] = useState<UnifiedTodoSourceFilter>('all');
     const [scope, setScope] = useState<TodoScope>('all');
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
-    const [editingTodo, setEditingTodo] = useState<QuickNote | null>(null);
+    const [editingTodo, setEditingTodo] = useState<UnifiedTodo | null>(null);
     const [timelineDialogOpen, setTimelineDialogOpen] = useState(false);
-    const { data: todos = [], isLoading, error: todosError } = useTodos();
+    const { data: todos = [], isLoading, error: todosError } = useUnifiedTodos();
     const weekRange = getWeekDateRange();
     const monthRange = getMonthDateRange();
 
     const refreshTodos = useCallback(async () => {
         await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ['unified-todos'] }),
             queryClient.invalidateQueries({ queryKey: ['todos'] }),
+            queryClient.invalidateQueries({ queryKey: ['project-todos'] }),
+            queryClient.invalidateQueries({ queryKey: ['projects'] }),
             queryClient.invalidateQueries({ queryKey: ['incomplete-todo-count'] }),
             queryClient.invalidateQueries({ queryKey: ['notes'] }),
             queryClient.invalidateQueries({ queryKey: ['notes-count'] }),
@@ -705,21 +703,39 @@ export default function TodoPage() {
         onError: (error) => handleMutationError('添加待办', error),
     });
 
-    const toggleMutation = useMutation({
-        mutationFn: ({ id, completed }: { id: string; completed: boolean }) => notesApi.toggleCompleted(id, completed),
+    const toggleMutation = useMutation<unknown, Error, { todo: UnifiedTodo; completed: boolean }>({
+        mutationFn: async ({ todo, completed }) => {
+            if (todo.source === 'project') {
+                return projectsApi.toggleTodo(todo.sourceId, completed);
+            }
+            return notesApi.toggleCompleted(todo.sourceId, completed);
+        },
         onSuccess: async () => refreshTodos(),
         onError: (error) => handleMutationError('更新待办状态', error),
     });
 
-    const deleteMutation = useMutation({
-        mutationFn: (id: string) => notesApi.delete(id),
+    const deleteMutation = useMutation<unknown, Error, UnifiedTodo>({
+        mutationFn: async (todo) => {
+            if (todo.source === 'project') {
+                return projectsApi.deleteTodo(todo.sourceId);
+            }
+            return notesApi.delete(todo.sourceId);
+        },
         onSuccess: async () => refreshTodos(),
         onError: (error) => handleMutationError('删除待办', error),
     });
 
-    const updateMutation = useMutation({
-        mutationFn: (payload: { id: string; content: string; execute_date: string | null; priority: TodoPriority | null }) => {
-            return notesApi.update(payload.id, {
+    const updateMutation = useMutation<unknown, Error, { todo: UnifiedTodo; content: string; execute_date: string | null; priority: TodoPriority | null }>({
+        mutationFn: async (payload) => {
+            if (payload.todo.source === 'project') {
+                return projectsApi.updateTodo(payload.todo.sourceId, {
+                    title: payload.content,
+                    execute_date: payload.execute_date,
+                    priority: payload.priority,
+                });
+            }
+
+            return notesApi.update(payload.todo.sourceId, {
                 content: payload.content,
                 execute_date: payload.execute_date,
                 priority: payload.priority,
@@ -732,27 +748,39 @@ export default function TodoPage() {
         onError: (error) => handleMutationError('保存待办', error),
     });
 
-    const handleDelete = useCallback((id: string) => {
-        if (!confirm('确定删除这条待办吗？')) return;
-        deleteMutation.mutate(id);
+    const handleDelete = useCallback((todo: UnifiedTodo) => {
+        const message = todo.source === 'project'
+            ? '确定删除这条项目待办吗？它会从原项目中移除。'
+            : '确定删除这条待办吗？';
+        if (!confirm(message)) return;
+        deleteMutation.mutate(todo);
     }, [deleteMutation]);
 
-    const sortedTodos = [...todos].sort(compareTodos);
-    const openTodos = sortedTodos.filter((todo) => !todo.is_completed);
+    const sortedTodos = [...todos].sort(compareUnifiedTodos);
+    const sourceFilteredTodos = sortedTodos.filter((todo) => matchesUnifiedTodoSource(todo, sourceFilter));
+    const sourceCounts: Record<UnifiedTodoSourceFilter, number> = {
+        all: sortedTodos.length,
+        standalone: sortedTodos.filter((todo) => todo.source === 'standalone').length,
+        project: sortedTodos.filter((todo) => todo.source === 'project').length,
+        ai: sortedTodos.filter((todo) => todo.projectArea === 'ai').length,
+        english: sortedTodos.filter((todo) => todo.projectArea === 'english').length,
+        reading: sortedTodos.filter((todo) => todo.projectArea === 'reading').length,
+    };
+    const openTodos = sourceFilteredTodos.filter((todo) => !todo.is_completed);
     const todayOpenTodos = openTodos.filter((todo) => todo.execute_date === today);
     const overdueOpenTodos = openTodos.filter((todo) => todo.execute_date && todo.execute_date < today);
     const futureOpenTodos = openTodos.filter((todo) => todo.execute_date && todo.execute_date > today);
     const unscheduledOpenTodos = openTodos.filter((todo) => !todo.execute_date);
-    const todayScheduledTodos = sortedTodos.filter((todo) => todo.execute_date === today).length;
+    const todayScheduledTodos = sourceFilteredTodos.filter((todo) => todo.execute_date === today).length;
     const todayTodos = todayOpenTodos.length;
     const weekTodos = openTodos.filter((todo) => isDateInRange(todo.execute_date, weekRange.start, weekRange.end)).length;
-    const weekCompletedTodos = sortedTodos.filter((todo) => todo.is_completed && isDateInRange(todo.execute_date, weekRange.start, weekRange.end)).length;
+    const weekCompletedTodos = sourceFilteredTodos.filter((todo) => todo.is_completed && isDateInRange(todo.execute_date, weekRange.start, weekRange.end)).length;
     const monthTodos = openTodos.filter((todo) => isDateInRange(todo.execute_date, monthRange.start, monthRange.end)).length;
-    const monthCompletedTodos = sortedTodos.filter((todo) => todo.is_completed && isDateInRange(todo.execute_date, monthRange.start, monthRange.end)).length;
-    const todayCompletedTodos = sortedTodos.filter((todo) => todo.execute_date === today && todo.is_completed).length;
+    const monthCompletedTodos = sourceFilteredTodos.filter((todo) => todo.is_completed && isDateInRange(todo.execute_date, monthRange.start, monthRange.end)).length;
+    const todayCompletedTodos = sourceFilteredTodos.filter((todo) => todo.execute_date === today && todo.is_completed).length;
     const overdueTodos = overdueOpenTodos.length;
     const unscheduledTodos = unscheduledOpenTodos.length;
-    const selectedDateTodos = selectedDate ? sortedTodos.filter((todo) => todo.execute_date === selectedDate) : [];
+    const selectedDateTodos = selectedDate ? sourceFilteredTodos.filter((todo) => todo.execute_date === selectedDate) : [];
     const todosErrorMessage = todosError ? formatTodoError(todosError) : null;
     const focusTodo = overdueOpenTodos[0] ?? todayOpenTodos[0] ?? futureOpenTodos[0] ?? unscheduledOpenTodos[0] ?? null;
     const focusState = (() => {
@@ -820,7 +848,7 @@ export default function TodoPage() {
         { scope: 'unscheduled' as const, label: '未安排', value: unscheduledTodos, meta: unscheduledTodos > 0 ? '需要补执行日' : '排期完整', tone: 'neutral' as const },
     ];
     const scopeButtons = [
-        { value: 'all' as const, label: '全部', count: sortedTodos.length },
+        { value: 'all' as const, label: '全部', count: sourceFilteredTodos.length },
         { value: 'today' as const, label: '今天', count: todayTodos },
         { value: 'week' as const, label: '本周', count: weekTodos },
         { value: 'month' as const, label: '本月', count: monthTodos },
@@ -828,7 +856,7 @@ export default function TodoPage() {
         { value: 'unscheduled' as const, label: '未安排', count: unscheduledTodos },
     ];
 
-    const visibleTodos = sortedTodos.filter((todo) => {
+    const visibleTodos = sourceFilteredTodos.filter((todo) => {
         if (statusFilter === 'open' && todo.is_completed) return false;
         if (statusFilter === 'completed' && !todo.is_completed) return false;
 
@@ -912,8 +940,9 @@ export default function TodoPage() {
     const resetToAllTodos = useCallback(() => {
         setSelectedDate(null);
         setScope('all');
+        setSourceFilter('all');
         setStatusFilter('all');
-    }, [setScope, setSelectedDate, setStatusFilter]);
+    }, [setScope, setSelectedDate, setSourceFilter, setStatusFilter]);
 
     useEffect(() => {
         function handleKeyDown(event: KeyboardEvent) {
@@ -1042,7 +1071,7 @@ export default function TodoPage() {
                 </div>
 
                 <div className="rounded-inner-card border border-glass-border bg-panel-bg/74 px-3 py-2.5">
-                    <div className="flex flex-col gap-2.5 xl:flex-row xl:items-center xl:justify-between">
+                    <div className="flex flex-col gap-2.5">
                         <div className="flex flex-wrap items-center gap-2">
                             <span className="pl-0.5 text-caption font-medium uppercase tracking-wide text-text-tertiary">范围</span>
                             <div className="flex flex-wrap items-center gap-1.5">
@@ -1060,18 +1089,37 @@ export default function TodoPage() {
                             </div>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-2 xl:justify-end">
-                            <span className="pl-0.5 text-caption font-medium uppercase tracking-wide text-text-tertiary">状态</span>
-                            <SegmentedControl
-                                value={statusFilter}
-                                onChange={(value) => setStatusFilter(value as TodoStatusFilter)}
-                                options={STATUS_OPTIONS}
-                                size="sm"
-                                wrap
-                                className="border-0! bg-transparent! p-0! shadow-none!"
-                                optionClassName="min-w-[64px]"
-                                aria-label="待办状态筛选"
-                            />
+                        <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
+                            <div className="flex flex-wrap items-center gap-2">
+                                <span className="pl-0.5 text-caption font-medium uppercase tracking-wide text-text-tertiary">来源</span>
+                                <div className="flex flex-wrap items-center gap-1.5">
+                                    {SOURCE_OPTIONS.map((item) => (
+                                        <button
+                                            key={item.value}
+                                            type="button"
+                                            className={getScopeButtonClass(sourceFilter === item.value)}
+                                            onClick={() => setSourceFilter(item.value)}
+                                        >
+                                            <span>{item.label}</span>
+                                            <span className="text-[11px] text-current/70">{sourceCounts[item.value]}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-2 xl:justify-end">
+                                <span className="pl-0.5 text-caption font-medium uppercase tracking-wide text-text-tertiary">状态</span>
+                                <SegmentedControl
+                                    value={statusFilter}
+                                    onChange={(value) => setStatusFilter(value as TodoStatusFilter)}
+                                    options={STATUS_OPTIONS}
+                                    size="sm"
+                                    wrap
+                                    className="border-0! bg-transparent! p-0! shadow-none!"
+                                    optionClassName="min-w-[64px]"
+                                    aria-label="待办状态筛选"
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1138,9 +1186,10 @@ export default function TodoPage() {
                             </div>
                         ) : (
                             <>
-                                <div className="hidden grid-cols-[36px_minmax(0,1fr)_110px_84px_56px] gap-3 border-b border-glass-border px-3 pb-2 text-caption uppercase tracking-wide text-text-tertiary md:grid">
+                                <div className="hidden grid-cols-[36px_minmax(0,1fr)_170px_110px_84px_56px] gap-3 border-b border-glass-border px-3 pb-2 text-caption uppercase tracking-wide text-text-tertiary md:grid">
                                     <span className="whitespace-nowrap">完成</span>
                                     <span>内容</span>
+                                    <span>来源</span>
                                     <span>优先级</span>
                                     <span>状态</span>
                                     <span className="text-right">操作</span>
@@ -1206,7 +1255,7 @@ export default function TodoPage() {
                                                             todo={todo}
                                                             today={today}
                                                             showDate={false}
-                                                            onToggleCompleted={(id, completed) => toggleMutation.mutate({ id, completed })}
+                                                            onToggleCompleted={(nextTodo, completed) => toggleMutation.mutate({ todo: nextTodo, completed })}
                                                             onEdit={(nextTodo) => {
                                                                 setCreateDialogOpen(false);
                                                                 setEditingTodo(nextTodo);
@@ -1226,7 +1275,7 @@ export default function TodoPage() {
 
                 <div className="space-y-4 xl:order-1">
                     <TodoCalendarPanel
-                        todos={sortedTodos}
+                        todos={sourceFilteredTodos}
                         today={today}
                         selectedDate={scope === 'date' ? selectedDate : null}
                         onSelectDate={handleSelectDate}
@@ -1249,12 +1298,16 @@ export default function TodoPage() {
                 <TodoFormDialog
                     open
                     mode="edit"
-                    todo={editingTodo}
+                    initialValues={{
+                        content: editingTodo.content,
+                        execute_date: editingTodo.execute_date,
+                        priority: editingTodo.priority,
+                    }}
                     saving={updateMutation.isPending}
                     onClose={() => setEditingTodo(null)}
                     onSave={(values) => {
                         updateMutation.mutate({
-                            id: editingTodo.id,
+                            todo: editingTodo,
                             content: values.content,
                             execute_date: values.execute_date,
                             priority: values.priority,

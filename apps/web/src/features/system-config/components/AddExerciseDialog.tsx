@@ -1,4 +1,5 @@
-import { Dialog, Input, Select, Button } from '@/components/ui';
+import { Dialog, Input, Select, Button, ShortcutHint } from '@/components/ui';
+import { handleCommandEnterFormSubmit } from '@/lib/shortcuts';
 
 interface AddExerciseDialogProps {
     open: boolean;
@@ -38,6 +39,7 @@ export function AddExerciseDialog({
                     event.preventDefault();
                     onSubmit();
                 }}
+                onKeyDown={handleCommandEnterFormSubmit}
                 className="flex min-h-0 flex-1 flex-col"
             >
                 <div className="space-y-4 px-5 py-4">
@@ -69,6 +71,7 @@ export function AddExerciseDialog({
                     </Button>
                     <Button type="submit" disabled={!newName.trim() || saving}>
                         {saving ? '保存中...' : '确定添加'}
+                        {!saving ? <ShortcutHint /> : null}
                     </Button>
                 </div>
             </form>

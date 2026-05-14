@@ -7,6 +7,8 @@ import type {
     UpdateProjectInput,
     ProjectTodo,
     CreateTodoInput,
+    UpdateTodoInput,
+    ProjectTodoWithProject,
     ProjectNote,
     CreateNoteInput,
     ProjectStatus,
@@ -161,6 +163,8 @@ export const projectsApi = {
             .insert({
                 project_id: input.project_id,
                 title: input.title,
+                execute_date: input.execute_date ?? null,
+                priority: input.priority ?? 'normal',
             })
             .select()
             .single();
@@ -181,6 +185,59 @@ export const projectsApi = {
             .single();
         if (error) throw error;
         return data;
+    },
+
+    /** 更新项目待办内容、执行日期和优先级 */
+    updateTodo: async (id: string, updates: UpdateTodoInput): Promise<ProjectTodo> => {
+        const { data, error } = await supabase
+            .from('project_todos')
+            .update({
+                ...updates,
+                priority: updates.priority ?? undefined,
+            })
+            .eq('id', id)
+            .select()
+            .single();
+        if (error) throw error;
+        return data;
+    },
+
+    /** 获取所有项目待办（含项目信息，用于待办模块聚合展示） */
+    getInboxTodos: async (): Promise<ProjectTodoWithProject[]> => {
+        const { data, error } = await supabase
+            .from('project_todos')
+            .select(`
+                id,
+                project_id,
+                title,
+                is_completed,
+                completed_at,
+                execute_date,
+                priority,
+                sort_order,
+                created_at,
+                growth_projects (
+                    id,
+                    title,
+                    area,
+                    status
+                )
+            `)
+            .order('is_completed', { ascending: true })
+            .order('execute_date', { ascending: true, nullsFirst: false })
+            .order('created_at', { ascending: false });
+        if (error) throw error;
+
+        type ProjectTodoInboxRow = Omit<ProjectTodoWithProject, 'growth_projects'> & {
+            growth_projects: ProjectTodoWithProject['growth_projects'] | ProjectTodoWithProject['growth_projects'][];
+        };
+
+        return ((data ?? []) as unknown as ProjectTodoInboxRow[]).map((todo) => ({
+            ...todo,
+            growth_projects: Array.isArray(todo.growth_projects)
+                ? todo.growth_projects[0] ?? null
+                : todo.growth_projects,
+        }));
     },
 
     /** 删除待办 */

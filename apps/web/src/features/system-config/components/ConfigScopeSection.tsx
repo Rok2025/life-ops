@@ -6,7 +6,8 @@ import { Plus } from 'lucide-react';
 import { configApi } from '../api/configApi';
 import { ConfigItemRow } from './ConfigItemRow';
 import type { ConfigItem, ScopeMeta } from '../types';
-import { Button, Card, Input } from '@/components/ui';
+import { Button, Card, Input, ShortcutHint } from '@/components/ui';
+import { isCommandEnterEvent } from '@/lib/shortcuts';
 
 interface ConfigScopeSectionProps {
     meta: ScopeMeta;
@@ -64,7 +65,7 @@ export function ConfigScopeSection({ meta, initialItems }: ConfigScopeSectionPro
     }, [newLabel, items, addMutation]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-        if (e.key === 'Enter') {
+        if (isCommandEnterEvent(e) || e.key === 'Enter') {
             e.preventDefault();
             handleAdd();
         }
@@ -125,6 +126,7 @@ export function ConfigScopeSection({ meta, initialItems }: ConfigScopeSectionPro
                     <Button onClick={handleAdd} disabled={!newLabel.trim() || addMutation.isPending} variant="tinted" size="sm" className="gap-1">
                         <Plus size={14} />
                         添加
+                        <ShortcutHint />
                     </Button>
                 </div>
             </div>

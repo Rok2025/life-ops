@@ -11,5 +11,7 @@ export { NotesTimelineView } from './components/NotesTimelineView';
 export { useNotesByDate } from './hooks/useNotesByDate';
 export { useNotesTimeline } from './hooks/useNotesTimeline';
 export { useTodos } from './hooks/useTodos';
+export { useUnifiedTodos } from './hooks/useUnifiedTodos';
 export type { QuickNote, NoteType, NotesOnlyType, FilterType, CreateNoteInput, CreateTodoInput, UpdateNoteInput, TodoPriority } from './types';
+export type { UnifiedTodo, UnifiedTodoSourceFilter } from './lib/unifiedTodos';
 export { NOTE_TYPE_CONFIG, NOTE_TYPES, NOTES_ONLY_TYPES, PRIORITY_CONFIG, TODO_PRIORITIES } from './types';

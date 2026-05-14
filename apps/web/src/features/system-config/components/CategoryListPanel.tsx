@@ -1,7 +1,8 @@
 import { Plus, Edit2, Check, X, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
 import type { ExerciseType } from '../hooks/useExerciseManagerState';
 import type { ConfigItem } from '../types';
-import { Button, Input } from '@/components/ui';
+import { Button, Input, ShortcutHint } from '@/components/ui';
+import { isCommandEnterEvent } from '@/lib/shortcuts';
 
 interface CategoryListPanelProps {
     categories: ConfigItem[];
@@ -56,7 +57,13 @@ export function CategoryListPanel({
                                 type="text"
                                 value={editCatLabel}
                                 onChange={e => onEditLabelChange(e.target.value)}
-                                onKeyDown={e => { if (e.key === 'Enter') onSaveEdit(); if (e.key === 'Escape') onCancelEdit(); }}
+                                onKeyDown={e => {
+                                    if (isCommandEnterEvent(e) || e.key === 'Enter') {
+                                        e.preventDefault();
+                                        onSaveEdit();
+                                    }
+                                    if (e.key === 'Escape') onCancelEdit();
+                                }}
                                 size="sm"
                                 className="mr-2 flex-1 bg-card-bg"
                                 autoFocus
@@ -75,7 +82,8 @@ export function CategoryListPanel({
                                     <button
                                         onClick={onSaveEdit}
                                         className="p-1 text-success hover:bg-success/10 rounded-control transition-colors duration-normal ease-standard"
-                                        title="保存"
+                                        title="保存（⌘ Enter）"
+                                        aria-label="保存（⌘ Enter）"
                                     >
                                         <Check size={14} />
                                     </button>
@@ -133,13 +141,19 @@ export function CategoryListPanel({
                     type="text"
                     value={newCatLabel}
                     onChange={e => onNewLabelChange(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); onAdd(); } }}
+                    onKeyDown={e => {
+                        if (isCommandEnterEvent(e) || e.key === 'Enter') {
+                            e.preventDefault();
+                            onAdd();
+                        }
+                    }}
                     placeholder="输入新部位名称..."
                     className="flex-1"
                 />
                 <Button onClick={onAdd} disabled={!newCatLabel.trim() || isAddPending} variant="tinted" size="sm" className="gap-1">
                     <Plus size={14} />
                     添加
+                    <ShortcutHint />
                 </Button>
             </div>
         </div>

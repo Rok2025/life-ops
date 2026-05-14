@@ -3,6 +3,7 @@
 import { useCallback, useState } from 'react';
 import { formatDisplayDate } from '@/lib/utils/date';
 import { ChipGroup, DatePicker, Dialog, FormActions, Input } from '@/components/ui';
+import { handleCommandEnterFormSubmit } from '@/lib/shortcuts';
 import type { ChipOption } from '@/components/ui';
 import type { QuickNote, TodoPriority } from '../types';
 import { PRIORITY_CONFIG, TODO_PRIORITIES } from '../types';
@@ -80,6 +81,7 @@ export function TodoFormDialog({
                     event.preventDefault();
                     handleSubmit();
                 }}
+                onKeyDown={handleCommandEnterFormSubmit}
                 className="flex min-h-0 flex-1 flex-col"
             >
                 <div className="space-y-4 px-5 py-4">
@@ -107,7 +109,6 @@ export function TodoFormDialog({
                             placeholder={mode === 'create' ? '比如：补一下保险资料，给爸妈确认五一安排...' : '补充一下待办内容...'}
                             className="resize-none"
                             autoFocus
-                            onCmdEnter={handleSubmit}
                         />
                     </div>
 
