@@ -8,23 +8,28 @@ import {
     CheckCircle2,
     CircleDollarSign,
     CreditCard,
+    Download,
     FilePlus2,
     Landmark,
+    Pencil,
     Plus,
     ReceiptText,
     Save,
     Settings2,
     TrendingDown,
     TrendingUp,
+    Trash2,
     Wallet,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Badge, Button, Card, Dialog, Input, PageHero, Select, ShortcutHint } from '@/components/ui';
 import { useCommandEnterAction } from '@/hooks/useCommandEnterAction';
 import { handleCommandEnterFormSubmit } from '@/lib/shortcuts';
-import { useFinanceDashboard, useFinanceMutations } from '../hooks/useFinanceDashboard';
+import { useFinanceDashboard, useFinanceExpenseMonth, useFinanceMutations } from '../hooks/useFinanceDashboard';
+import { ExpenseDetailDrawer, ExpenseEditDrawer } from './ExpenseTransactionDialogs';
 import type {
     CreateFinanceTransactionInput,
+    DeleteFinanceTransactionInput,
     FinanceAccount,
     FinanceAccountType,
     FinanceDashboard,
@@ -39,6 +44,7 @@ import type {
     UpdateFinanceAccountInput,
     UpdateFinanceLiabilityInput,
     UpdateFinanceProfileInput,
+    UpdateFinanceTransactionInput,
 } from '../types';
 import {
     BILL_STATUS_LABELS,
@@ -54,7 +60,12 @@ import {
     getTodayISO,
     toNumber,
 } from '../lib/financeFormat';
-import { getExpenseDetailRows, type FinanceExpenseDetailRow } from '../lib/transactionDisplay';
+import {
+    getExpenseDetailRows,
+    getExpenseTimelineGroups,
+    type FinanceExpenseDetailRow,
+} from '../lib/transactionDisplay';
+import { buildExpenseExcelFile, downloadExpenseExcelFile } from '../lib/expenseExport';
 import {
     getSnapshotTrendSeries,
     getSnapshotViewModels,
@@ -105,23 +116,19 @@ function parseOptionalDay(value: string): number | null {
     return Math.min(Math.max(Math.trunc(parsed), 1), 31);
 }
 
-function formatDateTime(value: string): string {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value;
-
-    return new Intl.DateTimeFormat('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-    }).format(date);
-}
-
 type FinanceOverviewProps = {
     initialUserId?: string;
     initialDashboard?: FinanceDashboard;
 };
+
+const expenseRecordGridClass = 'grid min-w-[820px] grid-cols-[4.75rem_minmax(8rem,1.35fr)_5.5rem_minmax(6.5rem,0.9fr)_minmax(8rem,1fr)_6.25rem_4.5rem] items-center gap-2';
+const expenseCategoryChartColors = [
+    'var(--accent)',
+    'var(--success)',
+    'var(--warning)',
+    'var(--danger)',
+    'var(--text-tertiary)',
+];
 
 export default function FinanceOverview({
     initialUserId,
@@ -134,6 +141,8 @@ export default function FinanceOverview({
         bootstrapMutation,
         updatePaymentStatusMutation,
         createTransactionMutation,
+        updateTransactionMutation,
+        deleteTransactionMutation,
         updateProfileMutation,
         updateAccountMutation,
         updateLiabilityMutation,
@@ -188,6 +197,20 @@ export default function FinanceOverview({
             });
         },
         [createTransactionMutation],
+    );
+
+    const handleUpdateTransaction = useCallback(
+        (input: UpdateFinanceTransactionInput, onSuccess?: () => void) => {
+            updateTransactionMutation.mutate(input, { onSuccess });
+        },
+        [updateTransactionMutation],
+    );
+
+    const handleDeleteTransaction = useCallback(
+        (input: DeleteFinanceTransactionInput, onSuccess?: () => void) => {
+            deleteTransactionMutation.mutate(input, { onSuccess });
+        },
+        [deleteTransactionMutation],
     );
 
     const handleUpdateProfile = useCallback(
@@ -304,7 +327,14 @@ export default function FinanceOverview({
 
             <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.9fr)]">
                 <DebtProgressPanel dashboard={dashboard} />
-                <SpendingPanel dashboard={dashboard} />
+                <SpendingPanel
+                    dashboard={dashboard}
+                    userId={userId}
+                    isSavingExpense={updateTransactionMutation.isPending}
+                    isDeletingExpense={deleteTransactionMutation.isPending}
+                    onUpdateExpense={handleUpdateTransaction}
+                    onDeleteExpense={handleDeleteTransaction}
+                />
             </div>
 
             <SnapshotPanel dashboard={dashboard} />
@@ -563,11 +593,129 @@ function DebtProgressPanel({ dashboard }: { dashboard: FinanceDashboard }) {
     );
 }
 
-function SpendingPanel({ dashboard }: { dashboard: FinanceDashboard }) {
+function expensePiePoint(cx: number, cy: number, radius: number, angleDeg: number): { x: number; y: number } {
+    const angleRad = ((angleDeg - 90) * Math.PI) / 180;
+    return {
+        x: cx + radius * Math.cos(angleRad),
+        y: cy + radius * Math.sin(angleRad),
+    };
+}
+
+function describeExpensePieSlice(startAngle: number, endAngle: number): string {
+    const start = expensePiePoint(50, 50, 42, endAngle);
+    const end = expensePiePoint(50, 50, 42, startAngle);
+    const largeArcFlag = endAngle - startAngle <= 180 ? 0 : 1;
+
+    return [
+        'M 50 50',
+        `L ${start.x} ${start.y}`,
+        `A 42 42 0 ${largeArcFlag} 0 ${end.x} ${end.y}`,
+        'Z',
+    ].join(' ');
+}
+
+type ExpenseCategoryTotal = {
+    category: string;
+    amount: number;
+};
+
+function ExpenseCategoryPieChart({ items }: { items: ExpenseCategoryTotal[] }) {
+    const total = items.reduce((sum, item) => sum + item.amount, 0);
+
+    return (
+        <div
+            data-expense-category-chart="pie"
+            className="flex min-h-[10rem] flex-col justify-between rounded-control border border-glass-border/70 bg-bg-tertiary/70 px-3 py-3"
+        >
+            <div className="flex items-center justify-between gap-3">
+                <p className="text-body-sm font-semibold text-text-primary">分类占比</p>
+                <span className="text-caption text-text-tertiary">{items.length} 类</span>
+            </div>
+            {total <= 0 ? (
+                <div className="flex flex-1 items-center justify-center">
+                    <div className="flex h-24 w-24 items-center justify-center rounded-full border border-dashed border-glass-border text-caption text-text-tertiary">
+                        暂无
+                    </div>
+                </div>
+            ) : (
+                <div className="mt-3 grid grid-cols-[6.25rem_minmax(0,1fr)] items-center gap-3">
+                    <svg viewBox="0 0 100 100" className="h-24 w-24" role="img" aria-label="支出分类占比饼图">
+                        {items.map((item, index) => {
+                            const priorTotal = items.slice(0, index).reduce((sum, prior) => sum + prior.amount, 0);
+                            const startAngle = (priorTotal / total) * 360;
+                            const endAngle = startAngle + (item.amount / total) * 360;
+                            const color = expenseCategoryChartColors[index % expenseCategoryChartColors.length];
+                            const label = getCategoryLabel(item.category);
+
+                            if (items.length === 1) {
+                                return (
+                                    <circle key={item.category} cx="50" cy="50" r="42" fill={color}>
+                                        <title>{`${label} ${formatPct((item.amount / total) * 100)}`}</title>
+                                    </circle>
+                                );
+                            }
+
+                            return (
+                                <path
+                                    key={item.category}
+                                    d={describeExpensePieSlice(startAngle, endAngle)}
+                                    fill={color}
+                                    stroke="var(--panel-bg)"
+                                    strokeWidth="1.5"
+                                >
+                                    <title>{`${label} ${formatPct((item.amount / total) * 100)}`}</title>
+                                </path>
+                            );
+                        })}
+                        <circle cx="50" cy="50" r="23" fill="var(--panel-bg)" />
+                        <text x="50" y="48" textAnchor="middle" fill="var(--text-primary)" className="text-[12px] font-semibold">
+                            {formatPct(100)}
+                        </text>
+                        <text x="50" y="63" textAnchor="middle" fill="var(--text-tertiary)" className="text-[9px]">
+                            合计
+                        </text>
+                    </svg>
+                    <div className="min-w-0 space-y-1">
+                        {items.slice(0, 4).map((item, index) => {
+                            const color = expenseCategoryChartColors[index % expenseCategoryChartColors.length];
+                            const pctText = formatPct((item.amount / total) * 100);
+
+                            return (
+                                <div key={item.category} className="flex min-w-0 items-center justify-between gap-2">
+                                    <span className="flex min-w-0 items-center gap-1.5">
+                                        <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: color }} />
+                                        <span className="truncate text-caption text-text-secondary">{getCategoryLabel(item.category)}</span>
+                                    </span>
+                                    <span className="shrink-0 text-caption font-semibold text-text-primary">{pctText}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+function SpendingPanel({
+    dashboard,
+    userId,
+    isSavingExpense,
+    isDeletingExpense,
+    onUpdateExpense,
+    onDeleteExpense,
+}: {
+    dashboard: FinanceDashboard;
+    userId: string;
+    isSavingExpense: boolean;
+    isDeletingExpense: boolean;
+    onUpdateExpense: (input: UpdateFinanceTransactionInput, onSuccess?: () => void) => void;
+    onDeleteExpense: (input: DeleteFinanceTransactionInput, onSuccess?: () => void) => void;
+}) {
     const budget = dashboard.metrics.livingBudget;
     const spent = dashboard.metrics.currentMonthExpense;
     const pct = budget > 0 ? (spent / budget) * 100 : 0;
-    const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null);
+    const [allExpensesOpen, setAllExpensesOpen] = useState(false);
     const categoryTotals = useMemo(() => {
         const totals = new Map<string, number>();
         dashboard.transactions
@@ -580,21 +728,19 @@ function SpendingPanel({ dashboard }: { dashboard: FinanceDashboard }) {
             .sort((a, b) => b.amount - a.amount)
             .slice(0, 5);
     }, [dashboard.transactions]);
-    const expenseRows = useMemo(
-        () => getExpenseDetailRows(dashboard.transactions, dashboard.accounts),
-        [dashboard.accounts, dashboard.transactions],
-    );
-    const selectedExpense = useMemo(
-        () => expenseRows.find((row) => row.id === selectedExpenseId) ?? null,
-        [expenseRows, selectedExpenseId],
-    );
 
     return (
         <>
             <Card className="p-card">
-                <div className="mb-4 flex items-center gap-2">
-                    <CircleDollarSign size={17} className="text-accent" />
-                    <h2 className="text-h3 text-text-primary">支出记录</h2>
+                <div className="mb-4 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                        <CircleDollarSign size={17} className="text-accent" />
+                        <h2 className="text-h3 text-text-primary">支出记录</h2>
+                    </div>
+                    <Button variant="secondary" size="sm" onClick={() => setAllExpensesOpen(true)}>
+                        <ReceiptText size={14} />
+                        全部支出
+                    </Button>
                 </div>
                 <div className="rounded-inner-card border border-glass-border/75 bg-panel-bg/70 p-3">
                     <div className="flex items-end justify-between">
@@ -616,115 +762,301 @@ function SpendingPanel({ dashboard }: { dashboard: FinanceDashboard }) {
                     <div className="mt-2 text-right text-caption text-text-tertiary">{formatPct(pct)}</div>
                 </div>
 
-                <div className="mt-4">
+                <div className="mt-4" data-expense-category-layout="split">
                     <div className="mb-2 flex items-center justify-between">
                         <p className="text-body-sm font-semibold text-text-primary">分类汇总</p>
                         <span className="text-caption text-text-tertiary">Top 5</span>
                     </div>
-                    <div className="space-y-2">
-                        {categoryTotals.length === 0 ? (
-                            <p className="rounded-inner-card border border-dashed border-glass-border px-4 py-4 text-center text-body-sm text-text-tertiary">
-                                本月还没有支出记录。
-                            </p>
-                        ) : (
-                            categoryTotals.map((item) => (
-                                <div key={item.category} className="flex items-center justify-between rounded-control bg-bg-tertiary px-3 py-2 text-body-sm">
-                                    <span className="text-text-secondary">{getCategoryLabel(item.category)}</span>
-                                    <span className="font-semibold text-text-primary">{formatCurrency(item.amount)}</span>
-                                </div>
-                            ))
-                        )}
-                    </div>
-                </div>
+                    <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_15rem]">
+                        <div className="space-y-2">
+                            {categoryTotals.length === 0 ? (
+                                <p className="rounded-inner-card border border-dashed border-glass-border px-4 py-4 text-center text-body-sm text-text-tertiary">
+                                    本月还没有支出记录。
+                                </p>
+                            ) : (
+                                categoryTotals.map((item, index) => {
+                                    const color = expenseCategoryChartColors[index % expenseCategoryChartColors.length];
 
-                <div className="mt-4">
-                    <div className="mb-2 flex items-center justify-between">
-                        <p className="text-body-sm font-semibold text-text-primary">本月明细</p>
-                        <span className="text-caption text-text-tertiary">{expenseRows.length} 笔</span>
-                    </div>
-                    <div className="max-h-80 space-y-2 overflow-y-auto pr-1">
-                        {expenseRows.length === 0 ? (
-                            <p className="rounded-inner-card border border-dashed border-glass-border px-4 py-4 text-center text-body-sm text-text-tertiary">
-                                记一笔支出后会在这里查看详情。
-                            </p>
-                        ) : (
-                            expenseRows.map((row) => (
-                                <button
-                                    key={row.id}
-                                    type="button"
-                                    onClick={() => setSelectedExpenseId(row.id)}
-                                    className="w-full rounded-inner-card border border-glass-border/75 bg-panel-bg/70 px-3 py-2 text-left transition-colors duration-normal ease-standard hover:border-accent/25 hover:bg-card-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
-                                    aria-label={`查看支出详情：${row.title}`}
-                                >
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div className="min-w-0">
-                                            <p className="truncate text-body-sm font-semibold text-text-primary">{row.title}</p>
-                                            <p className="mt-1 truncate text-caption text-text-tertiary">
-                                                {row.occurredDate} · {row.categoryLabel} · {row.accountName}
-                                            </p>
+                                    return (
+                                        <div key={item.category} className="flex items-center justify-between gap-3 rounded-control bg-bg-tertiary px-3 py-2 text-body-sm">
+                                            <span className="flex min-w-0 items-center gap-2">
+                                                <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: color }} />
+                                                <span className="truncate text-text-secondary">{getCategoryLabel(item.category)}</span>
+                                            </span>
+                                            <span className="shrink-0 font-semibold text-text-primary">{formatCurrency(item.amount)}</span>
                                         </div>
-                                        <div className="shrink-0 text-right">
-                                            <p className="text-body-sm font-semibold text-text-primary">{formatCurrency(row.amount)}</p>
-                                            <p className="mt-1 inline-flex items-center gap-1 text-caption text-accent">
-                                                <ReceiptText size={12} />
-                                                详情
-                                            </p>
-                                        </div>
-                                    </div>
-                                </button>
-                            ))
-                        )}
+                                    );
+                                })
+                            )}
+                        </div>
+                        <ExpenseCategoryPieChart items={categoryTotals} />
                     </div>
                 </div>
             </Card>
-            <ExpenseDetailDialog expense={selectedExpense} onClose={() => setSelectedExpenseId(null)} />
+            <AllExpensesDialog
+                open={allExpensesOpen}
+                userId={userId}
+                accounts={dashboard.accounts}
+                isSavingExpense={isSavingExpense}
+                isDeletingExpense={isDeletingExpense}
+                onClose={() => setAllExpensesOpen(false)}
+                onUpdateExpense={onUpdateExpense}
+                onDeleteExpense={onDeleteExpense}
+            />
         </>
     );
 }
 
-function ExpenseDetailDialog({
-    expense,
+export function AllExpensesDialog({
+    open,
+    userId,
+    accounts,
+    isSavingExpense,
+    isDeletingExpense,
     onClose,
+    onUpdateExpense,
+    onDeleteExpense,
 }: {
-    expense: FinanceExpenseDetailRow | null;
+    open: boolean;
+    userId: string;
+    accounts: FinanceAccount[];
+    isSavingExpense: boolean;
+    isDeletingExpense: boolean;
     onClose: () => void;
+    onUpdateExpense: (input: UpdateFinanceTransactionInput, onSuccess?: () => void) => void;
+    onDeleteExpense: (input: DeleteFinanceTransactionInput, onSuccess?: () => void) => void;
 }) {
+    const todayISO = getTodayISO();
+    const currentYear = todayISO.slice(0, 4);
+    const currentMonth = todayISO.slice(5, 7);
+    const [selectedYear, setSelectedYear] = useState(currentYear);
+    const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+    const [detailExpenseId, setDetailExpenseId] = useState<string | null>(null);
+    const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
+    const recordsScrollRef = useRef<HTMLDivElement>(null);
+    const selectedMonthStart = `${selectedYear}-${selectedMonth}-01`;
+    const expenseMonthQuery = useFinanceExpenseMonth(userId, selectedMonthStart, open);
+    const expenseRows = useMemo(
+        () => getExpenseDetailRows(expenseMonthQuery.data?.expenses ?? [], accounts, { sortDirection: 'asc' }),
+        [accounts, expenseMonthQuery.data?.expenses],
+    );
+    const totalExpense = useMemo(
+        () => expenseRows.reduce((total, expense) => total + expense.amount, 0),
+        [expenseRows],
+    );
+    const detailExpense = useMemo(
+        () => expenseRows.find((row) => row.id === detailExpenseId) ?? null,
+        [detailExpenseId, expenseRows],
+    );
+    const editingExpense = useMemo(
+        () => expenseRows.find((row) => row.id === editingExpenseId) ?? null,
+        [editingExpenseId, expenseRows],
+    );
+    const timelineGroups = useMemo(() => getExpenseTimelineGroups(expenseRows), [expenseRows]);
+    const dayGroups = useMemo(
+        () => timelineGroups.flatMap((yearGroup) => yearGroup.months.flatMap((monthGroup) => monthGroup.days)),
+        [timelineGroups],
+    );
+    const selectedMonthLabel = formatExpenseSelectedMonth(selectedYear, selectedMonth);
+    const yearOptions = useMemo(() => {
+        const startYear = Number(currentYear);
+        return Array.from({ length: 8 }, (_, index) => String(startYear - index));
+    }, [currentYear]);
+    const monthOptions = useMemo(
+        () => Array.from({ length: 12 }, (_, index) => String(index + 1).padStart(2, '0')),
+        [],
+    );
+
+    useEffect(() => {
+        if (!open || expenseMonthQuery.isLoading || selectedMonthStart !== `${currentYear}-${currentMonth}-01`) return;
+        const currentDay = recordsScrollRef.current?.querySelector(`[data-expense-date="${todayISO}"]`);
+        currentDay?.scrollIntoView({ block: 'center' });
+    }, [currentMonth, currentYear, expenseMonthQuery.isLoading, expenseRows.length, open, selectedMonthStart, todayISO]);
+
+    const handleClose = useCallback(() => {
+        setDetailExpenseId(null);
+        setEditingExpenseId(null);
+        onClose();
+    }, [onClose]);
+    const handleExportExpenses = useCallback(() => {
+        if (expenseRows.length === 0) return;
+        downloadExpenseExcelFile(buildExpenseExcelFile(expenseRows, selectedYear, selectedMonth));
+    }, [expenseRows, selectedMonth, selectedYear]);
+    const handleDeleteExpense = useCallback(
+        (row: FinanceExpenseDetailRow) => {
+            const confirmed = window.confirm(`确认删除这笔支出？\n${row.occurredDate} · ${row.title} · ${formatCurrency(row.amount)}`);
+            if (!confirmed) return;
+
+            onDeleteExpense({ id: row.id, user_id: userId }, () => {
+                setDetailExpenseId((current) => (current === row.id ? null : current));
+                setEditingExpenseId((current) => (current === row.id ? null : current));
+            });
+        },
+        [onDeleteExpense, userId],
+    );
+
     return (
-        <Dialog open={expense != null} onClose={onClose} title="支出详情" maxWidth="lg" bodyClassName="min-h-0 flex-1 overflow-y-auto p-5">
-            {expense ? (
-                <div className="space-y-4">
-                    <div className="rounded-inner-card border border-glass-border/75 bg-panel-bg/70 p-4">
-                        <p className="text-caption text-text-tertiary">金额</p>
-                        <p className="mt-1 text-h2 text-text-primary">{formatCurrency(expense.amount)}</p>
-                    </div>
-                    <div className="grid gap-3 md:grid-cols-2">
-                        <ExpenseDetailField label="日期" value={expense.occurredDate} />
-                        <ExpenseDetailField label="分类" value={expense.categoryLabel} />
-                        <ExpenseDetailField label="账户" value={expense.accountName} />
-                        <ExpenseDetailField label="商户/对象" value={expense.title} />
-                        <ExpenseDetailField label="记录时间" value={formatDateTime(expense.createdAt)} />
-                        <ExpenseDetailField label="备注" value={expense.note ?? '无'} className="md:col-span-2" />
+        <>
+            <ExpenseDetailDrawer
+                key={detailExpense?.id ?? 'all-expenses-detail-closed'}
+                expense={detailExpense}
+                onClose={() => setDetailExpenseId(null)}
+            />
+            <ExpenseEditDrawer
+                key={editingExpense?.id ?? 'all-expenses-edit-closed'}
+                expense={editingExpense}
+                accounts={accounts}
+                userId={userId}
+                isSaving={isSavingExpense}
+                onClose={() => setEditingExpenseId(null)}
+                onSubmit={(input) => onUpdateExpense(input, () => setEditingExpenseId(null))}
+            />
+            <Dialog open={open} onClose={handleClose} title="全部支出" maxWidth="5xl" bodyClassName="min-h-0 flex flex-1 flex-col overflow-hidden p-0">
+            <div data-expense-ledger-layout="monthly" className="flex min-h-0 flex-1 flex-col">
+                <div data-expense-ledger-toolbar="fixed" className="shrink-0 border-b border-glass-border px-5 py-2.5">
+                    <div data-expense-toolbar-layout="compact-grid" className="grid gap-3 lg:grid-cols-[minmax(16rem,1fr)_auto] lg:items-center">
+                        <div className="flex min-w-0 flex-wrap items-center gap-2">
+                            <p className="truncate text-body-sm font-semibold text-text-primary">{selectedMonthLabel}</p>
+                            <div data-expense-ledger-summary="compact" className="flex flex-wrap items-center gap-2 text-caption text-text-tertiary">
+                                <span className="rounded-full bg-bg-tertiary px-2 py-0.5">{expenseRows.length} 笔</span>
+                                <span className="rounded-full bg-bg-tertiary px-2 py-0.5 font-semibold text-text-primary">{formatCurrency(totalExpense)}</span>
+                            </div>
+                        </div>
+                        <div className="flex flex-wrap items-end gap-2">
+                            <label className="space-y-1">
+                                <span className="text-caption text-text-secondary">年份</span>
+                                <Select value={selectedYear} onChange={(event) => setSelectedYear(event.target.value)}>
+                                    {yearOptions.map((year) => (
+                                        <option key={year} value={year}>{year}年</option>
+                                    ))}
+                                </Select>
+                            </label>
+                            <label className="space-y-1">
+                                <span className="text-caption text-text-secondary">月份</span>
+                                <Select value={selectedMonth} onChange={(event) => setSelectedMonth(event.target.value)}>
+                                    {monthOptions.map((month) => (
+                                        <option key={month} value={month}>{Number(month)}月</option>
+                                    ))}
+                                </Select>
+                            </label>
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={handleExportExpenses}
+                                disabled={expenseMonthQuery.isLoading || expenseRows.length === 0}
+                                data-expense-export-action="excel"
+                                title="导出当前月份支出 Excel"
+                            >
+                                <Download size={14} />
+                                导出Excel
+                            </Button>
+                        </div>
                     </div>
                 </div>
-            ) : null}
-        </Dialog>
-    );
-}
 
-function ExpenseDetailField({
-    label,
-    value,
-    className,
-}: {
-    label: string;
-    value: string;
-    className?: string;
-}) {
-    return (
-        <div className={['rounded-control bg-bg-tertiary px-3 py-2', className].filter(Boolean).join(' ')}>
-            <p className="text-caption text-text-tertiary">{label}</p>
-            <p className="mt-1 break-words text-body-sm font-semibold text-text-primary">{value}</p>
-        </div>
+                <div ref={recordsScrollRef} className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+                    {expenseMonthQuery.isLoading ? (
+                        <p className="rounded-inner-card border border-dashed border-glass-border px-4 py-8 text-center text-body-sm text-text-tertiary">
+                            加载当月支出中...
+                        </p>
+                    ) : expenseRows.length === 0 ? (
+                        <p className="rounded-inner-card border border-dashed border-glass-border px-4 py-8 text-center text-body-sm text-text-tertiary">
+                            这个月还没有支出记录。
+                        </p>
+                    ) : (
+                        <div className="overflow-x-auto pb-1">
+                            <div className="min-w-[820px] overflow-hidden rounded-inner-card border border-glass-border/70 bg-panel-bg/35">
+                                <div data-expense-ledger-header="shared" data-expense-ledger-header-behavior="sticky" className={`${expenseRecordGridClass} sticky top-0 z-10 border-b border-glass-border bg-bg-primary/95 px-3 py-2 text-caption text-text-tertiary shadow-sm`}>
+                                    <span>时间</span>
+                                    <span>对象</span>
+                                    <span>分类</span>
+                                    <span>账户</span>
+                                    <span>备注</span>
+                                    <span className="text-right">金额</span>
+                                    <span className="text-center">操作</span>
+                                </div>
+                                <div className="divide-y divide-glass-border/60">
+                                    {dayGroups.map((dayGroup) => (
+                                        <section
+                                            key={dayGroup.date}
+                                            data-expense-date={dayGroup.date}
+                                            data-expense-day-current={dayGroup.date === todayISO ? 'today' : undefined}
+                                            className="bg-panel-bg/20"
+                                        >
+                                            <div data-expense-day-divider="lightweight" data-expense-day-density="thin" className={`${expenseRecordGridClass} bg-bg-tertiary/30 px-3 py-1 text-caption`}>
+                                                <span className="flex min-w-0 items-center gap-1.5 font-semibold text-text-primary">
+                                                    <span className="truncate">{formatExpenseDayLedgerLabel(dayGroup.date)}</span>
+                                                    {dayGroup.date === todayISO ? (
+                                                        <span className="shrink-0 rounded-full bg-accent/10 px-1.5 py-0.5 text-[10px] font-semibold text-accent">今天</span>
+                                                    ) : null}
+                                                </span>
+                                                <span className="col-span-4 truncate text-text-tertiary">{dayGroup.date} · {dayGroup.count} 笔</span>
+                                                <span className="text-right font-semibold text-text-primary">{formatCurrency(dayGroup.amount)}</span>
+                                                <span />
+                                            </div>
+                                            {dayGroup.rows.map((row) => (
+                                                <div
+                                                    key={row.id}
+                                                    data-expense-row-layout="compact-single-line"
+                                                    data-expense-ledger-row="dense"
+                                                    className={`${expenseRecordGridClass} min-h-9 w-full px-3 py-1.5 text-left text-body-sm transition-colors duration-normal ease-standard hover:bg-card-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30`}
+                                                >
+                                                    <span className="truncate whitespace-nowrap text-text-tertiary">{formatExpenseCompactDate(row.occurredDate)}</span>
+                                                    <span className="truncate whitespace-nowrap font-semibold text-text-primary" title={row.title}>{row.title}</span>
+                                                    <span className="truncate whitespace-nowrap text-text-secondary" title={row.categoryLabel}>{row.categoryLabel}</span>
+                                                    <span className="truncate whitespace-nowrap text-text-secondary" title={row.accountName}>{formatExpenseAccountLabel(row.accountName)}</span>
+                                                    <span className={`truncate whitespace-nowrap ${row.note ? 'text-text-secondary' : 'text-text-tertiary'}`} title={row.note ?? '无备注'}>
+                                                        {row.note ?? '-'}
+                                                    </span>
+                                                    <span className="truncate whitespace-nowrap text-right font-semibold tabular-nums text-text-primary">{formatCurrency(row.amount)}</span>
+                                                    <div data-expense-actions-layout="compact" className="flex items-center justify-center gap-0.5">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setDetailExpenseId(row.id)}
+                                                            data-expense-detail-action="open-drawer"
+                                                            data-expense-action-tone="visible-secondary"
+                                                            className="inline-flex h-6 w-6 items-center justify-center rounded-control text-text-secondary transition-colors duration-normal ease-standard hover:bg-selection-bg hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+                                                            title="查看详情"
+                                                            aria-label={`查看支出详情：${row.title}`}
+                                                        >
+                                                            <ReceiptText size={13} />
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setEditingExpenseId(row.id)}
+                                                            data-expense-edit-action="open-drawer"
+                                                            data-expense-action-tone="visible-secondary"
+                                                            className="inline-flex h-6 w-6 items-center justify-center rounded-control text-text-secondary transition-colors duration-normal ease-standard hover:bg-selection-bg hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+                                                            title="修改"
+                                                            aria-label={`修改支出：${row.title}`}
+                                                        >
+                                                            <Pencil size={13} />
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleDeleteExpense(row)}
+                                                            disabled={isDeletingExpense}
+                                                            data-expense-delete-action="delete"
+                                                            data-expense-action-tone="visible-secondary"
+                                                            className="inline-flex h-6 w-6 items-center justify-center rounded-control text-text-secondary transition-colors duration-normal ease-standard hover:bg-danger/10 hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger/30 disabled:cursor-not-allowed disabled:opacity-50"
+                                                            title="删除"
+                                                            aria-label={`删除支出：${row.title}`}
+                                                        >
+                                                            <Trash2 size={13} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </section>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+            </Dialog>
+        </>
     );
 }
 
@@ -732,6 +1064,26 @@ function formatSignedCurrency(value: number | null): string {
     if (value == null) return '暂无上月';
     const prefix = value > 0 ? '+' : '';
     return `${prefix}${formatCurrency(value)}`;
+}
+
+function formatExpenseCompactDate(value: string): string {
+    return value.length >= 10 ? value.slice(5, 10) : value;
+}
+
+function formatExpenseSelectedMonth(year: string, month: string): string {
+    const parsedMonth = Number(month);
+    return Number.isFinite(parsedMonth) ? `${year}年${parsedMonth}月支出` : `${year}年${month}支出`;
+}
+
+function formatExpenseDayLedgerLabel(value: string): string {
+    const parsedMonth = Number(value.slice(5, 7));
+    const parsedDay = Number(value.slice(8, 10));
+    if (!Number.isFinite(parsedMonth) || !Number.isFinite(parsedDay)) return value;
+    return `${parsedMonth}月${parsedDay}日`;
+}
+
+function formatExpenseAccountLabel(value: string): string {
+    return value === '未关联账户' ? '-' : value;
 }
 
 function getDeltaTone(

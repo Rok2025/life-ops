@@ -4,21 +4,29 @@ import {
     bootstrapFinanceDashboardAction,
     createFinanceMonthlySnapshotAction,
     createFinanceTransactionAction,
+    deleteFinanceTransactionAction,
     updateFinanceAccountAction,
     updateFinanceLiabilityAction,
     updateFinanceProfileAction,
+    updateFinanceTransactionAction,
     updatePaymentScheduleStatusAction,
 } from '../actions';
 import type {
     CreateFinanceTransactionInput,
+    DeleteFinanceTransactionInput,
     FinanceDashboard,
+    FinanceExpenseMonthData,
     PaymentScheduleStatus,
     SnapshotInput,
     UpdateFinanceProfileInput,
+    UpdateFinanceTransactionInput,
 } from '../types';
 
 export const financeKeys = {
     dashboard: (userId: string | undefined) => ['finance-dashboard', userId] as const,
+    expenseMonths: (userId: string | undefined) => ['finance-expense-months', userId] as const,
+    expenseMonth: (userId: string | undefined, monthStart: string) =>
+        [...financeKeys.expenseMonths(userId), monthStart] as const,
 };
 
 export function useFinanceDashboard(userId: string | undefined, initialData?: FinanceDashboard) {
@@ -30,11 +38,26 @@ export function useFinanceDashboard(userId: string | undefined, initialData?: Fi
     });
 }
 
+export function useFinanceExpenseMonth(
+    userId: string | undefined,
+    monthStart: string,
+    enabled: boolean,
+) {
+    return useQuery<FinanceExpenseMonthData>({
+        queryKey: financeKeys.expenseMonth(userId, monthStart),
+        queryFn: () => financeApi.getExpenseMonth(userId!, monthStart),
+        enabled: Boolean(userId) && enabled,
+    });
+}
+
 export function useFinanceMutations(userId: string | undefined) {
     const queryClient = useQueryClient();
 
     const invalidate = async () => {
-        await queryClient.invalidateQueries({ queryKey: financeKeys.dashboard(userId) });
+        await Promise.all([
+            queryClient.invalidateQueries({ queryKey: financeKeys.dashboard(userId) }),
+            queryClient.invalidateQueries({ queryKey: financeKeys.expenseMonths(userId) }),
+        ]);
     };
 
     const bootstrapMutation = useMutation({
@@ -50,6 +73,16 @@ export function useFinanceMutations(userId: string | undefined) {
 
     const createTransactionMutation = useMutation({
         mutationFn: (input: CreateFinanceTransactionInput) => createFinanceTransactionAction(input),
+        onSuccess: invalidate,
+    });
+
+    const updateTransactionMutation = useMutation({
+        mutationFn: (input: UpdateFinanceTransactionInput) => updateFinanceTransactionAction(input),
+        onSuccess: invalidate,
+    });
+
+    const deleteTransactionMutation = useMutation({
+        mutationFn: (input: DeleteFinanceTransactionInput) => deleteFinanceTransactionAction(input),
         onSuccess: invalidate,
     });
 
@@ -77,6 +110,8 @@ export function useFinanceMutations(userId: string | undefined) {
         bootstrapMutation,
         updatePaymentStatusMutation,
         createTransactionMutation,
+        updateTransactionMutation,
+        deleteTransactionMutation,
         updateProfileMutation,
         updateAccountMutation,
         updateLiabilityMutation,

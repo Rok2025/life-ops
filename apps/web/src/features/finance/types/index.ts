@@ -156,10 +156,15 @@ export type FinanceDashboard = {
     creditCardBills: FinanceCreditCardBill[];
     paymentSchedules: FinancePaymentSchedule[];
     transactions: FinanceTransaction[];
+    expenseTransactions: FinanceTransaction[];
     budgets: FinanceBudget[];
     snapshots: FinanceMonthlySnapshot[];
     metrics: FinanceDashboardMetrics;
     needsBootstrap: boolean;
+};
+
+export type FinanceExpenseMonthData = {
+    expenses: FinanceTransaction[];
 };
 
 export type CreateFinanceTransactionInput = {
@@ -171,6 +176,23 @@ export type CreateFinanceTransactionInput = {
     category: string;
     merchant?: string | null;
     note?: string | null;
+};
+
+export type UpdateFinanceTransactionInput = {
+    id: string;
+    user_id: string;
+    account_id?: string | null;
+    occurred_date: string;
+    amount: number;
+    transaction_type: FinanceTransactionType;
+    category: string;
+    merchant?: string | null;
+    note?: string | null;
+};
+
+export type DeleteFinanceTransactionInput = {
+    id: string;
+    user_id: string;
 };
 
 export type UpdateFinanceProfileInput = {

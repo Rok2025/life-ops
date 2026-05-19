@@ -2,22 +2,26 @@ import { supabase as browserSupabase } from '@/lib/supabase';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type {
     CreateFinanceTransactionInput,
+    DeleteFinanceTransactionInput,
     FinanceAccount,
     FinanceBudget,
     FinanceCreditCardBill,
     FinanceDashboard,
     FinanceDashboardMetrics,
+    FinanceExpenseMonthData,
     FinanceLiability,
     FinanceMonthlySnapshot,
     FinancePaymentSchedule,
     FinanceProfile,
+    FinanceTransaction,
     PaymentScheduleStatus,
     SnapshotInput,
     UpdateFinanceAccountInput,
     UpdateFinanceLiabilityInput,
     UpdateFinanceProfileInput,
+    UpdateFinanceTransactionInput,
 } from '../types';
-import { addDaysISO, getMonthEndISO, getMonthStartISO, getTodayISO, toNumber } from '../lib/financeFormat';
+import { addDaysISO, getMonthEndISO, getMonthStartISO, getTodayISO, parseDateISO, toNumber } from '../lib/financeFormat';
 
 type SupabaseErrorLike = {
     message: string;
@@ -99,6 +103,25 @@ type FinanceTransactionSubset = {
 
 export function createFinanceApi(supabase: SupabaseClient) {
     return {
+    getExpenseMonth: async (userId: string, monthStart: string): Promise<FinanceExpenseMonthData> => {
+        const monthEnd = getMonthEndISO(parseDateISO(monthStart));
+        const { data, error } = await supabase
+            .from('finance_transactions')
+            .select('*')
+            .eq('user_id', userId)
+            .eq('transaction_type', 'expense')
+            .gte('occurred_date', monthStart)
+            .lte('occurred_date', monthEnd)
+            .order('occurred_date', { ascending: true })
+            .order('created_at', { ascending: true });
+
+        throwIfError(error);
+
+        return {
+            expenses: (data ?? []) as FinanceTransaction[],
+        };
+    },
+
     getDashboard: async (userId: string): Promise<FinanceDashboard> => {
         const today = getTodayISO();
         const currentMonthStart = getMonthStartISO();
@@ -163,6 +186,9 @@ export function createFinanceApi(supabase: SupabaseClient) {
         const creditCardBills = (billsResult.data ?? []) as FinanceCreditCardBill[];
         const paymentSchedules = (schedulesResult.data ?? []) as FinancePaymentSchedule[];
         const transactions = (transactionsResult.data ?? []) as FinanceTransactionSubset[] as FinanceDashboard['transactions'];
+        const expenseTransactions = transactions.filter(
+            (transaction) => transaction.transaction_type === 'expense',
+        );
         const budgets = (budgetsResult.data ?? []) as FinanceBudget[];
         const snapshots = (snapshotsResult.data ?? []) as FinanceMonthlySnapshot[];
 
@@ -181,6 +207,7 @@ export function createFinanceApi(supabase: SupabaseClient) {
             creditCardBills,
             paymentSchedules,
             transactions,
+            expenseTransactions,
             budgets,
             snapshots,
             metrics,
@@ -547,6 +574,33 @@ export function createFinanceApi(supabase: SupabaseClient) {
             merchant: input.merchant ?? null,
             note: input.note ?? null,
         });
+        throwIfError(error);
+    },
+
+    updateTransaction: async (input: UpdateFinanceTransactionInput): Promise<void> => {
+        const { id, user_id: userId, ...updates } = input;
+        const { error } = await supabase
+            .from('finance_transactions')
+            .update({
+                account_id: updates.account_id ?? null,
+                occurred_date: updates.occurred_date,
+                amount: updates.amount,
+                transaction_type: updates.transaction_type,
+                category: updates.category,
+                merchant: updates.merchant ?? null,
+                note: updates.note ?? null,
+            })
+            .eq('id', id)
+            .eq('user_id', userId);
+        throwIfError(error);
+    },
+
+    deleteTransaction: async (input: DeleteFinanceTransactionInput): Promise<void> => {
+        const { error } = await supabase
+            .from('finance_transactions')
+            .delete()
+            .eq('id', input.id)
+            .eq('user_id', input.user_id);
         throwIfError(error);
     },
 

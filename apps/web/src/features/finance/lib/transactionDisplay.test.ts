@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { FinanceAccount, FinanceTransaction } from '../types';
-import { getExpenseDetailRows } from './transactionDisplay';
+import { getExpenseDetailRows, getExpenseTimelineGroups } from './transactionDisplay';
 
 const accounts = [
     {
@@ -33,6 +33,17 @@ const transactions = [
         created_at: '2026-05-08T09:00:00.000Z',
     },
     {
+        id: 'expense-previous-year',
+        account_id: null,
+        occurred_date: '2025-12-31',
+        amount: 100,
+        transaction_type: 'expense',
+        category: 'other',
+        merchant: '跨年支出',
+        note: null,
+        created_at: '2025-12-31T09:00:00.000Z',
+    },
+    {
         id: 'expense-new',
         account_id: 'account-card',
         occurred_date: '2026-05-10',
@@ -49,13 +60,44 @@ describe('getExpenseDetailRows', () => {
     it('returns newest expense rows with display labels', () => {
         const rows = getExpenseDetailRows(transactions, accounts);
 
-        expect(rows.map((row) => row.id)).toEqual(['expense-new', 'expense-old']);
+        expect(rows.map((row) => row.id)).toEqual(['expense-new', 'expense-old', 'expense-previous-year']);
         expect(rows[0].title).toBe('咖啡店');
         expect(rows[0].accountName).toBe('招商储蓄卡');
         expect(rows[0].categoryLabel).toBe('餐饮');
         expect(rows[0].note).toBe('和客户聊天');
+        expect(rows[0].accountId).toBe('account-card');
+        expect(rows[0].merchant).toBe('咖啡店');
+        expect(rows[0].transactionType).toBe('expense');
         expect(rows[1].title).toBe('未填写对象');
         expect(rows[1].accountName).toBe('未关联账户');
         expect(rows[1].note).toBeNull();
+        expect(rows[1].accountId).toBeNull();
+        expect(rows[1].merchant).toBeNull();
+    });
+
+    it('can return expense rows in ascending date order', () => {
+        const rows = getExpenseDetailRows(transactions, accounts, { sortDirection: 'asc' });
+
+        expect(rows.map((row) => row.id)).toEqual(['expense-previous-year', 'expense-old', 'expense-new']);
+    });
+});
+
+describe('getExpenseTimelineGroups', () => {
+    it('groups expenses by year, month, and day with totals', () => {
+        const rows = getExpenseDetailRows(transactions, accounts);
+        const groups = getExpenseTimelineGroups(rows);
+
+        expect(groups).toHaveLength(2);
+        expect(groups[0].year).toBe('2026');
+        expect(groups[0].count).toBe(2);
+        expect(groups[0].amount).toBe(73.7);
+        expect(groups[0].months).toHaveLength(1);
+        expect(groups[0].months[0].month).toBe('2026-05');
+        expect(groups[0].months[0].label).toBe('5月');
+        expect(groups[0].months[0].count).toBe(2);
+        expect(groups[0].months[0].days.map((day) => day.date)).toEqual(['2026-05-10', '2026-05-08']);
+        expect(groups[0].months[0].days[0].rows.map((row) => row.id)).toEqual(['expense-new']);
+        expect(groups[1].year).toBe('2025');
+        expect(groups[1].months[0].label).toBe('12月');
     });
 });

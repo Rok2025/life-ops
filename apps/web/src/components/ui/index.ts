@@ -5,6 +5,7 @@ export * from './Checkbox';
 export * from './ChipGroup';
 export * from './DatePicker';
 export * from './Dialog';
+export * from './Drawer';
 export * from './FormActions';
 export * from './Input';
 export * from './PageHero';

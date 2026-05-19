@@ -5,16 +5,26 @@ import { requireUser } from '@/lib/auth/server';
 import { getFinanceServerApi } from './api/server';
 import type {
     CreateFinanceTransactionInput,
+    DeleteFinanceTransactionInput,
     PaymentScheduleStatus,
     SnapshotInput,
     UpdateFinanceAccountInput,
     UpdateFinanceLiabilityInput,
     UpdateFinanceProfileInput,
+    UpdateFinanceTransactionInput,
 } from './types';
 
 const FINANCE_PATH = '/finance';
 
 type UserScopedTransactionInput = Omit<CreateFinanceTransactionInput, 'user_id'> & {
+    user_id?: string;
+};
+
+type UserScopedTransactionUpdateInput = Omit<UpdateFinanceTransactionInput, 'user_id'> & {
+    user_id?: string;
+};
+
+type UserScopedTransactionDeleteInput = Omit<DeleteFinanceTransactionInput, 'user_id'> & {
     user_id?: string;
 };
 
@@ -56,6 +66,26 @@ export async function createFinanceTransactionAction(input: UserScopedTransactio
     const { financeApi, user } = await getAuthorizedFinanceApi();
 
     await financeApi.createTransaction({
+        ...input,
+        user_id: user.id,
+    });
+    revalidateFinance();
+}
+
+export async function updateFinanceTransactionAction(input: UserScopedTransactionUpdateInput): Promise<void> {
+    const { financeApi, user } = await getAuthorizedFinanceApi();
+
+    await financeApi.updateTransaction({
+        ...input,
+        user_id: user.id,
+    });
+    revalidateFinance();
+}
+
+export async function deleteFinanceTransactionAction(input: UserScopedTransactionDeleteInput): Promise<void> {
+    const { financeApi, user } = await getAuthorizedFinanceApi();
+
+    await financeApi.deleteTransaction({
         ...input,
         user_id: user.id,
     });
