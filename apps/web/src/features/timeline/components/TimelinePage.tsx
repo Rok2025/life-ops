@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CalendarClock, Loader2, RefreshCw, RotateCcw } from 'lucide-react';
-import { Button, Card, Input, PageHero, SegmentedControl } from '@/components/ui';
+import { Button, Card, DatePicker, PageHero, SegmentedControl } from '@/components/ui';
 import { getLocalDateStr } from '@/lib/utils/date';
 import { useTimeline } from '../hooks/useTimeline';
 import {
@@ -176,19 +176,21 @@ export default function TimelinePage({
 
                     {datePreset === 'custom' ? (
                         <div className="grid min-w-[17rem] flex-1 gap-2 sm:grid-cols-2">
-                            <Input
-                                type="date"
+                            <DatePicker
                                 value={customDateFrom}
-                                max={today}
-                                onChange={(event) => setCustomDateFrom(event.target.value)}
-                                aria-label="开始日期"
+                                maxDate={today}
+                                onChange={setCustomDateFrom}
+                                clearable
+                                placeholder="开始日期"
+                                ariaLabel="开始日期"
                             />
-                            <Input
-                                type="date"
+                            <DatePicker
                                 value={customDateTo}
-                                max={today}
-                                onChange={(event) => setCustomDateTo(event.target.value)}
-                                aria-label="结束日期"
+                                maxDate={today}
+                                onChange={setCustomDateTo}
+                                clearable
+                                placeholder="结束日期"
+                                ariaLabel="结束日期"
                             />
                         </div>
                     ) : null}

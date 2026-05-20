@@ -14,7 +14,16 @@ import {
     Plus,
     Trash2,
 } from 'lucide-react';
-import { formatDisplayDate, formatFullDate, getLocalDateStr, getWeekDateRange } from '@/lib/utils/date';
+import {
+    MONDAY_FIRST_WEEKDAYS,
+    formatCalendarDate,
+    formatDisplayDate,
+    formatFullDate,
+    getDaysInMonth,
+    getLocalDateStr,
+    getMondayFirstCalendarOffset,
+    getWeekDateRange,
+} from '@/lib/utils/date';
 import { Button, Card, Dialog, SectionHeader, SegmentedControl } from '@/components/ui';
 import type { SegmentedControlOption } from '@/components/ui';
 import { projectsApi } from '@/features/growth-projects';
@@ -65,8 +74,6 @@ const SOURCE_OPTIONS: Array<{ value: UnifiedTodoSourceFilter; label: string }> =
     { value: 'reading', label: '阅读' },
 ];
 
-const WEEKDAYS = ['一', '二', '三', '四', '五', '六', '日'];
-
 type ErrorWithMessage = {
     message?: string;
     details?: string;
@@ -97,19 +104,6 @@ function formatTodoError(error: unknown) {
     return rawMessage;
 }
 
-function getFirstDayOfMonth(year: number, month: number) {
-    const day = new Date(year, month, 1).getDay();
-    return day === 0 ? 6 : day - 1;
-}
-
-function getDaysInMonth(year: number, month: number) {
-    return new Date(year, month + 1, 0).getDate();
-}
-
-function toDateStr(year: number, month: number, day: number) {
-    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-}
-
 function formatMonthDay(dateStr: string) {
     const date = new Date(`${dateStr}T00:00:00`);
     return `${date.getMonth() + 1}月${date.getDate()}日`;
@@ -119,8 +113,8 @@ function getMonthDateRange(date: Date = new Date()): DateRange {
     const year = date.getFullYear();
     const month = date.getMonth();
     return {
-        start: toDateStr(year, month, 1),
-        end: toDateStr(year, month, getDaysInMonth(year, month)),
+        start: formatCalendarDate(year, month, 1),
+        end: formatCalendarDate(year, month, getDaysInMonth(year, month)),
     };
 }
 
@@ -521,7 +515,7 @@ function TodoCalendarPanel({
     const monthTotal = monthEntries.reduce((sum, [, summary]) => sum + summary.total, 0);
     const monthOpen = monthEntries.reduce((sum, [, summary]) => sum + summary.open, 0);
 
-    const firstDay = getFirstDayOfMonth(viewYear, viewMonth);
+    const firstDay = getMondayFirstCalendarOffset(viewYear, viewMonth);
     const totalDays = getDaysInMonth(viewYear, viewMonth);
 
     const goToPrevMonth = () => {
@@ -572,7 +566,7 @@ function TodoCalendarPanel({
             />
 
             <div className="grid grid-cols-7 gap-1.5 text-center">
-                {WEEKDAYS.map((weekday) => (
+                {MONDAY_FIRST_WEEKDAYS.map((weekday) => (
                     <div key={weekday} className="py-1 text-caption text-text-secondary">
                         {weekday}
                     </div>
@@ -584,7 +578,7 @@ function TodoCalendarPanel({
 
                 {Array.from({ length: totalDays }).map((_, index) => {
                     const day = index + 1;
-                    const dateStr = toDateStr(viewYear, viewMonth, day);
+                    const dateStr = formatCalendarDate(viewYear, viewMonth, day);
                     const summary = summaryMap.get(dateStr);
                     const hasData = Boolean(summary);
                     const hasOpen = (summary?.open ?? 0) > 0;

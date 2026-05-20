@@ -26,7 +26,7 @@ import {
     X,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { Button, Card, Input, PageHero, SectionHeader, SegmentedControl } from '@/components/ui';
+import { Button, Card, DatePicker, Input, PageHero, SectionHeader, SegmentedControl } from '@/components/ui';
 import { formatDisplayDate } from '@/lib/utils/date';
 import { useGlobalSearch } from '../hooks/useGlobalSearch';
 import {
@@ -514,17 +514,19 @@ export default function SearchPage({
 
                 {datePreset === 'custom' ? (
                     <div className="grid gap-3 sm:grid-cols-2">
-                        <Input
-                            type="date"
+                        <DatePicker
                             value={customDateFrom}
-                            onChange={(event) => setCustomDateFrom(event.target.value)}
-                            aria-label="开始日期"
+                            onChange={setCustomDateFrom}
+                            clearable
+                            placeholder="开始日期"
+                            ariaLabel="开始日期"
                         />
-                        <Input
-                            type="date"
+                        <DatePicker
                             value={customDateTo}
-                            onChange={(event) => setCustomDateTo(event.target.value)}
-                            aria-label="结束日期"
+                            onChange={setCustomDateTo}
+                            clearable
+                            placeholder="结束日期"
+                            ariaLabel="结束日期"
                         />
                     </div>
                 ) : null}

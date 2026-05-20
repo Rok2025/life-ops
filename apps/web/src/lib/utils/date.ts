@@ -10,6 +10,24 @@ export function getLocalDateStr(date: Date = new Date()): string {
     return `${year}-${month}-${day}`;
 }
 
+export const MONDAY_FIRST_WEEKDAYS = ['一', '二', '三', '四', '五', '六', '日'] as const;
+
+/** 获取某月第一天在周一起始日历中的空白偏移（0=周一，6=周日） */
+export function getMondayFirstCalendarOffset(year: number, month: number): number {
+    const day = new Date(year, month, 1).getDay();
+    return (day + 6) % 7;
+}
+
+/** 获取某月天数，month 为 0-indexed */
+export function getDaysInMonth(year: number, month: number): number {
+    return new Date(year, month + 1, 0).getDate();
+}
+
+/** 根据本地日期部件格式化为 YYYY-MM-DD，month 为 0-indexed */
+export function formatCalendarDate(year: number, month: number, day: number): string {
+    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
 /** 日期偏移：返回偏移 days 天后的日期字符串 */
 export function offsetDate(dateStr: string, days: number): string {
     const [year, month, day] = dateStr.split('-').map(Number);

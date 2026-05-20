@@ -3,10 +3,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { formatFullDate, getLocalDateStr } from '@/lib/utils/date';
+import {
+  MONDAY_FIRST_WEEKDAYS,
+  formatCalendarDate,
+  formatFullDate,
+  getDaysInMonth,
+  getLocalDateStr,
+  getMondayFirstCalendarOffset,
+} from '@/lib/utils/date';
 import { getDatePickerDayClassName } from './datePickerDay';
-
-const WEEKDAYS = ['一', '二', '三', '四', '五', '六', '日'];
 
 export interface DatePickerProps {
   value: string;
@@ -25,19 +30,6 @@ type DateParts = {
   month: number;
   day: number;
 };
-
-function getDaysInMonth(year: number, month: number) {
-  return new Date(year, month + 1, 0).getDate();
-}
-
-function getFirstDayOfMonth(year: number, month: number) {
-  const day = new Date(year, month, 1).getDay();
-  return day === 0 ? 6 : day - 1;
-}
-
-function toDateStr(year: number, month: number, day: number) {
-  return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-}
 
 function parseDateValue(value: string | undefined): DateParts {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value ?? '');
@@ -151,7 +143,7 @@ export function DatePicker({
   const monthIndex = getMonthIndex(viewYear, viewMonth);
   const isPrevDisabled = Boolean(minDate && monthIndex <= getMonthIndex(minParts.year, minParts.month));
   const isNextDisabled = Boolean(maxDate && monthIndex >= getMonthIndex(maxParts.year, maxParts.month));
-  const firstDay = getFirstDayOfMonth(viewYear, viewMonth);
+  const firstDay = getMondayFirstCalendarOffset(viewYear, viewMonth);
   const totalDays = getDaysInMonth(viewYear, viewMonth);
 
   const goToPrevMonth = useCallback(() => {
@@ -177,7 +169,7 @@ export function DatePicker({
   }, [isNextDisabled]);
 
   const handleSelectDate = useCallback((day: number) => {
-    const dateStr = toDateStr(viewYear, viewMonth, day);
+    const dateStr = formatCalendarDate(viewYear, viewMonth, day);
     if (isDateOutsideRange(dateStr, minDate, maxDate)) return;
 
     onChange(dateStr);
@@ -265,7 +257,7 @@ export function DatePicker({
           </div>
 
           <div className="mb-1 grid grid-cols-7">
-            {WEEKDAYS.map((weekday) => (
+            {MONDAY_FIRST_WEEKDAYS.map((weekday) => (
               <div key={weekday} className="py-1 text-center text-caption font-medium text-text-secondary">
                 {weekday}
               </div>
@@ -278,7 +270,7 @@ export function DatePicker({
             ))}
             {Array.from({ length: totalDays }).map((_, index) => {
               const day = index + 1;
-              const dateStr = toDateStr(viewYear, viewMonth, day);
+              const dateStr = formatCalendarDate(viewYear, viewMonth, day);
               const isSelected = dateStr === value;
               const isToday = dateStr === today;
               const isDisabled = isDateOutsideRange(dateStr, minDate, maxDate);

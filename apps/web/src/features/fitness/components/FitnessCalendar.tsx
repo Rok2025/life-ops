@@ -3,24 +3,15 @@
 import { useState, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Dumbbell } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { getLocalDateStr } from '@/lib/utils/date';
+import {
+    MONDAY_FIRST_WEEKDAYS,
+    formatCalendarDate,
+    getDaysInMonth,
+    getLocalDateStr,
+    getMondayFirstCalendarOffset,
+} from '@/lib/utils/date';
 import { fitnessApi } from '../api/fitnessApi';
 import { Card } from '@/components/ui';
-
-const WEEKDAYS = ['一', '二', '三', '四', '五', '六', '日'];
-
-function getFirstDayOfMonth(year: number, month: number): number {
-    const day = new Date(year, month, 1).getDay();
-    return day === 0 ? 6 : day - 1;
-}
-
-function getDaysInMonth(year: number, month: number): number {
-    return new Date(year, month + 1, 0).getDate();
-}
-
-function toDateStr(year: number, month: number, day: number): string {
-    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-}
 
 interface FitnessCalendarProps {
     onSelectDate?: (date: string) => void;
@@ -38,8 +29,8 @@ export function FitnessCalendar({ onSelectDate }: FitnessCalendarProps) {
         return m - 1;
     });
 
-    const startDate = toDateStr(viewYear, viewMonth, 1);
-    const endDate = toDateStr(viewYear, viewMonth, getDaysInMonth(viewYear, viewMonth));
+    const startDate = formatCalendarDate(viewYear, viewMonth, 1);
+    const endDate = formatCalendarDate(viewYear, viewMonth, getDaysInMonth(viewYear, viewMonth));
 
     const { data: workoutDates = [] } = useQuery({
         queryKey: ['fitness-calendar-dates', startDate, endDate],
@@ -77,7 +68,7 @@ export function FitnessCalendar({ onSelectDate }: FitnessCalendarProps) {
         return viewYear > todayYear || (viewYear === todayYear && viewMonth >= todayMonth - 1);
     })();
 
-    const firstDay = getFirstDayOfMonth(viewYear, viewMonth);
+    const firstDay = getMondayFirstCalendarOffset(viewYear, viewMonth);
     const totalDays = getDaysInMonth(viewYear, viewMonth);
 
     // 统计本月训练天数
@@ -116,7 +107,7 @@ export function FitnessCalendar({ onSelectDate }: FitnessCalendarProps) {
 
             {/* 星期表头 */}
             <div className="grid grid-cols-7 mb-1">
-                {WEEKDAYS.map(w => (
+                {MONDAY_FIRST_WEEKDAYS.map(w => (
                     <div key={w} className="text-center text-caption text-text-secondary font-medium py-1">
                         {w}
                     </div>
@@ -131,7 +122,7 @@ export function FitnessCalendar({ onSelectDate }: FitnessCalendarProps) {
 
                 {Array.from({ length: totalDays }).map((_, i) => {
                     const day = i + 1;
-                    const dateStr = toDateStr(viewYear, viewMonth, day);
+                    const dateStr = formatCalendarDate(viewYear, viewMonth, day);
                     const isToday = dateStr === today;
                     const isFuture = dateStr > today;
                     const hasWorkout = workoutDateSet.has(dateStr);

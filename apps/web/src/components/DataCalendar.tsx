@@ -3,7 +3,13 @@
 import { useState, useEffect, useCallback, useRef, useImperativeHandle, forwardRef } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
-import { getLocalDateStr } from '@/lib/utils/date';
+import {
+    MONDAY_FIRST_WEEKDAYS,
+    formatCalendarDate,
+    getDaysInMonth,
+    getLocalDateStr,
+    getMondayFirstCalendarOffset,
+} from '@/lib/utils/date';
 import { frogsApi } from '@/features/daily-frogs/api/frogsApi';
 import { tilApi } from '@/features/daily-til/api/tilApi';
 import { notesApi } from '@/features/quick-notes/api/notesApi';
@@ -25,24 +31,6 @@ interface DataCalendarProps {
     hideTrigger?: boolean;
     /** 外部触发元素的 ref，用于点击外部关闭时排除该元素 */
     externalTriggerRef?: React.RefObject<HTMLElement | null>;
-}
-
-const WEEKDAYS = ['一', '二', '三', '四', '五', '六', '日'];
-
-/** 获取某月第一天是周几 (0=周一, 6=周日) */
-function getFirstDayOfMonth(year: number, month: number): number {
-    const day = new Date(year, month, 1).getDay();
-    return day === 0 ? 6 : day - 1; // 转为周一=0
-}
-
-/** 获取某月天数 */
-function getDaysInMonth(year: number, month: number): number {
-    return new Date(year, month + 1, 0).getDate();
-}
-
-/** 格式化为 YYYY-MM-DD */
-function toDateStr(year: number, month: number, day: number): string {
-    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
 /** 根据 scope 获取日期范围内有数据的日期列表 */
@@ -100,8 +88,8 @@ export default forwardRef<DataCalendarHandle, DataCalendarProps>(function DataCa
     // 加载当月有数据的日期
     const loadMonthData = useCallback(async (year: number, month: number) => {
         setLoading(true);
-        const start = toDateStr(year, month, 1);
-        const end = toDateStr(year, month, getDaysInMonth(year, month));
+        const start = formatCalendarDate(year, month, 1);
+        const end = formatCalendarDate(year, month, getDaysInMonth(year, month));
         try {
             const dates = await fetchDatesWithData(scope, start, end);
             setDatesWithData(new Set(dates));
@@ -169,11 +157,11 @@ export default forwardRef<DataCalendarHandle, DataCalendarProps>(function DataCa
     })();
 
     // 构建日历网格
-    const firstDay = getFirstDayOfMonth(viewYear, viewMonth);
+    const firstDay = getMondayFirstCalendarOffset(viewYear, viewMonth);
     const totalDays = getDaysInMonth(viewYear, viewMonth);
 
     const handleDayClick = useCallback((day: number) => {
-        const dateStr = toDateStr(viewYear, viewMonth, day);
+        const dateStr = formatCalendarDate(viewYear, viewMonth, day);
         // 不允许选择未来的日期
         if (dateStr > today) return;
         onSelectDate(dateStr);
@@ -254,7 +242,7 @@ export default forwardRef<DataCalendarHandle, DataCalendarProps>(function DataCa
 
                     {/* 星期表头 */}
                     <div className="grid grid-cols-7 mb-1">
-                        {WEEKDAYS.map(w => (
+                        {MONDAY_FIRST_WEEKDAYS.map(w => (
                             <div key={w} className="text-center text-caption text-text-secondary font-medium py-1">
                                 {w}
                             </div>
@@ -271,7 +259,7 @@ export default forwardRef<DataCalendarHandle, DataCalendarProps>(function DataCa
                         {/* 日期单元格 */}
                         {Array.from({ length: totalDays }).map((_, i) => {
                             const day = i + 1;
-                            const dateStr = toDateStr(viewYear, viewMonth, day);
+                            const dateStr = formatCalendarDate(viewYear, viewMonth, day);
                             const isSelected = dateStr === selectedDate;
                             const isToday = dateStr === today;
                             const isFuture = dateStr > today;
