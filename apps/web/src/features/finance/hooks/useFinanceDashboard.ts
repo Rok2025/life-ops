@@ -2,8 +2,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { financeApi } from '../api/financeApi';
 import {
     bootstrapFinanceDashboardAction,
+    createFinanceAccountAction,
     createFinanceMonthlySnapshotAction,
     createFinanceTransactionAction,
+    deleteFinanceAccountAction,
     deleteFinanceTransactionAction,
     updateFinanceAccountAction,
     updateFinanceLiabilityAction,
@@ -12,7 +14,9 @@ import {
     updatePaymentScheduleStatusAction,
 } from '../actions';
 import type {
+    CreateFinanceAccountInput,
     CreateFinanceTransactionInput,
+    DeleteFinanceAccountInput,
     DeleteFinanceTransactionInput,
     FinanceDashboard,
     FinanceExpenseMonthData,
@@ -96,6 +100,16 @@ export function useFinanceMutations(userId: string | undefined) {
         onSuccess: invalidate,
     });
 
+    const createAccountMutation = useMutation({
+        mutationFn: (input: CreateFinanceAccountInput) => createFinanceAccountAction(input),
+        onSuccess: invalidate,
+    });
+
+    const deleteAccountMutation = useMutation({
+        mutationFn: (input: DeleteFinanceAccountInput) => deleteFinanceAccountAction(input),
+        onSuccess: invalidate,
+    });
+
     const updateLiabilityMutation = useMutation({
         mutationFn: updateFinanceLiabilityAction,
         onSuccess: invalidate,
@@ -114,6 +128,8 @@ export function useFinanceMutations(userId: string | undefined) {
         deleteTransactionMutation,
         updateProfileMutation,
         updateAccountMutation,
+        createAccountMutation,
+        deleteAccountMutation,
         updateLiabilityMutation,
         createSnapshotMutation,
     };

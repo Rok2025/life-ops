@@ -14,6 +14,9 @@ type MockProps = Record<string, unknown> & {
 
 vi.mock('@/components/ui', () => ({
     Button: ({ children, ...props }: MockProps) => <button {...props}>{children}</button>,
+    DatePicker: ({ ariaLabel, ...props }: MockProps) => (
+        <input aria-label={typeof ariaLabel === 'string' ? ariaLabel : undefined} {...props} />
+    ),
     Dialog: ({ children, open, title }: MockProps) => (
         open ? (
             <section>

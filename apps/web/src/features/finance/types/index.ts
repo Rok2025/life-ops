@@ -195,6 +195,21 @@ export type DeleteFinanceTransactionInput = {
     user_id: string;
 };
 
+export type CreateFinanceAccountInput = {
+    user_id: string;
+    name: string;
+    institution?: string | null;
+    account_type: FinanceAccountType;
+    credit_limit?: number | null;
+    current_balance: number;
+    statement_day?: number | null;
+    payment_day?: number | null;
+    payment_day_status: PaymentDayStatus;
+    is_active: boolean;
+    sort_order: number;
+    notes?: string | null;
+};
+
 export type UpdateFinanceProfileInput = {
     user_id: string;
     monthly_income: number;
@@ -216,6 +231,11 @@ export type UpdateFinanceAccountInput = {
     is_active: boolean;
     sort_order: number;
     notes?: string | null;
+};
+
+export type DeleteFinanceAccountInput = {
+    id: string;
+    user_id: string;
 };
 
 export type UpdateFinanceLiabilityInput = {

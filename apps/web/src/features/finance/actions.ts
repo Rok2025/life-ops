@@ -4,7 +4,9 @@ import { revalidatePath } from 'next/cache';
 import { requireUser } from '@/lib/auth/server';
 import { getFinanceServerApi } from './api/server';
 import type {
+    CreateFinanceAccountInput,
     CreateFinanceTransactionInput,
+    DeleteFinanceAccountInput,
     DeleteFinanceTransactionInput,
     PaymentScheduleStatus,
     SnapshotInput,
@@ -25,6 +27,14 @@ type UserScopedTransactionUpdateInput = Omit<UpdateFinanceTransactionInput, 'use
 };
 
 type UserScopedTransactionDeleteInput = Omit<DeleteFinanceTransactionInput, 'user_id'> & {
+    user_id?: string;
+};
+
+type UserScopedAccountInput = Omit<CreateFinanceAccountInput, 'user_id'> & {
+    user_id?: string;
+};
+
+type UserScopedAccountDeleteInput = Omit<DeleteFinanceAccountInput, 'user_id'> & {
     user_id?: string;
 };
 
@@ -105,6 +115,26 @@ export async function updateFinanceProfileAction(input: UserScopedProfileInput):
 export async function updateFinanceAccountAction(input: UpdateFinanceAccountInput): Promise<void> {
     const { financeApi } = await getAuthorizedFinanceApi();
     await financeApi.updateAccount(input);
+    revalidateFinance();
+}
+
+export async function createFinanceAccountAction(input: UserScopedAccountInput): Promise<void> {
+    const { financeApi, user } = await getAuthorizedFinanceApi();
+
+    await financeApi.createAccount({
+        ...input,
+        user_id: user.id,
+    });
+    revalidateFinance();
+}
+
+export async function deleteFinanceAccountAction(input: UserScopedAccountDeleteInput): Promise<void> {
+    const { financeApi, user } = await getAuthorizedFinanceApi();
+
+    await financeApi.deleteAccount({
+        ...input,
+        user_id: user.id,
+    });
     revalidateFinance();
 }
 

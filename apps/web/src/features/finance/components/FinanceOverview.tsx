@@ -22,13 +22,15 @@ import {
     Wallet,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Badge, Button, Card, Dialog, Input, PageHero, Select, ShortcutHint } from '@/components/ui';
+import { Badge, Button, Card, DatePicker, Dialog, Input, PageHero, Select, ShortcutHint } from '@/components/ui';
 import { useCommandEnterAction } from '@/hooks/useCommandEnterAction';
 import { handleCommandEnterFormSubmit } from '@/lib/shortcuts';
 import { useFinanceDashboard, useFinanceExpenseMonth, useFinanceMutations } from '../hooks/useFinanceDashboard';
 import { ExpenseDetailDrawer, ExpenseEditDrawer } from './ExpenseTransactionDialogs';
 import type {
+    CreateFinanceAccountInput,
     CreateFinanceTransactionInput,
+    DeleteFinanceAccountInput,
     DeleteFinanceTransactionInput,
     FinanceAccount,
     FinanceAccountType,
@@ -122,6 +124,7 @@ type FinanceOverviewProps = {
 };
 
 const expenseRecordGridClass = 'grid min-w-[820px] grid-cols-[4.75rem_minmax(8rem,1.35fr)_5.5rem_minmax(6.5rem,0.9fr)_minmax(8rem,1fr)_6.25rem_4.5rem] items-center gap-2';
+export const BASIC_INFO_DIALOG_BODY_CLASS_NAME = 'min-h-0 flex-1 overflow-y-auto p-5';
 const expenseCategoryChartColors = [
     'var(--accent)',
     'var(--success)',
@@ -129,6 +132,10 @@ const expenseCategoryChartColors = [
     'var(--danger)',
     'var(--text-tertiary)',
 ];
+
+export function getDefaultTransactionAccountId(accounts: FinanceAccount[]): string {
+    return accounts.find((account) => account.is_active && account.name === '支付宝')?.id ?? '';
+}
 
 export default function FinanceOverview({
     initialUserId,
@@ -145,6 +152,8 @@ export default function FinanceOverview({
         deleteTransactionMutation,
         updateProfileMutation,
         updateAccountMutation,
+        createAccountMutation,
+        deleteAccountMutation,
         updateLiabilityMutation,
         createSnapshotMutation,
     } = useFinanceMutations(userId);
@@ -225,6 +234,20 @@ export default function FinanceOverview({
             updateAccountMutation.mutate(input);
         },
         [updateAccountMutation],
+    );
+
+    const handleCreateAccount = useCallback(
+        (input: CreateFinanceAccountInput) => {
+            createAccountMutation.mutate(input);
+        },
+        [createAccountMutation],
+    );
+
+    const handleDeleteAccount = useCallback(
+        (input: DeleteFinanceAccountInput) => {
+            deleteAccountMutation.mutate(input);
+        },
+        [deleteAccountMutation],
     );
 
     const handleUpdateLiability = useCallback(
@@ -348,10 +371,14 @@ export default function FinanceOverview({
                 isSaving={
                     updateProfileMutation.isPending ||
                     updateAccountMutation.isPending ||
+                    createAccountMutation.isPending ||
+                    deleteAccountMutation.isPending ||
                     updateLiabilityMutation.isPending
                 }
                 onUpdateProfile={handleUpdateProfile}
                 onUpdateAccount={handleUpdateAccount}
+                onCreateAccount={handleCreateAccount}
+                onDeleteAccount={handleDeleteAccount}
                 onUpdateLiability={handleUpdateLiability}
             />
 
@@ -954,7 +981,7 @@ export function AllExpensesDialog({
                     </div>
                 </div>
 
-                <div ref={recordsScrollRef} className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+                <div ref={recordsScrollRef} data-expense-ledger-scroll="records" className="min-h-0 flex-1 overflow-auto px-5 py-4">
                     {expenseMonthQuery.isLoading ? (
                         <p className="rounded-inner-card border border-dashed border-glass-border px-4 py-8 text-center text-body-sm text-text-tertiary">
                             加载当月支出中...
@@ -964,92 +991,90 @@ export function AllExpensesDialog({
                             这个月还没有支出记录。
                         </p>
                     ) : (
-                        <div className="overflow-x-auto pb-1">
-                            <div className="min-w-[820px] overflow-hidden rounded-inner-card border border-glass-border/70 bg-panel-bg/35">
-                                <div data-expense-ledger-header="shared" data-expense-ledger-header-behavior="sticky" className={`${expenseRecordGridClass} sticky top-0 z-10 border-b border-glass-border bg-bg-primary/95 px-3 py-2 text-caption text-text-tertiary shadow-sm`}>
-                                    <span>时间</span>
-                                    <span>对象</span>
-                                    <span>分类</span>
-                                    <span>账户</span>
-                                    <span>备注</span>
-                                    <span className="text-right">金额</span>
-                                    <span className="text-center">操作</span>
-                                </div>
-                                <div className="divide-y divide-glass-border/60">
-                                    {dayGroups.map((dayGroup) => (
-                                        <section
-                                            key={dayGroup.date}
-                                            data-expense-date={dayGroup.date}
-                                            data-expense-day-current={dayGroup.date === todayISO ? 'today' : undefined}
-                                            className="bg-panel-bg/20"
-                                        >
-                                            <div data-expense-day-divider="lightweight" data-expense-day-density="thin" className={`${expenseRecordGridClass} bg-bg-tertiary/30 px-3 py-1 text-caption`}>
-                                                <span className="flex min-w-0 items-center gap-1.5 font-semibold text-text-primary">
-                                                    <span className="truncate">{formatExpenseDayLedgerLabel(dayGroup.date)}</span>
-                                                    {dayGroup.date === todayISO ? (
-                                                        <span className="shrink-0 rounded-full bg-accent/10 px-1.5 py-0.5 text-[10px] font-semibold text-accent">今天</span>
-                                                    ) : null}
+                        <div className="min-w-[820px] rounded-inner-card border border-glass-border/70 bg-panel-bg/35 pb-1">
+                            <div data-expense-ledger-header="shared" data-expense-ledger-header-behavior="sticky" className={`${expenseRecordGridClass} sticky top-0 z-20 border-b border-glass-border bg-bg-primary/95 px-3 py-2 text-caption text-text-tertiary shadow-sm`}>
+                                <span>时间</span>
+                                <span>对象</span>
+                                <span>分类</span>
+                                <span>账户</span>
+                                <span>备注</span>
+                                <span className="text-right">金额</span>
+                                <span className="text-center">操作</span>
+                            </div>
+                            <div className="divide-y divide-glass-border/60">
+                                {dayGroups.map((dayGroup) => (
+                                    <section
+                                        key={dayGroup.date}
+                                        data-expense-date={dayGroup.date}
+                                        data-expense-day-current={dayGroup.date === todayISO ? 'today' : undefined}
+                                        className="bg-panel-bg/20"
+                                    >
+                                        <div data-expense-day-divider="lightweight" data-expense-day-density="thin" className={`${expenseRecordGridClass} bg-bg-tertiary/30 px-3 py-1 text-caption`}>
+                                            <span className="flex min-w-0 items-center gap-1.5 font-semibold text-text-primary">
+                                                <span className="truncate">{formatExpenseDayLedgerLabel(dayGroup.date)}</span>
+                                                {dayGroup.date === todayISO ? (
+                                                    <span className="shrink-0 rounded-full bg-accent/10 px-1.5 py-0.5 text-[10px] font-semibold text-accent">今天</span>
+                                                ) : null}
+                                            </span>
+                                            <span className="col-span-4 truncate text-text-tertiary">{dayGroup.date} · {dayGroup.count} 笔</span>
+                                            <span className="text-right font-semibold text-text-primary">{formatCurrency(dayGroup.amount)}</span>
+                                            <span />
+                                        </div>
+                                        {dayGroup.rows.map((row) => (
+                                            <div
+                                                key={row.id}
+                                                data-expense-row-layout="compact-single-line"
+                                                data-expense-ledger-row="dense"
+                                                className={`${expenseRecordGridClass} min-h-9 w-full px-3 py-1.5 text-left text-body-sm transition-colors duration-normal ease-standard hover:bg-card-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30`}
+                                            >
+                                                <span className="truncate whitespace-nowrap text-text-tertiary">{formatExpenseCompactDate(row.occurredDate)}</span>
+                                                <span className="truncate whitespace-nowrap font-semibold text-text-primary" title={row.title}>{row.title}</span>
+                                                <span className="truncate whitespace-nowrap text-text-secondary" title={row.categoryLabel}>{row.categoryLabel}</span>
+                                                <span className="truncate whitespace-nowrap text-text-secondary" title={row.accountName}>{formatExpenseAccountLabel(row.accountName)}</span>
+                                                <span className={`truncate whitespace-nowrap ${row.note ? 'text-text-secondary' : 'text-text-tertiary'}`} title={row.note ?? '无备注'}>
+                                                    {row.note ?? '-'}
                                                 </span>
-                                                <span className="col-span-4 truncate text-text-tertiary">{dayGroup.date} · {dayGroup.count} 笔</span>
-                                                <span className="text-right font-semibold text-text-primary">{formatCurrency(dayGroup.amount)}</span>
-                                                <span />
-                                            </div>
-                                            {dayGroup.rows.map((row) => (
-                                                <div
-                                                    key={row.id}
-                                                    data-expense-row-layout="compact-single-line"
-                                                    data-expense-ledger-row="dense"
-                                                    className={`${expenseRecordGridClass} min-h-9 w-full px-3 py-1.5 text-left text-body-sm transition-colors duration-normal ease-standard hover:bg-card-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30`}
-                                                >
-                                                    <span className="truncate whitespace-nowrap text-text-tertiary">{formatExpenseCompactDate(row.occurredDate)}</span>
-                                                    <span className="truncate whitespace-nowrap font-semibold text-text-primary" title={row.title}>{row.title}</span>
-                                                    <span className="truncate whitespace-nowrap text-text-secondary" title={row.categoryLabel}>{row.categoryLabel}</span>
-                                                    <span className="truncate whitespace-nowrap text-text-secondary" title={row.accountName}>{formatExpenseAccountLabel(row.accountName)}</span>
-                                                    <span className={`truncate whitespace-nowrap ${row.note ? 'text-text-secondary' : 'text-text-tertiary'}`} title={row.note ?? '无备注'}>
-                                                        {row.note ?? '-'}
-                                                    </span>
-                                                    <span className="truncate whitespace-nowrap text-right font-semibold tabular-nums text-text-primary">{formatCurrency(row.amount)}</span>
-                                                    <div data-expense-actions-layout="compact" className="flex items-center justify-center gap-0.5">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setDetailExpenseId(row.id)}
-                                                            data-expense-detail-action="open-drawer"
-                                                            data-expense-action-tone="visible-secondary"
-                                                            className="inline-flex h-6 w-6 items-center justify-center rounded-control text-text-secondary transition-colors duration-normal ease-standard hover:bg-selection-bg hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
-                                                            title="查看详情"
-                                                            aria-label={`查看支出详情：${row.title}`}
-                                                        >
-                                                            <ReceiptText size={13} />
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setEditingExpenseId(row.id)}
-                                                            data-expense-edit-action="open-drawer"
-                                                            data-expense-action-tone="visible-secondary"
-                                                            className="inline-flex h-6 w-6 items-center justify-center rounded-control text-text-secondary transition-colors duration-normal ease-standard hover:bg-selection-bg hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
-                                                            title="修改"
-                                                            aria-label={`修改支出：${row.title}`}
-                                                        >
-                                                            <Pencil size={13} />
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleDeleteExpense(row)}
-                                                            disabled={isDeletingExpense}
-                                                            data-expense-delete-action="delete"
-                                                            data-expense-action-tone="visible-secondary"
-                                                            className="inline-flex h-6 w-6 items-center justify-center rounded-control text-text-secondary transition-colors duration-normal ease-standard hover:bg-danger/10 hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger/30 disabled:cursor-not-allowed disabled:opacity-50"
-                                                            title="删除"
-                                                            aria-label={`删除支出：${row.title}`}
-                                                        >
-                                                            <Trash2 size={13} />
-                                                        </button>
-                                                    </div>
+                                                <span className="truncate whitespace-nowrap text-right font-semibold tabular-nums text-text-primary">{formatCurrency(row.amount)}</span>
+                                                <div data-expense-actions-layout="compact" className="flex items-center justify-center gap-0.5">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setDetailExpenseId(row.id)}
+                                                        data-expense-detail-action="open-drawer"
+                                                        data-expense-action-tone="visible-secondary"
+                                                        className="inline-flex h-6 w-6 items-center justify-center rounded-control text-text-secondary transition-colors duration-normal ease-standard hover:bg-selection-bg hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+                                                        title="查看详情"
+                                                        aria-label={`查看支出详情：${row.title}`}
+                                                    >
+                                                        <ReceiptText size={13} />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setEditingExpenseId(row.id)}
+                                                        data-expense-edit-action="open-drawer"
+                                                        data-expense-action-tone="visible-secondary"
+                                                        className="inline-flex h-6 w-6 items-center justify-center rounded-control text-text-secondary transition-colors duration-normal ease-standard hover:bg-selection-bg hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+                                                        title="修改"
+                                                        aria-label={`修改支出：${row.title}`}
+                                                    >
+                                                        <Pencil size={13} />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleDeleteExpense(row)}
+                                                        disabled={isDeletingExpense}
+                                                        data-expense-delete-action="delete"
+                                                        data-expense-action-tone="visible-secondary"
+                                                        className="inline-flex h-6 w-6 items-center justify-center rounded-control text-text-secondary transition-colors duration-normal ease-standard hover:bg-danger/10 hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger/30 disabled:cursor-not-allowed disabled:opacity-50"
+                                                        title="删除"
+                                                        aria-label={`删除支出：${row.title}`}
+                                                    >
+                                                        <Trash2 size={13} />
+                                                    </button>
                                                 </div>
-                                            ))}
-                                        </section>
-                                    ))}
-                                </div>
+                                            </div>
+                                        ))}
+                                    </section>
+                                ))}
                             </div>
                         </div>
                     )}
@@ -1408,6 +1433,8 @@ function BasicInfoDialog({
     isSaving,
     onUpdateProfile,
     onUpdateAccount,
+    onCreateAccount,
+    onDeleteAccount,
     onUpdateLiability,
 }: {
     open: boolean;
@@ -1417,10 +1444,12 @@ function BasicInfoDialog({
     isSaving: boolean;
     onUpdateProfile: (input: UpdateFinanceProfileInput) => void;
     onUpdateAccount: (input: UpdateFinanceAccountInput) => void;
+    onCreateAccount: (input: CreateFinanceAccountInput) => void;
+    onDeleteAccount: (input: DeleteFinanceAccountInput) => void;
     onUpdateLiability: (input: UpdateFinanceLiabilityInput) => void;
 }) {
     return (
-        <Dialog open={open} onClose={onClose} title="基础信息" maxWidth="5xl" bodyClassName="p-5">
+        <Dialog open={open} onClose={onClose} title="基础信息" maxWidth="5xl" bodyClassName={BASIC_INFO_DIALOG_BODY_CLASS_NAME}>
             <div className="space-y-5">
                 <ProfileEditor
                     userId={userId}
@@ -1439,10 +1468,18 @@ function BasicInfoDialog({
                             <AccountEditor
                                 key={account.id}
                                 account={account}
+                                userId={userId}
                                 isSaving={isSaving}
                                 onSave={onUpdateAccount}
+                                onDelete={onDeleteAccount}
                             />
                         ))}
+                        <AccountCreatePanel
+                            userId={userId}
+                            nextSortOrder={dashboard.accounts.reduce((max, account) => Math.max(max, account.sort_order), 0) + 1}
+                            isSaving={isSaving}
+                            onCreate={onCreateAccount}
+                        />
                     </div>
                 </section>
 
@@ -1540,12 +1577,16 @@ function ProfileEditor({
 
 function AccountEditor({
     account,
+    userId,
     isSaving,
     onSave,
+    onDelete,
 }: {
     account: FinanceAccount;
+    userId: string;
     isSaving: boolean;
     onSave: (input: UpdateFinanceAccountInput) => void;
+    onDelete: (input: DeleteFinanceAccountInput) => void;
 }) {
     const shortcutScopeRef = useRef<HTMLDivElement>(null);
     const [name, setName] = useState(account.name);
@@ -1597,6 +1638,14 @@ function AccountEditor({
         onAction: handleSave,
     });
 
+    const handleDelete = useCallback(() => {
+        if (!confirm(`将账户「${account.name}」移出记账下拉框？历史交易和账户资料会保留，可重新启用。`)) return;
+        onDelete({
+            id: account.id,
+            user_id: userId,
+        });
+    }, [account.id, account.name, onDelete, userId]);
+
     return (
         <div ref={shortcutScopeRef} className="rounded-inner-card border border-glass-border/75 bg-panel-bg/70 p-4">
             <div className="mb-3 flex items-center justify-between gap-3">
@@ -1606,11 +1655,23 @@ function AccountEditor({
                         {account.account_type === 'credit_card' ? '信用卡额度、账单日、还款日和当前应还' : '账户名称与当前余额'}
                     </p>
                 </div>
-                <Button size="sm" variant="tinted" onClick={handleSave} disabled={isSaving}>
-                    <Save size={15} />
-                    保存
-                    {!isSaving ? <ShortcutHint /> : null}
-                </Button>
+                <div className="flex items-center gap-1.5">
+                    <Button size="sm" variant="tinted" onClick={handleSave} disabled={isSaving}>
+                        <Save size={15} />
+                        保存
+                        {!isSaving ? <ShortcutHint /> : null}
+                    </Button>
+                    <button
+                        type="button"
+                        onClick={handleDelete}
+                        disabled={isSaving}
+                        className="rounded-control p-1.5 text-text-tertiary transition-colors duration-normal ease-standard hover:bg-danger/10 hover:text-danger disabled:opacity-50"
+                        title="移出记账下拉框"
+                        aria-label={`移出记账下拉框：${account.name}`}
+                    >
+                        <Trash2 size={15} />
+                    </button>
+                </div>
             </div>
             <div className="grid gap-3 md:grid-cols-2">
                 <label className="space-y-1.5">
@@ -1665,6 +1726,100 @@ function AccountEditor({
                 <label className="space-y-1.5 md:col-span-2">
                     <span className="text-caption text-text-secondary">备注</span>
                     <Input multiline rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
+                </label>
+            </div>
+        </div>
+    );
+}
+
+function AccountCreatePanel({
+    userId,
+    nextSortOrder,
+    isSaving,
+    onCreate,
+}: {
+    userId: string;
+    nextSortOrder: number;
+    isSaving: boolean;
+    onCreate: (input: CreateFinanceAccountInput) => void;
+}) {
+    const shortcutScopeRef = useRef<HTMLDivElement>(null);
+    const [name, setName] = useState('');
+    const [institution, setInstitution] = useState('');
+    const [accountType, setAccountType] = useState<FinanceAccountType>('cash');
+    const [currentBalance, setCurrentBalance] = useState('0');
+    const [notes, setNotes] = useState('');
+
+    const handleCreate = useCallback(() => {
+        const trimmedName = name.trim();
+        if (!trimmedName) return;
+
+        onCreate({
+            user_id: userId,
+            name: trimmedName,
+            institution: institution.trim() || null,
+            account_type: accountType,
+            credit_limit: null,
+            current_balance: parseRequiredNumber(currentBalance),
+            statement_day: null,
+            payment_day: null,
+            payment_day_status: 'confirmed',
+            is_active: true,
+            sort_order: nextSortOrder,
+            notes: notes.trim() || null,
+        });
+        setName('');
+        setInstitution('');
+        setAccountType('cash');
+        setCurrentBalance('0');
+        setNotes('');
+    }, [accountType, currentBalance, institution, name, nextSortOrder, notes, onCreate, userId]);
+
+    useCommandEnterAction({
+        disabled: isSaving || !name.trim(),
+        scopeRef: shortcutScopeRef,
+        onAction: handleCreate,
+    });
+
+    return (
+        <div ref={shortcutScopeRef} className="rounded-inner-card border border-dashed border-accent/28 bg-selection-bg/28 p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                    <p className="text-body-sm font-semibold text-text-primary">新增账户</p>
+                    <p className="mt-1 text-caption text-text-tertiary">添加后会出现在记账账户下拉框。</p>
+                </div>
+                <Button size="sm" variant="tinted" onClick={handleCreate} disabled={isSaving || !name.trim()}>
+                    <Plus size={15} />
+                    添加
+                    {!isSaving ? <ShortcutHint /> : null}
+                </Button>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+                <label className="space-y-1.5">
+                    <span className="text-caption text-text-secondary">名称</span>
+                    <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="例如：微信、支付宝" />
+                </label>
+                <label className="space-y-1.5">
+                    <span className="text-caption text-text-secondary">机构</span>
+                    <Input value={institution} onChange={(e) => setInstitution(e.target.value)} placeholder="例如：微信支付" />
+                </label>
+                <label className="space-y-1.5">
+                    <span className="text-caption text-text-secondary">类型</span>
+                    <Select value={accountType} onChange={(e) => setAccountType(e.target.value as FinanceAccountType)}>
+                        <option value="cash">现金账户</option>
+                        <option value="credit_card">信用卡</option>
+                        <option value="loan">贷款账户</option>
+                        <option value="investment">投资账户</option>
+                        <option value="other">其他</option>
+                    </Select>
+                </label>
+                <label className="space-y-1.5">
+                    <span className="text-caption text-text-secondary">当前余额/应还</span>
+                    <Input type="number" min="0" value={currentBalance} onChange={(e) => setCurrentBalance(e.target.value)} />
+                </label>
+                <label className="space-y-1.5 md:col-span-2">
+                    <span className="text-caption text-text-secondary">备注</span>
+                    <Input multiline rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="可写用途或账户说明" />
                 </label>
             </div>
         </div>
@@ -1780,10 +1935,16 @@ function LiabilityEditor({
                     <span className="text-caption text-text-secondary">每月还款日</span>
                     <Input type="number" min="1" max="31" value={dueDay} onChange={(e) => setDueDay(e.target.value)} />
                 </label>
-                <label className="space-y-1.5">
+                <div className="space-y-1.5">
                     <span className="text-caption text-text-secondary">到期日</span>
-                    <Input type="date" value={maturityDate} onChange={(e) => setMaturityDate(e.target.value)} />
-                </label>
+                    <DatePicker
+                        value={maturityDate}
+                        onChange={setMaturityDate}
+                        clearable
+                        placeholder="选择到期日"
+                        ariaLabel="到期日"
+                    />
+                </div>
                 <label className="space-y-1.5">
                     <span className="text-caption text-text-secondary">优先级</span>
                     <Input type="number" min="1" max="5" value={priority} onChange={(e) => setPriority(e.target.value)} />
@@ -1824,16 +1985,19 @@ function TransactionDialog({
     const [amount, setAmount] = useState('');
     const [transactionType, setTransactionType] = useState<FinanceTransactionType>('expense');
     const [category, setCategory] = useState('dining');
-    const [accountId, setAccountId] = useState('');
+    const [accountId, setAccountId] = useState<string | null>(null);
     const [merchant, setMerchant] = useState('');
     const [note, setNote] = useState('');
+    const activeAccounts = useMemo(() => accounts.filter((account) => account.is_active), [accounts]);
+    const defaultAccountId = useMemo(() => getDefaultTransactionAccountId(accounts), [accounts]);
+    const selectedAccountId = accountId ?? defaultAccountId;
 
     const handleSubmit = useCallback(() => {
         const parsedAmount = Number(amount);
         if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) return;
         onSubmit({
             user_id: userId,
-            account_id: accountId || null,
+            account_id: selectedAccountId || null,
             occurred_date: occurredDate,
             amount: parsedAmount,
             transaction_type: transactionType,
@@ -1841,7 +2005,7 @@ function TransactionDialog({
             merchant: merchant.trim() || null,
             note: note.trim() || null,
         });
-    }, [accountId, amount, category, merchant, note, occurredDate, onSubmit, transactionType, userId]);
+    }, [amount, category, merchant, note, occurredDate, onSubmit, selectedAccountId, transactionType, userId]);
 
     return (
         <Dialog open={open} onClose={onClose} title="记一笔" maxWidth="lg" bodyClassName="p-5">
@@ -1853,10 +2017,10 @@ function TransactionDialog({
                 onKeyDown={handleCommandEnterFormSubmit}
             >
             <div className="grid gap-4 md:grid-cols-2">
-                <label className="space-y-1.5">
+                <div className="space-y-1.5">
                     <span className="text-caption text-text-secondary">日期</span>
-                    <Input type="date" value={occurredDate} onChange={(e) => setOccurredDate(e.target.value)} />
-                </label>
+                    <DatePicker value={occurredDate} onChange={setOccurredDate} ariaLabel="日期" />
+                </div>
                 <label className="space-y-1.5">
                     <span className="text-caption text-text-secondary">金额</span>
                     <Input
@@ -1890,9 +2054,9 @@ function TransactionDialog({
                 </label>
                 <label className="space-y-1.5">
                     <span className="text-caption text-text-secondary">账户</span>
-                    <Select value={accountId} onChange={(e) => setAccountId(e.target.value)}>
+                    <Select value={selectedAccountId} onChange={(e) => setAccountId(e.target.value)}>
                         <option value="">不关联账户</option>
-                        {accounts.map((account) => (
+                        {activeAccounts.map((account) => (
                             <option key={account.id} value={account.id}>{account.name}</option>
                         ))}
                     </Select>

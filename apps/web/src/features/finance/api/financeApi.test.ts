@@ -20,6 +20,8 @@ type QueryOrder = {
 type QueryCall = {
     table: string;
     selectColumns?: string;
+    insertPayload?: unknown;
+    upsertPayload?: unknown;
     updatePayload?: Record<string, unknown>;
     deleteCalled?: boolean;
     filters: QueryFilter[];
@@ -55,6 +57,14 @@ function createMockSupabase(responses: Record<string, unknown[]>): MockSupabase 
                     call.selectColumns = columns;
                     return builder;
                 },
+                insert(payload: unknown) {
+                    call.insertPayload = payload;
+                    return builder;
+                },
+                upsert(payload: unknown) {
+                    call.upsertPayload = payload;
+                    return builder;
+                },
                 update(payload: Record<string, unknown>) {
                     call.updatePayload = payload;
                     call.response = null;
@@ -88,11 +98,14 @@ function createMockSupabase(responses: Record<string, unknown[]>): MockSupabase 
                 maybeSingle() {
                     return Promise.resolve({ data: call.response ?? null, error: null });
                 },
+                single() {
+                    return Promise.resolve({ data: call.response ?? null, error: null });
+                },
                 then<TResult1 = { data: unknown; error: null }, TResult2 = never>(
                     onfulfilled?: ((value: { data: unknown; error: null }) => TResult1 | PromiseLike<TResult1>) | null,
                     onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
                 ) {
-                    return Promise.resolve({ data: call.response, error: null }).then(onfulfilled, onrejected);
+                    return Promise.resolve({ data: call.response, error: null, count: 0 }).then(onfulfilled, onrejected);
                 },
             };
 
@@ -131,7 +144,67 @@ const earlyMonthExpense = {
     updated_at: '2026-05-02T05:00:00.000Z',
 };
 
+const bootstrappedAccounts = [
+    { id: 'account-zhaohang', name: '招行信用卡' },
+    { id: 'account-jianhang', name: '建行信用卡' },
+    { id: 'account-guangda', name: '光大信用卡' },
+    { id: 'account-dongguan', name: '东莞证券' },
+    { id: 'account-wechat', name: '微信' },
+    { id: 'account-alipay', name: '支付宝' },
+];
+
+const bootstrappedLiabilities = [
+    { id: 'liability-wife', name: '老婆欠款' },
+    { id: 'liability-loan-5w', name: '闪电贷 5W' },
+    { id: 'liability-loan-20w', name: '闪电贷 20W' },
+    { id: 'liability-mortgage', name: '房贷' },
+];
+
+const bootstrappedBills = [
+    { id: 'bill-zhaohang', account_id: 'account-zhaohang' },
+    { id: 'bill-jianhang', account_id: 'account-jianhang' },
+    { id: 'bill-guangda', account_id: 'account-guangda' },
+];
+
 describe('createFinanceApi', () => {
+    it('bootstraps WeChat and Alipay as cash accounts for new finance users', async () => {
+        const supabase = createMockSupabase({
+            finance_accounts: [[], bootstrappedAccounts],
+            finance_liabilities: [bootstrappedLiabilities],
+            finance_credit_card_bills: [bootstrappedBills],
+            finance_payment_schedules: [],
+            finance_budgets: [],
+            finance_monthly_snapshots: [],
+        });
+
+        const api = createFinanceApi(supabase.client);
+        await api.bootstrapInitialData('user-1');
+
+        const accountInsertCall = supabase.calls.find(
+            (call) => call.table === 'finance_accounts' && Array.isArray(call.insertPayload),
+        );
+        expect(accountInsertCall?.insertPayload).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    user_id: 'user-1',
+                    name: '微信',
+                    institution: '微信支付',
+                    account_type: 'cash',
+                    current_balance: 0,
+                    is_active: true,
+                }),
+                expect.objectContaining({
+                    user_id: 'user-1',
+                    name: '支付宝',
+                    institution: '支付宝',
+                    account_type: 'cash',
+                    current_balance: 0,
+                    is_active: true,
+                }),
+            ]),
+        );
+    });
+
     it('keeps dashboard expense transactions scoped to the current month', async () => {
         const supabase = createMockSupabase({
             finance_profiles: [null],
@@ -223,6 +296,63 @@ describe('createFinanceApi', () => {
         expect(deleteCall?.deleteCalled).toBe(true);
         expect(deleteCall?.filters).toEqual([
             { op: 'eq', column: 'id', value: 'expense-current' },
+            { op: 'eq', column: 'user_id', value: 'user-1' },
+        ]);
+    });
+
+    it('creates a user-scoped finance account', async () => {
+        const supabase = createMockSupabase({
+            finance_accounts: [],
+        });
+
+        const api = createFinanceApi(supabase.client);
+        await api.createAccount({
+            user_id: 'user-1',
+            name: '微信',
+            institution: '微信支付',
+            account_type: 'cash',
+            credit_limit: null,
+            current_balance: 0,
+            statement_day: null,
+            payment_day: null,
+            payment_day_status: 'confirmed',
+            is_active: true,
+            sort_order: 5,
+            notes: null,
+        });
+
+        const insertCall = supabase.calls.find((call) => call.table === 'finance_accounts');
+        expect(insertCall?.insertPayload).toEqual({
+            user_id: 'user-1',
+            name: '微信',
+            institution: '微信支付',
+            account_type: 'cash',
+            credit_limit: null,
+            current_balance: 0,
+            statement_day: null,
+            payment_day: null,
+            payment_day_status: 'confirmed',
+            is_active: true,
+            sort_order: 5,
+            notes: null,
+        });
+    });
+
+    it('removes an account from dropdowns by deactivating it for the authenticated user', async () => {
+        const supabase = createMockSupabase({
+            finance_accounts: [],
+        });
+
+        const api = createFinanceApi(supabase.client);
+        await api.deleteAccount({
+            id: 'account-wechat',
+            user_id: 'user-1',
+        });
+
+        const updateCall = supabase.calls.find((call) => call.table === 'finance_accounts');
+        expect(updateCall?.updatePayload).toEqual({ is_active: false });
+        expect(updateCall?.filters).toEqual([
+            { op: 'eq', column: 'id', value: 'account-wechat' },
             { op: 'eq', column: 'user_id', value: 'user-1' },
         ]);
     });

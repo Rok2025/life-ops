@@ -1,7 +1,11 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import FinanceOverview, { AllExpensesDialog } from './FinanceOverview';
+import FinanceOverview, {
+    AllExpensesDialog,
+    BASIC_INFO_DIALOG_BODY_CLASS_NAME,
+    getDefaultTransactionAccountId,
+} from './FinanceOverview';
 import type { FinanceDashboard } from '../types';
 
 type MockProps = Record<string, unknown> & {
@@ -16,6 +20,9 @@ vi.mock('@/components/ui', () => ({
     Badge: ({ children }: MockProps) => <span>{children}</span>,
     Button: ({ children, ...props }: MockProps) => <button {...props}>{children}</button>,
     Card: ({ children }: MockProps) => <section>{children}</section>,
+    DatePicker: ({ ariaLabel, ...props }: MockProps) => (
+        <input aria-label={typeof ariaLabel === 'string' ? ariaLabel : undefined} {...props} />
+    ),
     Dialog: ({ children, open }: MockProps) => (open ? <div>{children}</div> : null),
     Drawer: ({ children, open, title }: MockProps) => (
         open ? (
@@ -76,6 +83,8 @@ vi.mock('../hooks/useFinanceDashboard', () => ({
         deleteTransactionMutation: { mutate, isPending: false },
         updateProfileMutation: { mutate, isPending: false },
         updateAccountMutation: { mutate, isPending: false },
+        createAccountMutation: { mutate, isPending: false },
+        deleteAccountMutation: { mutate, isPending: false },
         updateLiabilityMutation: { mutate, isPending: false },
         createSnapshotMutation: { mutate, isPending: false },
     }),
@@ -147,6 +156,19 @@ const dashboard: FinanceDashboard = {
             created_at: '2026-05-20T04:00:00.000Z',
             updated_at: '2026-05-20T04:00:00.000Z',
         },
+        {
+            id: 'expense-3',
+            user_id: 'user-1',
+            account_id: 'account-card',
+            occurred_date: '2026-05-20',
+            amount: 9.5,
+            transaction_type: 'expense',
+            category: 'dining',
+            merchant: '小食',
+            note: null,
+            created_at: '2026-05-20T05:00:00.000Z',
+            updated_at: '2026-05-20T05:00:00.000Z',
+        },
     ],
     budgets: [],
     snapshots: [],
@@ -170,6 +192,41 @@ const dashboard: FinanceDashboard = {
 };
 
 describe('FinanceOverview', () => {
+    it('keeps the basic info dialog body scrollable for long account and liability lists', () => {
+        expect(BASIC_INFO_DIALOG_BODY_CLASS_NAME).toContain('min-h-0');
+        expect(BASIC_INFO_DIALOG_BODY_CLASS_NAME).toContain('flex-1');
+        expect(BASIC_INFO_DIALOG_BODY_CLASS_NAME).toContain('overflow-y-auto');
+        expect(BASIC_INFO_DIALOG_BODY_CLASS_NAME).toContain('p-5');
+    });
+
+    it('defaults new transaction account to active Alipay when available', () => {
+        const [baseAccount] = dashboard.accounts;
+        const accountId = getDefaultTransactionAccountId([
+            baseAccount,
+            {
+                ...baseAccount,
+                id: 'account-wechat',
+                name: '微信',
+                sort_order: 5,
+            },
+            {
+                ...baseAccount,
+                id: 'account-alipay-inactive',
+                name: '支付宝',
+                is_active: false,
+                sort_order: 6,
+            },
+            {
+                ...baseAccount,
+                id: 'account-alipay',
+                name: '支付宝',
+                sort_order: 7,
+            },
+        ]);
+
+        expect(accountId).toBe('account-alipay');
+    });
+
     it('opens all expenses from an in-page button instead of navigating to a password-gated route', () => {
         const html = renderToStaticMarkup(<FinanceOverview initialUserId="user-1" />);
 
@@ -215,8 +272,11 @@ describe('FinanceOverview', () => {
         expect(html).toContain('对象');
         expect(html).toContain('账户');
         expect(html).toContain('午饭');
+        expect(html).toContain('小食');
         expect(html).toContain('招商储蓄卡');
         expect(html).toContain('¥42');
+        expect(html).toContain('¥9.5');
+        expect(html).not.toContain('¥10');
     });
 
     it('renders an Excel export action for the selected expense month', () => {
@@ -317,6 +377,7 @@ describe('FinanceOverview', () => {
 
         expect(html).toContain('data-expense-ledger-layout="monthly"');
         expect(html).toContain('data-expense-ledger-toolbar="fixed"');
+        expect(html).toContain('data-expense-ledger-scroll="records"');
         expect(html).toContain('data-expense-ledger-summary="compact"');
         expect(html).toContain('data-expense-ledger-header="shared"');
         expect(html).toContain('data-expense-day-divider="lightweight"');
@@ -326,7 +387,8 @@ describe('FinanceOverview', () => {
         expect(html).toContain('title="未关联账户">-</span>');
         expect(html).toContain('data-expense-toolbar-layout="compact-grid"');
         expect(html).toContain('data-expense-ledger-header-behavior="sticky"');
-        expect(html).toContain('sticky top-0 z-10');
+        expect(html).toContain('overflow-auto px-5 py-4');
+        expect(html).toContain('sticky top-0 z-20');
         expect(html).toContain('grid-cols-[4.75rem_minmax(8rem,1.35fr)_5.5rem_minmax(6.5rem,0.9fr)_minmax(8rem,1fr)_6.25rem_4.5rem]');
         expect(html).toContain('data-expense-day-density="thin"');
         expect(html).toContain('py-1 text-caption');
@@ -337,6 +399,8 @@ describe('FinanceOverview', () => {
         expect(tableHeaderCount).toBe(1);
         expect(html).not.toContain('text-h2 text-text-primary">2026年');
         expect(html).not.toContain('rounded-inner-card border border-glass-border/75 bg-panel-bg/45 p-3');
+        expect(html).not.toContain('overflow-x-auto pb-1');
+        expect(html).not.toContain('min-w-[820px] overflow-hidden rounded-inner-card');
     });
 
     it('marks today lightly in the selected expense month', () => {

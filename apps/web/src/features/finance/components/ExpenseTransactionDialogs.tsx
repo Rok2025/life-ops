@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { Button, Drawer, Input, Select, ShortcutHint } from '@/components/ui';
+import { Button, DatePicker, Drawer, Input, Select, ShortcutHint } from '@/components/ui';
 import { handleCommandEnterFormSubmit } from '@/lib/shortcuts';
 import type { FinanceAccount, UpdateFinanceTransactionInput } from '../types';
 import { FINANCE_CATEGORY_OPTIONS } from '../types';
@@ -121,10 +121,10 @@ function ExpenseEditForm({
             onKeyDown={handleCommandEnterFormSubmit}
         >
             <div className="grid gap-4 md:grid-cols-2">
-                <label className="space-y-1.5">
+                <div className="space-y-1.5">
                     <span className="text-caption text-text-secondary">日期</span>
-                    <Input type="date" value={occurredDate} onChange={(e) => setOccurredDate(e.target.value)} />
-                </label>
+                    <DatePicker value={occurredDate} onChange={setOccurredDate} ariaLabel="日期" />
+                </div>
                 <label className="space-y-1.5">
                     <span className="text-caption text-text-secondary">金额</span>
                     <Input

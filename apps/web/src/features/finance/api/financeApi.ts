@@ -1,7 +1,9 @@
 import { supabase as browserSupabase } from '@/lib/supabase';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type {
+    CreateFinanceAccountInput,
     CreateFinanceTransactionInput,
+    DeleteFinanceAccountInput,
     DeleteFinanceTransactionInput,
     FinanceAccount,
     FinanceBudget,
@@ -286,6 +288,26 @@ export function createFinanceApi(supabase: SupabaseClient) {
                     account_type: 'investment',
                     current_balance: 30000,
                     sort_order: 4,
+                },
+                {
+                    user_id: userId,
+                    name: '微信',
+                    institution: '微信支付',
+                    account_type: 'cash',
+                    current_balance: 0,
+                    is_active: true,
+                    sort_order: 5,
+                    notes: '用于记录微信支付支出。',
+                },
+                {
+                    user_id: userId,
+                    name: '支付宝',
+                    institution: '支付宝',
+                    account_type: 'cash',
+                    current_balance: 0,
+                    is_active: true,
+                    sort_order: 6,
+                    notes: '用于记录支付宝支出。',
                 },
             ])
             .select('*');
@@ -636,6 +658,33 @@ export function createFinanceApi(supabase: SupabaseClient) {
                 notes: updates.notes ?? null,
             })
             .eq('id', id);
+        throwIfError(error);
+    },
+
+    createAccount: async (input: CreateFinanceAccountInput): Promise<void> => {
+        const { error } = await supabase.from('finance_accounts').insert({
+            user_id: input.user_id,
+            name: input.name,
+            institution: input.institution ?? null,
+            account_type: input.account_type,
+            credit_limit: input.credit_limit ?? null,
+            current_balance: input.current_balance,
+            statement_day: input.statement_day ?? null,
+            payment_day: input.payment_day ?? null,
+            payment_day_status: input.payment_day_status,
+            is_active: input.is_active,
+            sort_order: input.sort_order,
+            notes: input.notes ?? null,
+        });
+        throwIfError(error);
+    },
+
+    deleteAccount: async (input: DeleteFinanceAccountInput): Promise<void> => {
+        const { error } = await supabase
+            .from('finance_accounts')
+            .update({ is_active: false })
+            .eq('id', input.id)
+            .eq('user_id', input.user_id);
         throwIfError(error);
     },
 

@@ -13,7 +13,8 @@ export function formatCurrency(value: number, options?: { compact?: boolean }): 
     return new Intl.NumberFormat('zh-CN', {
         style: 'currency',
         currency: 'CNY',
-        maximumFractionDigits: 0,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
     }).format(value);
 }
 
