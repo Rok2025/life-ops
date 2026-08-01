@@ -17,6 +17,7 @@ lifeops login
 lifeops whoami
 lifeops tools
 lifeops run log_finance_transaction --input @transaction.json
+lifeops run log_fitness_workout --input @workout.json
 lifeops logout
 ```
 

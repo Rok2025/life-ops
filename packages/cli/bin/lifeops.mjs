@@ -19,6 +19,7 @@ Usage:
   lifeops whoami [--json]
   lifeops tools [--json]
   lifeops run log_finance_transaction --input <json|@file> [--json]
+  lifeops run log_fitness_workout --input <json|@file> [--json]
 `);
 }
 
@@ -118,7 +119,7 @@ async function login(args) {
   const start = await request('/api/v1/cli/device/start', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ device_name: deviceName, scopes: ['tools:read', 'finance:write'] }),
+    body: JSON.stringify({ device_name: deviceName, scopes: ['tools:read', 'finance:write', 'fitness:write'] }),
   });
   console.log(`请在浏览器确认授权：\n${start.verification_uri_complete}\n\n授权码：${start.user_code}`);
   openBrowser(start.verification_uri_complete);

@@ -3,7 +3,7 @@ import 'server-only';
 import { createHash, randomBytes } from 'node:crypto';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { CLI_SCOPES } from './types';
-import type { CliScope, CliTokenRecord, CliToolDescriptor, CliToolResult, FinanceTransactionInput } from './types';
+import type { CliScope, CliTokenRecord, CliToolDescriptor, CliToolResult, FinanceTransactionInput, FitnessWorkoutInput } from './types';
 
 const DEVICE_CODE_TTL_MS = 10 * 60 * 1000;
 const TOKEN_TTL_MS = 90 * 24 * 60 * 60 * 1000;
@@ -23,6 +23,11 @@ export const CLI_TOOLS: CliToolDescriptor[] = [
         description: 'Record one finance transaction for the authenticated Life OPS account.',
         scope: 'finance:write',
     },
+    {
+        name: 'log_fitness_workout',
+        description: 'Record one workout and its exercise sets for the authenticated Life OPS account.',
+        scope: 'fitness:write',
+    },
 ];
 
 function sha256(value: string): string {
@@ -34,7 +39,7 @@ function createUserCode(): string {
 }
 
 function getValidScopes(input: unknown): CliScope[] {
-    if (!Array.isArray(input) || input.length === 0) return ['tools:read', 'finance:write'];
+    if (!Array.isArray(input) || input.length === 0) return ['tools:read', 'finance:write', 'fitness:write'];
     const scopes = input.filter((scope): scope is CliScope =>
         typeof scope === 'string' && (CLI_SCOPES as readonly string[]).includes(scope),
     );
@@ -78,6 +83,29 @@ function getFinanceInput(input: unknown): Required<Omit<FinanceTransactionInput,
         merchant: assertString(raw.merchant, 'merchant', 160) ?? undefined,
         note: assertString(raw.note, 'note', 1000) ?? undefined,
         account_name: assertString(raw.account_name, 'account_name', 100) ?? undefined,
+    };
+}
+
+function getFitnessWorkoutInput(input: unknown): Required<FitnessWorkoutInput> {
+    if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('input must be an object.');
+    const raw = input as Record<string, unknown>;
+    const workoutDate = raw.workout_date ?? getLocalDateString('Asia/Shanghai');
+    if (typeof workoutDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(workoutDate)) throw new Error('workout_date must be YYYY-MM-DD.');
+    if (!Array.isArray(raw.exercises) || raw.exercises.length === 0 || raw.exercises.length > 30) throw new Error('exercises must contain 1 to 30 items.');
+    return {
+        workout_date: workoutDate,
+        notes: assertString(raw.notes, 'notes', 1000) ?? '',
+        exercises: raw.exercises.map((item, index) => {
+            if (!item || typeof item !== 'object' || Array.isArray(item)) throw new Error(`exercises[${index}] must be an object.`);
+            const exercise = item as Record<string, unknown>;
+            const weight = Number(exercise.weight);
+            const sets = Number(exercise.sets);
+            const reps = Number(exercise.reps);
+            if (!Number.isFinite(weight) || weight < 0 || weight > 9_999) throw new Error(`exercises[${index}].weight is invalid.`);
+            if (!Number.isInteger(sets) || sets < 1 || sets > 100) throw new Error(`exercises[${index}].sets must be an integer between 1 and 100.`);
+            if (!Number.isInteger(reps) || reps < 0 || reps > 10_000) throw new Error(`exercises[${index}].reps is invalid.`);
+            return { exercise_name: assertString(exercise.exercise_name, `exercises[${index}].exercise_name`, 120, true)!, weight, sets, reps };
+        }),
     };
 }
 
@@ -294,6 +322,41 @@ export async function logFinanceTransaction(token: CliTokenRecord, input: unknow
             request_summary: { occurred_date: normalized.occurred_date, amount: normalized.amount, transaction_type: normalized.transaction_type, category: normalized.category },
             result_summary: { error: message },
         });
+        throw error;
+    }
+}
+
+export async function logFitnessWorkout(token: CliTokenRecord, input: unknown, idempotencyKey: string): Promise<{ result: CliToolResult; replayed: boolean }> {
+    if (!/^[A-Za-z0-9._:-]{16,200}$/.test(idempotencyKey)) throw new Error('Idempotency-Key is invalid.');
+    const normalized = getFitnessWorkoutInput(input);
+    const requestHash = sha256(JSON.stringify({ tool: 'log_fitness_workout', input: normalized }));
+    const claim = await claimIdempotencyKey(token.user_id, idempotencyKey, requestHash);
+    if (claim.status === 'completed' && claim.response_json) return { result: claim.response_json, replayed: true };
+    if (claim.status !== 'claimed') throw new Error(claim.status === 'processing' ? 'Request with this Idempotency-Key is still processing.' : claim.error_message ?? 'Could not claim idempotency key.');
+    const admin = createAdminClient();
+    try {
+        const names = normalized.exercises.map((exercise) => exercise.exercise_name);
+        const { data: types, error: typeError } = await admin.from('exercise_types').select('id,name').in('name', names);
+        if (typeError) throw new Error(typeError.message);
+        const ids = new Map((types ?? []).map((type) => [type.name as string, type.id as string]));
+        const missing = names.filter((name) => !ids.has(name));
+        if (missing.length) throw new Error(`Unknown exercise_name: ${[...new Set(missing)].join(', ')}`);
+        const { data, error } = await admin.rpc('cli_log_fitness_workout', {
+            p_user_id: token.user_id,
+            p_workout_date: normalized.workout_date,
+            p_notes: normalized.notes || null,
+            p_exercises: normalized.exercises.map((exercise) => ({ exercise_type_id: ids.get(exercise.exercise_name), weight: exercise.weight, sets: exercise.sets, reps: exercise.reps })),
+        });
+        if (error || !data) throw new Error(error?.message ?? 'Could not create workout.');
+        const workout = Array.isArray(data) ? data[0] : data;
+        const result: CliToolResult = { toolName: 'log_fitness_workout', confirmation: `已记录：${normalized.workout_date} 训练 ${normalized.exercises.length} 个动作，共 ${workout.created_sets} 组`, data: { workout } };
+        await admin.from('cli_idempotency_keys').update({ status: 'completed', response_json: result, completed_at: new Date().toISOString() }).eq('user_id', token.user_id).eq('idempotency_key', idempotencyKey);
+        await admin.from('cli_api_audit_logs').insert({ user_id: token.user_id, token_id: token.id, tool_name: 'log_fitness_workout', idempotency_key: idempotencyKey, status: 'completed', request_summary: { workout_date: normalized.workout_date, exercise_count: normalized.exercises.length }, result_summary: { session_id: workout.session_id, created_sets: workout.created_sets } });
+        return { result, replayed: false };
+    } catch (error) {
+        const message = error instanceof Error ? error.message.slice(0, 240) : 'Unable to create workout.';
+        await admin.from('cli_idempotency_keys').update({ status: 'failed', error_message: message, completed_at: new Date().toISOString() }).eq('user_id', token.user_id).eq('idempotency_key', idempotencyKey);
+        await admin.from('cli_api_audit_logs').insert({ user_id: token.user_id, token_id: token.id, tool_name: 'log_fitness_workout', idempotency_key: idempotencyKey, status: 'failed', request_summary: { workout_date: normalized.workout_date, exercise_count: normalized.exercises.length }, result_summary: { error: message } });
         throw error;
     }
 }
