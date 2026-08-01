@@ -19,6 +19,7 @@ Usage:
   lifeops whoami [--json]
   lifeops tools [--json]
   lifeops run log_finance_transaction --input <json|@file> [--json]
+  lifeops run log_fitness_workout --input <json|@file> [--json]
 `);
 }
 
@@ -65,7 +66,31 @@ function deleteKeychainToken() {
 }
 
 async function request(path, options = {}) {
-  const response = await fetch(`${getApiUrl()}${path}`, options);
+  const url = `${getApiUrl()}${path}`;
+  let response;
+  let lastError;
+
+  // Some local proxy stacks reset Node/Undici keep-alive connections to Vercel.
+  // The CLI is low-throughput, so a short-lived connection is the safer default.
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      response = await fetch(url, {
+        ...options,
+        headers: { Connection: 'close', ...(options.headers ?? {}) },
+      });
+      break;
+    } catch (error) {
+      lastError = error;
+      if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, attempt * 300));
+    }
+  }
+
+  if (!response) {
+    const cause = lastError instanceof Error && lastError.cause instanceof Error
+      ? ` (${lastError.cause.code || lastError.cause.message})`
+      : '';
+    throw new Error(`无法连接 Life OPS API：${url}${cause}`);
+  }
   const body = response.status === 204 ? null : await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(body?.error || `请求失败（HTTP ${response.status}）`);
   return body;
@@ -94,7 +119,7 @@ async function login(args) {
   const start = await request('/api/v1/cli/device/start', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ device_name: deviceName, scopes: ['tools:read', 'finance:write'] }),
+    body: JSON.stringify({ device_name: deviceName, scopes: ['tools:read', 'finance:write', 'fitness:write'] }),
   });
   console.log(`请在浏览器确认授权：\n${start.verification_uri_complete}\n\n授权码：${start.user_code}`);
   openBrowser(start.verification_uri_complete);

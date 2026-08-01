@@ -1,4 +1,4 @@
-export const CLI_SCOPES = ['tools:read', 'finance:write'] as const;
+export const CLI_SCOPES = ['tools:read', 'finance:write', 'fitness:write'] as const;
 
 export type CliScope = (typeof CLI_SCOPES)[number];
 export type CliTokenRecord = {
@@ -11,7 +11,7 @@ export type CliTokenRecord = {
 };
 
 export type CliToolDescriptor = {
-    name: 'log_finance_transaction';
+    name: 'log_finance_transaction' | 'log_fitness_workout';
     description: string;
     scope: CliScope;
 };
@@ -24,6 +24,12 @@ export type FinanceTransactionInput = {
     merchant?: string;
     note?: string;
     account_name?: string;
+};
+
+export type FitnessWorkoutInput = {
+    workout_date?: string;
+    notes?: string;
+    exercises: Array<{ exercise_name: string; weight: number; sets: number; reps: number }>;
 };
 
 export type CliToolResult = {

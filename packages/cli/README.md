@@ -17,7 +17,10 @@ lifeops login
 lifeops whoami
 lifeops tools
 lifeops run log_finance_transaction --input @transaction.json
+lifeops run log_fitness_workout --input @workout.json
 lifeops logout
 ```
 
 `--json` 输出机器可读 JSON。所有写请求会自动带随机 `Idempotency-Key`。
+
+> 网络说明：CLI 会使用短连接并对瞬时连接中断自动重试，以兼容部分本地代理网络。如果仍无法连接，错误信息会显示请求地址及底层网络原因。

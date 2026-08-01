@@ -2,7 +2,7 @@
 
 > 背景：Life OPS 需要成为可由 AI-Output-Brain、终端和自动化程序调用的个人系统。系统对外提供版本化 API，官方 `lifeops` CLI 是第一个客户端；自然语言由调用端 Skill 解析，CLI 只负责可靠执行。
 
-> 实施状态：v1 代码、迁移和本机 CLI 已完成；线上生效仍需执行该迁移、在 Vercel 配置 `SUPABASE_SECRET_KEY` 并部署。
+> 实施状态：v1 代码、本机 CLI、Vercel Secret Key 和生产部署已完成。CLI schema 曾出现过早期 DDL 与部署代码不一致的问题，现由 `20260801101052_repair_cli_api_schema.sql` 修复；后续发布必须遵循 [schema 发布门禁](incidents/2026-08-cli-schema-version-drift.md)。
 
 ## v1 目标
 
