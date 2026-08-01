@@ -65,7 +65,31 @@ function deleteKeychainToken() {
 }
 
 async function request(path, options = {}) {
-  const response = await fetch(`${getApiUrl()}${path}`, options);
+  const url = `${getApiUrl()}${path}`;
+  let response;
+  let lastError;
+
+  // Some local proxy stacks reset Node/Undici keep-alive connections to Vercel.
+  // The CLI is low-throughput, so a short-lived connection is the safer default.
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      response = await fetch(url, {
+        ...options,
+        headers: { Connection: 'close', ...(options.headers ?? {}) },
+      });
+      break;
+    } catch (error) {
+      lastError = error;
+      if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, attempt * 300));
+    }
+  }
+
+  if (!response) {
+    const cause = lastError instanceof Error && lastError.cause instanceof Error
+      ? ` (${lastError.cause.code || lastError.cause.message})`
+      : '';
+    throw new Error(`无法连接 Life OPS API：${url}${cause}`);
+  }
   const body = response.status === 204 ? null : await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(body?.error || `请求失败（HTTP ${response.status}）`);
   return body;
