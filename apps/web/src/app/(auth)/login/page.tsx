@@ -2,12 +2,14 @@ import LoginForm from '@/features/auth/components/LoginForm';
 import { getCurrentUser } from '@/lib/auth/server';
 import { redirect } from 'next/navigation';
 
-export default async function LoginPage() {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
+    const { next } = await searchParams;
+    const nextPath = next?.startsWith('/') && !next.startsWith('//') ? next : '/';
     const user = await getCurrentUser();
 
     if (user) {
-        redirect('/');
+        redirect(nextPath);
     }
 
-    return <LoginForm />;
+    return <LoginForm nextPath={nextPath} />;
 }
