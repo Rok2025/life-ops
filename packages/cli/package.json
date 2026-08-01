@@ -1,0 +1,12 @@
+{
+  "name": "@life-ops/cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "lifeops": "bin/lifeops.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import {
     Home, Dumbbell, Sprout, Languages, BookOpen, Bot, Sparkles,
     PenLine, Users, Wallet, LogOut, ListTodo, Baby, Search, History,
-    TerminalSquare,
+    TerminalSquare, KeyRound,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,6 +32,7 @@ const navItems: NavItem[] = [
     { href: '/timeline', label: '流水记', icon: History },
     { href: '/search', label: '搜索', icon: Search },
     { href: '/commands', label: '命令', icon: TerminalSquare },
+    { href: '/developer', label: '开发者访问', icon: KeyRound },
     { href: '/todos', label: '待办', icon: ListTodo },
     { href: '/fitness', label: '健身', icon: Dumbbell },
     {

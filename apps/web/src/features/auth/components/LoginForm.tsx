@@ -6,7 +6,7 @@ import { Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
 import { authApi } from '@/features/auth';
 import { Button, Card, Input } from '@/components/ui';
 
-export default function LoginForm() {
+export default function LoginForm({ nextPath = '/' }: { nextPath?: string }) {
     const [isLogin, setIsLogin] = useState(true);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -24,12 +24,12 @@ export default function LoginForm() {
         try {
             if (isLogin) {
                 await authApi.signInWithPassword(email, password);
-                router.push('/');
+                router.push(nextPath);
             } else {
                 const { autoSignedIn } = await authApi.signUp(email, password);
 
                 if (autoSignedIn) {
-                    router.push('/');
+                    router.push(nextPath);
                 } else {
                     setError('注册成功！请检查邮箱以确认账号，然后返回此处登录。');
                     setIsLogin(true);
