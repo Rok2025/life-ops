@@ -45,6 +45,8 @@ pnpm install
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+# Required only for the server-side CLI API; never expose this with NEXT_PUBLIC_.
+SUPABASE_SECRET_KEY=your_supabase_secret_key
 ```
 
 ### 启动开发服务器
@@ -61,8 +63,10 @@ pnpm dev
 
 1. **Root Directory**：选择 `apps/web`。
 2. **Build Command**：使用 `pnpm build`。
-3. **环境变量**：在 Vercel Project Settings -> Environment Variables 中配置 `NEXT_PUBLIC_SUPABASE_URL` 和 `NEXT_PUBLIC_SUPABASE_ANON_KEY`。
-4. **Supabase Auth**：在 Supabase Authentication -> URL Configuration 中添加 Vercel 域名和 `/auth/callback` 回调地址。
+3. **环境变量**：在 Vercel Project Settings -> Environment Variables 中配置 `NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_ANON_KEY`；CLI API 还需要 server-only 的 `SUPABASE_SECRET_KEY`（Production 与 Preview）。
+4. **迁移先行**：先将 `supabase/migrations/` 中与本次发布匹配的 migration 应用到目标 Supabase 项目，并核对真实表字段和 RPC 返回值；不要复制临时 SQL 草稿到生产环境。
+5. **Supabase Auth**：在 Supabase Authentication -> URL Configuration 中添加 Vercel 域名和 `/auth/callback` 回调地址。
+6. **发布验证**：部署后先访问会触发新 schema 的页面，再检查 Vercel Runtime Logs；详细防呆流程见 [CLI Schema Version Drift Incident](docs/incidents/2026-08-cli-schema-version-drift.md)。
 
 ## 📁 项目结构
 
@@ -81,6 +85,7 @@ life-ops/
 
 - [设计总览](docs/DESIGN.md) - 项目设计理念、功能规划、技术决策
 - [Next.js Vercel SSR 改造路线](docs/nextjs-vercel-ssr-roadmap.md) - Vercel 迁移后的 SSR/CSR 改造清单与渲染策略说明
+- [CLI Schema Version Drift Incident](docs/incidents/2026-08-cli-schema-version-drift.md) - Supabase schema 与代码同步的发布门禁
 
 ## 💾 数据备份
 
