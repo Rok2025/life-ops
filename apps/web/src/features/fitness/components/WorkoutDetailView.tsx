@@ -160,13 +160,19 @@ export default function WorkoutDetailView() {
     });
 
     const handleSave = useCallback(() => {
-        if (!session) return;
+        if (!session || saveMutation.isPending || deleteMutation.isPending) return;
+        if (editExercises.length === 0) {
+            if (confirm('训练动作已为空，确定删除这条训练记录吗？')) {
+                deleteMutation.mutate();
+            }
+            return;
+        }
         saveMutation.mutate();
-    }, [saveMutation, session]);
+    }, [deleteMutation, editExercises.length, saveMutation, session]);
 
     useCommandEnterAction({
         enabled: isEditing,
-        disabled: saveMutation.isPending || editExercises.length === 0,
+        disabled: saveMutation.isPending || deleteMutation.isPending,
         scopeRef: shortcutScopeRef,
         onAction: handleSave,
     });
@@ -345,12 +351,15 @@ export default function WorkoutDetailView() {
                         </Button>
                         <Button
                             onClick={handleSave}
-                            disabled={saveMutation.isPending || editExercises.length === 0}
+                            disabled={saveMutation.isPending || deleteMutation.isPending}
+                            variant={editExercises.length === 0 ? 'danger' : 'primary'}
                             className="flex-1 gap-2"
                         >
-                            <Save size={16} />
-                            {saveMutation.isPending ? '保存中...' : '保存修改'}
-                            {!saveMutation.isPending ? <ShortcutHint /> : null}
+                            {editExercises.length === 0 ? <Trash2 size={16} /> : <Save size={16} />}
+                            {saveMutation.isPending || deleteMutation.isPending
+                                ? (deleteMutation.isPending ? '删除中...' : '保存中...')
+                                : (editExercises.length === 0 ? '删除记录' : '保存修改')}
+                            {!saveMutation.isPending && !deleteMutation.isPending ? <ShortcutHint /> : null}
                         </Button>
                     </div>
                     </div>

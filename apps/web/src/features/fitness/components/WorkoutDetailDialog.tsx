@@ -41,7 +41,7 @@ function WorkoutDetailDialogInner({ sessionId, editMode, onClose }: { sessionId:
 
     // Auto-enter edit mode once data is ready
     useEffect(() => {
-        if (editMode && session && !loading && aggregatedExercises.length > 0 && !editInitialized) {
+        if (editMode && session && !loading && !editInitialized) {
             const t = window.setTimeout(() => {
                 setEditDate(session.workout_date || '');
                 setEditNotes(session.notes || '');
@@ -95,6 +95,27 @@ function WorkoutDetailDialogInner({ sessionId, editMode, onClose }: { sessionId:
         setEditExercises(prev => prev.filter((_, i) => i !== index));
     };
 
+    const deleteMutation = useMutation({
+        mutationFn: async () => {
+            if (!session) return;
+            await fitnessApi.deleteWorkoutSession(session.id);
+        },
+        onSuccess: async () => {
+            await Promise.all([
+                queryClient.invalidateQueries({ queryKey: ['fitness-workout-session', sessionId] }),
+                queryClient.invalidateQueries({ queryKey: ['fitness-workout-sets', sessionId] }),
+                queryClient.invalidateQueries({ queryKey: ['fitness-workouts'] }),
+                queryClient.invalidateQueries({ queryKey: ['fitness-weekly-stats'] }),
+                queryClient.invalidateQueries({ queryKey: ['fitness-history-workouts'] }),
+                queryClient.invalidateQueries({ queryKey: ['fitness-history-stats'] }),
+            ]);
+            onClose();
+        },
+        onError: (error) => {
+            alert(`删除失败: ${error instanceof Error ? error.message : '请重试'}`);
+        },
+    });
+
     const saveMutation = useMutation({
         mutationFn: async () => {
             if (!session) return;
@@ -121,13 +142,19 @@ function WorkoutDetailDialogInner({ sessionId, editMode, onClose }: { sessionId:
     });
 
     const handleSave = useCallback(() => {
-        if (saveMutation.isPending || editExercises.length === 0) return;
+        if (saveMutation.isPending || deleteMutation.isPending || !session) return;
+        if (editExercises.length === 0) {
+            if (confirm('训练动作已为空，确定删除这条训练记录吗？')) {
+                deleteMutation.mutate();
+            }
+            return;
+        }
         saveMutation.mutate();
-    }, [editExercises.length, saveMutation]);
+    }, [deleteMutation, editExercises.length, saveMutation, session]);
 
     useCommandEnterAction({
         enabled: isEditing,
-        disabled: saveMutation.isPending || editExercises.length === 0,
+        disabled: saveMutation.isPending || deleteMutation.isPending,
         scopeRef: shortcutScopeRef,
         onAction: handleSave,
     });
@@ -214,10 +241,17 @@ function WorkoutDetailDialogInner({ sessionId, editMode, onClose }: { sessionId:
                                     <X size={16} />
                                     取消
                                 </Button>
-                                <Button onClick={handleSave} disabled={saveMutation.isPending || editExercises.length === 0} className="flex-1 gap-2">
-                                    <Save size={16} />
-                                    {saveMutation.isPending ? '保存中...' : '保存修改'}
-                                    {!saveMutation.isPending ? <ShortcutHint /> : null}
+                                <Button
+                                    onClick={handleSave}
+                                    disabled={saveMutation.isPending || deleteMutation.isPending}
+                                    variant={editExercises.length === 0 ? 'danger' : 'primary'}
+                                    className="flex-1 gap-2"
+                                >
+                                    {editExercises.length === 0 ? <Trash2 size={16} /> : <Save size={16} />}
+                                    {saveMutation.isPending || deleteMutation.isPending
+                                        ? (deleteMutation.isPending ? '删除中...' : '保存中...')
+                                        : (editExercises.length === 0 ? '删除记录' : '保存修改')}
+                                    {!saveMutation.isPending && !deleteMutation.isPending ? <ShortcutHint /> : null}
                                 </Button>
                             </div>
                         </div>
