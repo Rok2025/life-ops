@@ -7,3 +7,5 @@
 原随手记计划已随业务退役，历史内容可从 Git 历史追溯。数据库删除仍须按精确清单、可恢复备份与已验证迁移方案执行。
 
 2026-09-07：已完成生产部署与数据库/云资源清理；用户已明确永久删除授权。见 docs/audits/2026-09-07-production-cleanup-results.md。剩余为既有健身录入/权限修复及未完成的全面验收。
+
+2026-09-07 后续：健身 Server Actions、原子写入 RPC、用户 RLS 及维护者权限已修复并上线。现有 16 张表数据与 CLI 保持兼容，见 docs/audits/2026-09-07-fitness-security-fix-results.md。

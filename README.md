@@ -6,6 +6,8 @@
 
 精简版已上线；线上 28 张无关业务表、旧英语云函数及 avatars 存储已清理，16 张保留表数据核对通过。详见[生产清理结果](docs/audits/2026-09-07-production-cleanup-results.md)。
 
+健身网页录入、原子保存和用户权限已修复上线，详见[修复与验证记录](docs/audits/2026-09-07-fitness-security-fix-results.md)。
+
 ## ✨ 特性
 
 - 🏠 **三栏布局**：侧边栏导航 + 主内容区 + 时间节奏面板

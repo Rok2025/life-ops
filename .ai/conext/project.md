@@ -22,3 +22,5 @@ Life OPS 只维护健身与财务，笔记系统通过正式 lifeops CLI 录入�
 - 实施方案：docs/fitness-finance-simplification-plan.md
 - 审计：docs/audits/2026-09-07-fitness-finance-dependency-audit.md
 - 执行记录：docs/audits/2026-09-07-application-cleanup-results.md
+
+2026-09-07 后续：健身 Server Actions、原子写入 RPC、用户 RLS 及维护者权限已修复并上线。现有 16 张表数据与 CLI 保持兼容，见 docs/audits/2026-09-07-fitness-security-fix-results.md。

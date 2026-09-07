@@ -1,5 +1,7 @@
 'use client';
 
+import { deleteWorkoutAction, updateWorkoutAction } from '../actions';
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -120,7 +122,7 @@ export default function WorkoutDetailView() {
     const saveMutation = useMutation({
         mutationFn: async () => {
             if (!session) return;
-            await fitnessApi.updateWorkoutSessionWithSets(session.id, {
+            await updateWorkoutAction(session.id, {
                 date: editDate,
                 notes: editNotes || null,
                 exercises: editExercises,
@@ -144,7 +146,7 @@ export default function WorkoutDetailView() {
     const deleteMutation = useMutation({
         mutationFn: async () => {
             if (!session) return;
-            await fitnessApi.deleteWorkoutSession(session.id);
+            await deleteWorkoutAction(session.id);
         },
         onSuccess: async () => {
             await Promise.all([

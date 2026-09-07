@@ -1,5 +1,7 @@
 'use client';
 
+import { createWorkoutAction, deleteWorkoutAction } from '../actions';
+
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus, Trash2, CheckCircle2 } from 'lucide-react';
@@ -111,7 +113,7 @@ export default function NewWorkoutForm({ onSaved }: NewWorkoutFormProps) {
                 reps: ex.reps,
             }));
 
-            return fitnessApi.createWorkoutSessionWithSets({
+            return createWorkoutAction({
                 date,
                 notes: notes || null,
                 exercises,
@@ -132,7 +134,7 @@ export default function NewWorkoutForm({ onSaved }: NewWorkoutFormProps) {
     });
 
     const deleteSessionMutation = useMutation({
-        mutationFn: (sessionId: string) => fitnessApi.deleteWorkoutSession(sessionId),
+        mutationFn: (sessionId: string) => deleteWorkoutAction(sessionId),
         onMutate: (sessionId) => setDeletingId(sessionId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['fitness-daily-workouts', date] });
