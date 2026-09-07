@@ -1,0 +1,16 @@
+# Deploy application source only. Local exports and credentials must stay local.
+.git/
+.ai/
+.agents/
+.env*
+**/.env*
+**/node_modules/
+**/.next/
+**/.turbo/
+**/coverage/
+**/*.tsbuildinfo
+/outputs/
+/backups/
+/docs/
+/supabase/
+/harness/

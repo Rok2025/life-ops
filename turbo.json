@@ -2,6 +2,13 @@
     "$schema": "https://turbo.build/schema.json",
     "tasks": {
         "build": {
+            "env": [
+                "NEXT_PUBLIC_SUPABASE_URL",
+                "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+                "SUPABASE_SECRET_KEY",
+                "SUPABASE_SERVICE_ROLE_KEY",
+                "LIFE_OPS_PUBLIC_URL"
+            ],
             "dependsOn": [
                 "^build"
             ],

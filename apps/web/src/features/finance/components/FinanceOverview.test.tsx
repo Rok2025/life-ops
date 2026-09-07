@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { ReactNode } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import FinanceOverview, {
     AllExpensesDialog,
     BASIC_INFO_DIALOG_BODY_CLASS_NAME,
@@ -15,6 +15,15 @@ type MockProps = Record<string, unknown> & {
     multiline?: boolean;
     open?: boolean;
 };
+
+beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-19T08:00:00+08:00'));
+});
+
+afterEach(() => {
+    vi.useRealTimers();
+});
 
 vi.mock('@/components/ui', () => ({
     Badge: ({ children }: MockProps) => <span>{children}</span>,

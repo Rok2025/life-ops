@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Life OPS",
-  description: "个人控制台 - 行动与节奏",
+  description: "健身与财务记录、查看和 CLI 数据服务",
   icons: {
     icon: "/icon.svg",
   },

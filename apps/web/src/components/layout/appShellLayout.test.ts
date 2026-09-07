@@ -4,7 +4,7 @@ import {
     getAppShellMainClassName,
     getAppShellPanelClassName,
 } from './appShellLayout';
-import { getAppShellRouteMeta, getAppShellWarmupRoutes } from './appShellRoutes';
+import { getAppShellRouteMeta } from './appShellRoutes';
 
 describe('getAppShellMainClassName', () => {
     it('reserves both side panel widths when both panels are visible', () => {
@@ -33,23 +33,12 @@ describe('getAppShellPanelClassName', () => {
 
 describe('getAppShellRouteMeta', () => {
     it('maps known routes to module titles', () => {
-        expect(getAppShellRouteMeta('/').title).toBe('今日概览');
+        expect(getAppShellRouteMeta('/').title).toBe('健身');
         expect(getAppShellRouteMeta('/finance').title).toBe('财务');
-        expect(getAppShellRouteMeta('/growth/prompts').title).toBe('提示词库');
+        expect(getAppShellRouteMeta('/fitness/history').title).toBe('训练历史');
     });
 
     it('falls back to Life OPS for unknown routes', () => {
         expect(getAppShellRouteMeta('/unknown').title).toBe('Life OPS');
-    });
-});
-
-describe('getAppShellWarmupRoutes', () => {
-    it('prefetches high-frequency routes except the active route', () => {
-        expect(getAppShellWarmupRoutes('/')).not.toContain('/');
-        expect(getAppShellWarmupRoutes('/')).toContain('/todos');
-    });
-
-    it('includes the home route when the user is away from home', () => {
-        expect(getAppShellWarmupRoutes('/fitness')).toContain('/');
     });
 });

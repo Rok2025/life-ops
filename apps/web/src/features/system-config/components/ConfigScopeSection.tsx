@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
 import { configApi } from '../api/configApi';
 import { ConfigItemRow } from './ConfigItemRow';
@@ -15,6 +15,7 @@ interface ConfigScopeSectionProps {
 }
 
 export function ConfigScopeSection({ meta, initialItems }: ConfigScopeSectionProps) {
+    const queryClient = useQueryClient();
     const [items, setItems] = useState<ConfigItem[]>(initialItems);
     const [newLabel, setNewLabel] = useState('');
 
@@ -22,10 +23,12 @@ export function ConfigScopeSection({ meta, initialItems }: ConfigScopeSectionPro
         try {
             const data = await configApi.getAllByScope(meta.scope);
             setItems(data);
+            queryClient.setQueryData(['system-configs', meta.scope], data);
+            await queryClient.invalidateQueries({ queryKey: ['fitness-exercise-categories'] });
         } catch (err) {
             console.error(`加载配置 [${meta.scope}] 失败:`, err);
         }
-    }, [meta.scope]);
+    }, [meta.scope, queryClient]);
 
     const addMutation = useMutation({
         mutationFn: async (label: string) => {

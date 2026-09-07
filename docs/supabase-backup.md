@@ -1,6 +1,10 @@
 # Supabase Backup
 
-数据库备份已独立到 `~/Documents/06-Back/supabase_bak/`，与项目代码解耦。
+> 2026-09-07 更新：本次删除前已建立并验证私有恢复归档，位置 `/Users/freeman/.local/share/life-ops/archives/2026-09-07-cleanup/`；这是单次归档，未恢复旧的自动备份任务。详见[生产清理结果](audits/2026-09-07-production-cleanup-results.md)。
+
+> 历史方案核查：文中所指本机目录、脚本与 LaunchAgent 当前未找到，其他主机或云备份未核实。本页保留既有备份方案，不作为已运行或可恢复的证明；生产删除前需确认实际备份位置并完成恢复演练。详见[依赖审计](audits/2026-09-07-fitness-finance-dependency-audit.md)。
+
+既有方案将数据库备份独立放在 `~/Documents/06-Back/supabase_bak/`，与项目代码解耦；当前运行状态待重新核实。
 
 ## 备份目标
 

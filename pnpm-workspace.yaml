@@ -1,4 +1,3 @@
 packages:
   - "apps/*"
-  - "harness/*"
   - "packages/*"

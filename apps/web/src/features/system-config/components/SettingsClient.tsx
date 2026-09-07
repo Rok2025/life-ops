@@ -1,59 +1,31 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import { Settings } from 'lucide-react';
+import { KeyRound, Settings } from 'lucide-react';
 import { ConfigScopeSection } from './ConfigScopeSection';
 import ExerciseManager from './ExerciseManager';
-import { EnglishPromptManager } from '@/features/english-prompts';
-import { CommandSettings } from '@/features/command-center';
-import { YouyouPhotoSettings } from './YouyouPhotoSettings';
 import { configApi } from '../api/configApi';
 import { exerciseTypesApi } from '../api/exerciseTypesApi';
-import { CONFIG_SCOPES, SETTINGS_NAV } from '../types';
-import type { ConfigItem, SettingsSection } from '../types';
-import { Card, PageHero } from '@/components/ui';
+import { CONFIG_SCOPES } from '../types';
+import { Card, PageHero, getButtonClassName } from '@/components/ui';
+
+const sections = [
+    { id: 'categories', label: '训练部位' },
+    { id: 'exercises', label: '训练动作' },
+] as const;
 
 export default function SettingsClient() {
-    const [activeId, setActiveId] = useState(SETTINGS_NAV[0].items[0].id);
-
-    const { data: initialData = {}, isLoading: configLoading } = useQuery({
-        queryKey: ['system-configs-all'],
-        queryFn: async (): Promise<Record<string, ConfigItem[]>> => {
-            const pairs = await Promise.all(
-                CONFIG_SCOPES.map(async (meta) => {
-                    try {
-                        const items = await configApi.getAllByScope(meta.scope);
-                        return [meta.scope, items] as const;
-                    } catch {
-                        return [meta.scope, []] as const;
-                    }
-                }),
-            );
-            return Object.fromEntries(pairs);
-        },
+    const [activeId, setActiveId] = useState<(typeof sections)[number]['id']>('categories');
+    const categories = useQuery({
+        queryKey: ['system-configs', 'exercise_category'],
+        queryFn: () => configApi.getAllByScope('exercise_category'),
     });
-
-    const { data: initialExercises = [], isLoading: exerciseLoading } = useQuery({
+    const exercises = useQuery({
         queryKey: ['exercise-types-all'],
         queryFn: () => exerciseTypesApi.getAll(),
     });
-
-    if (configLoading || exerciseLoading) {
-        return (
-            <div className="mx-auto max-w-5xl">
-                <Card variant="subtle" className="p-card text-body-sm text-text-secondary">
-                    加载配置中...
-                </Card>
-            </div>
-        );
-    }
-
-    const totalConfigs = Object.values(initialData).reduce((s, arr) => s + arr.length, 0);
-
-    // Find the active nav item's section
-    const activeItem = SETTINGS_NAV.flatMap((g) => g.items).find((i) => i.id === activeId);
-    const activeSection: SettingsSection = activeItem?.section ?? { type: 'scope', scope: 'til_category' };
 
     return (
         <div className="mx-auto max-w-5xl space-y-4 xl:space-y-5">
@@ -61,124 +33,61 @@ export default function SettingsClient() {
                 eyebrow="系统 / 配置"
                 icon={<Settings size={18} className="text-accent" />}
                 title="系统配置"
-                description="统一管理分类、动作和英语提示词等底层配置，让全站词汇和选项保持一致。"
-                stats={[
-                    { label: '配置项', value: totalConfigs, meta: `${CONFIG_SCOPES.length} 个范围`, tone: 'accent' },
-                    { label: '训练动作', value: initialExercises.length, meta: `${initialData['exercise_category']?.length ?? 0} 个部位`, tone: 'success' },
-                    { label: '配置状态', value: '实时生效', meta: '改完即用', tone: 'warning' },
-                ]}
+                description="管理训练部位、动作，以及笔记系统的 CLI 访问授权。"
             />
 
-            <div className="flex gap-4 xl:gap-5">
-                {/* Left navigation sidebar */}
-                <Card variant="subtle" className="w-48 shrink-0 p-3 self-start sticky top-4">
-                    <nav className="space-y-1">
-                        {SETTINGS_NAV.map((group, gi) => (
-                            <div key={group.label} className={gi > 0 ? 'border-t border-glass-border/60 pt-2.5 mt-2.5' : ''}>
-                                <h4 className="text-body-sm font-semibold text-text-primary mb-1 px-2">
-                                    {group.label}
-                                </h4>
-                                <ul className="space-y-0.5">
-                                    {group.items.map((item) => {
-                                        const isActive = item.id === activeId;
-                                        // Show count badge for scope-type items
-                                        const count =
-                                            item.section.type === 'scope'
-                                                ? initialData[item.section.scope]?.length ?? 0
-                                                : item.section.type === 'exercise'
-                                                  ? initialExercises.length
-                                                  : null;
-                                        return (
-                                            <li key={item.id}>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setActiveId(item.id)}
-                                                    className={[
-                                                        'flex w-full items-center justify-between rounded-control px-2 py-1.5 text-body-sm transition-colors',
-                                                        isActive
-                                                            ? 'bg-accent/10 text-accent font-medium'
-                                                            : 'text-text-secondary hover:bg-panel-bg hover:text-text-primary',
-                                                    ].join(' ')}
-                                                >
-                                                    <span className="truncate">{item.label}</span>
-                                                    {count != null && (
-                                                        <span className={[
-                                                            'text-caption tabular-nums ml-1',
-                                                            isActive ? 'text-accent/70' : 'text-text-tertiary',
-                                                        ].join(' ')}>
-                                                            {count}
-                                                        </span>
-                                                    )}
-                                                </button>
-                                            </li>
-                                        );
-                                    })}
-                                </ul>
-                            </div>
-                        ))}
-                    </nav>
-                </Card>
-
-                {/* Right content panel */}
-                <div className="flex-1 min-w-0">
-                    <SettingsContent
-                        section={activeSection}
-                        initialData={initialData}
-                        initialExercises={initialExercises}
-                    />
+            <Card variant="subtle" className="flex flex-wrap items-center justify-between gap-3 p-4">
+                <div>
+                    <h2 className="text-body font-semibold text-text-primary">开发者访问</h2>
+                    <p className="mt-1 text-body-sm text-text-secondary">查看与撤销已授权的 CLI 设备。</p>
                 </div>
-            </div>
+                <Link href="/developer" className={getButtonClassName({ variant: 'secondary', size: 'sm' })}>
+                    <KeyRound size={16} />
+                    管理设备授权
+                </Link>
+            </Card>
+
+            <nav aria-label="健身配置" className="flex flex-wrap gap-2">
+                {sections.map((section) => (
+                    <button
+                        key={section.id}
+                        type="button"
+                        aria-pressed={activeId === section.id}
+                        onClick={() => setActiveId(section.id)}
+                        className={getButtonClassName({
+                            variant: activeId === section.id ? 'tinted' : 'secondary',
+                            size: 'sm',
+                        })}
+                    >
+                        {section.label}
+                    </button>
+                ))}
+            </nav>
+
+            {categories.isPending || (activeId === 'exercises' && exercises.isPending) ? (
+                <Card variant="subtle" className="p-4 text-body-sm text-text-secondary">加载配置中...</Card>
+            ) : categories.isError || (activeId === 'exercises' && exercises.isError) ? (
+                <Card variant="subtle" className="space-y-3 p-4">
+                    <p role="alert" className="text-body-sm text-danger">配置加载失败，请重试。</p>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            void categories.refetch();
+                            if (activeId === 'exercises') void exercises.refetch();
+                        }}
+                        className={getButtonClassName({ variant: 'secondary', size: 'sm' })}
+                    >
+                        重新加载
+                    </button>
+                </Card>
+            ) : activeId === 'categories' ? (
+                <ConfigScopeSection meta={CONFIG_SCOPES[0]} initialItems={categories.data ?? []} />
+            ) : (
+                <ExerciseManager
+                    initialCategories={categories.data ?? []}
+                    initialExercises={exercises.data ?? []}
+                />
+            )}
         </div>
     );
-}
-
-// ── Content dispatcher ────────────────────────────────────
-
-function SettingsContent({
-    section,
-    initialData,
-    initialExercises,
-}: {
-    section: SettingsSection;
-    initialData: Record<string, ConfigItem[]>;
-    initialExercises: ReturnType<typeof Array<unknown>>;
-}) {
-    if (section.type === 'scope') {
-        const meta = CONFIG_SCOPES.find((s) => s.scope === section.scope);
-        if (!meta) return null;
-        return (
-            <ConfigScopeSection
-                key={meta.scope}
-                meta={meta}
-                initialItems={initialData[meta.scope] ?? []}
-            />
-        );
-    }
-
-    if (section.type === 'exercise') {
-        return (
-            <ExerciseManager
-                initialCategories={initialData['exercise_category'] ?? []}
-                initialExercises={initialExercises as never[]}
-            />
-        );
-    }
-
-    if (section.type === 'english-prompts') {
-        return <EnglishPromptManager />;
-    }
-
-    if (section.type === 'command-categories') {
-        return <CommandSettings initialView="categories" />;
-    }
-
-    if (section.type === 'command-templates') {
-        return <CommandSettings initialView="templates" />;
-    }
-
-    if (section.type === 'youyou-photo') {
-        return <YouyouPhotoSettings />;
-    }
-
-    return null;
 }

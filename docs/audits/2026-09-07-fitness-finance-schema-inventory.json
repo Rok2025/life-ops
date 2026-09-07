@@ -1,0 +1,1644 @@
+{
+  "audited_at": "2026-09-07",
+  "source": "Read-only Supabase catalog queries; matched linked project to life-ops",
+  "code_head": "bf2b126",
+  "scope": "public schema, storage metadata, migrations and deployed Edge Functions; no business row contents",
+  "tables": [
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "analytics_targets",
+      "decision": "remove_candidate"
+    },
+    {
+      "rls": false,
+      "kind": "r",
+      "name": "area_goals",
+      "decision": "remove_candidate"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "cli_access_tokens",
+      "decision": "retain"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "cli_api_audit_logs",
+      "decision": "retain"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "cli_device_authorizations",
+      "decision": "retain"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "cli_idempotency_keys",
+      "decision": "retain"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "command_categories",
+      "decision": "remove_candidate"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "command_templates",
+      "decision": "remove_candidate"
+    },
+    {
+      "rls": false,
+      "kind": "r",
+      "name": "daily_frogs",
+      "decision": "remove_candidate"
+    },
+    {
+      "rls": false,
+      "kind": "r",
+      "name": "daily_til",
+      "decision": "remove_candidate"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "english_cards",
+      "decision": "remove_candidate"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "english_daily_assignments",
+      "decision": "remove_candidate"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "english_daily_summaries",
+      "decision": "remove_candidate"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "english_learning_logs",
+      "decision": "remove_candidate"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "english_prompt_mode_bindings",
+      "decision": "remove_candidate"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "english_prompt_templates",
+      "decision": "remove_candidate"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "english_queries",
+      "decision": "remove_candidate"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "english_word_bank",
+      "decision": "remove_candidate"
+    },
+    {
+      "rls": false,
+      "kind": "r",
+      "name": "exercise_types",
+      "decision": "retain"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "family_members",
+      "decision": "remove_candidate"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "family_task_assignees",
+      "decision": "remove_candidate"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "family_tasks",
+      "decision": "remove_candidate"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "finance_accounts",
+      "decision": "retain"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "finance_budgets",
+      "decision": "retain"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "finance_credit_card_bills",
+      "decision": "retain"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "finance_liabilities",
+      "decision": "retain"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "finance_monthly_snapshots",
+      "decision": "retain"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "finance_payment_schedules",
+      "decision": "retain"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "finance_profiles",
+      "decision": "retain"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "finance_transactions",
+      "decision": "retain"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "growth_projects",
+      "decision": "remove_candidate"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "outputs",
+      "decision": "remove_candidate"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "project_notes",
+      "decision": "remove_candidate"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "project_todos",
+      "decision": "remove_candidate"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "prompt_templates",
+      "decision": "remove_candidate"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "quick_notes",
+      "decision": "remove_candidate"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "system_configs",
+      "decision": "retain_exercise_category_only"
+    },
+    {
+      "rls": false,
+      "kind": "v",
+      "name": "v_analytics_targets_active",
+      "decision": "remove"
+    },
+    {
+      "rls": false,
+      "kind": "v",
+      "name": "v_analytics_targets_by_area",
+      "decision": "remove"
+    },
+    {
+      "rls": false,
+      "kind": "r",
+      "name": "workout_sessions",
+      "decision": "retain"
+    },
+    {
+      "rls": false,
+      "kind": "r",
+      "name": "workout_sets",
+      "decision": "retain"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "youyou_diary",
+      "decision": "remove_candidate"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "youyou_growth_records",
+      "decision": "remove_candidate"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "youyou_medical_records",
+      "decision": "remove_candidate"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "youyou_milestones",
+      "decision": "remove_candidate"
+    },
+    {
+      "rls": true,
+      "kind": "r",
+      "name": "youyou_vaccinations",
+      "decision": "remove_candidate"
+    }
+  ],
+  "foreign_keys": [
+    {
+      "table": "workout_sets",
+      "target": "workout_sessions",
+      "definition": "FOREIGN KEY (session_id) REFERENCES workout_sessions(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "workout_sets",
+      "target": "exercise_types",
+      "definition": "FOREIGN KEY (exercise_type_id) REFERENCES exercise_types(id)"
+    },
+    {
+      "table": "project_todos",
+      "target": "growth_projects",
+      "definition": "FOREIGN KEY (project_id) REFERENCES growth_projects(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "project_notes",
+      "target": "growth_projects",
+      "definition": "FOREIGN KEY (project_id) REFERENCES growth_projects(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "project_notes",
+      "target": "project_todos",
+      "definition": "FOREIGN KEY (todo_id) REFERENCES project_todos(id) ON DELETE SET NULL"
+    },
+    {
+      "table": "outputs",
+      "target": "growth_projects",
+      "definition": "FOREIGN KEY (project_id) REFERENCES growth_projects(id) ON DELETE SET NULL"
+    },
+    {
+      "table": "english_cards",
+      "target": "english_queries",
+      "definition": "FOREIGN KEY (query_id) REFERENCES english_queries(id) ON DELETE SET NULL"
+    },
+    {
+      "table": "english_prompt_mode_bindings",
+      "target": "english_prompt_templates",
+      "definition": "FOREIGN KEY (template_id) REFERENCES english_prompt_templates(id) ON DELETE SET NULL"
+    },
+    {
+      "table": "english_cards",
+      "target": "english_word_bank",
+      "definition": "FOREIGN KEY (word_id) REFERENCES english_word_bank(id) ON DELETE SET NULL"
+    },
+    {
+      "table": "english_daily_assignments",
+      "target": "english_word_bank",
+      "definition": "FOREIGN KEY (word_id) REFERENCES english_word_bank(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "english_daily_assignments",
+      "target": "english_cards",
+      "definition": "FOREIGN KEY (card_id) REFERENCES english_cards(id) ON DELETE SET NULL"
+    },
+    {
+      "table": "command_templates",
+      "target": "command_categories",
+      "definition": "FOREIGN KEY (category_id) REFERENCES command_categories(id) ON DELETE RESTRICT"
+    },
+    {
+      "table": "english_learning_logs",
+      "target": "english_daily_assignments",
+      "definition": "FOREIGN KEY (assignment_id) REFERENCES english_daily_assignments(id) ON DELETE SET NULL"
+    },
+    {
+      "table": "english_learning_logs",
+      "target": "english_word_bank",
+      "definition": "FOREIGN KEY (word_id) REFERENCES english_word_bank(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "family_tasks",
+      "target": "family_members",
+      "definition": "FOREIGN KEY (created_by) REFERENCES family_members(id) ON DELETE SET NULL"
+    },
+    {
+      "table": "family_task_assignees",
+      "target": "family_tasks",
+      "definition": "FOREIGN KEY (task_id) REFERENCES family_tasks(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "family_task_assignees",
+      "target": "family_members",
+      "definition": "FOREIGN KEY (member_id) REFERENCES family_members(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "finance_profiles",
+      "target": "auth.users",
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "finance_accounts",
+      "target": "auth.users",
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "finance_liabilities",
+      "target": "auth.users",
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "finance_liabilities",
+      "target": "finance_accounts",
+      "definition": "FOREIGN KEY (account_id) REFERENCES finance_accounts(id) ON DELETE SET NULL"
+    },
+    {
+      "table": "finance_credit_card_bills",
+      "target": "auth.users",
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "finance_credit_card_bills",
+      "target": "finance_accounts",
+      "definition": "FOREIGN KEY (account_id) REFERENCES finance_accounts(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "finance_payment_schedules",
+      "target": "auth.users",
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "finance_payment_schedules",
+      "target": "finance_credit_card_bills",
+      "definition": "FOREIGN KEY (credit_card_bill_id) REFERENCES finance_credit_card_bills(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "finance_payment_schedules",
+      "target": "finance_liabilities",
+      "definition": "FOREIGN KEY (liability_id) REFERENCES finance_liabilities(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "finance_transactions",
+      "target": "auth.users",
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "finance_transactions",
+      "target": "finance_accounts",
+      "definition": "FOREIGN KEY (account_id) REFERENCES finance_accounts(id) ON DELETE SET NULL"
+    },
+    {
+      "table": "finance_budgets",
+      "target": "auth.users",
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "finance_monthly_snapshots",
+      "target": "auth.users",
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "cli_device_authorizations",
+      "target": "auth.users",
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "cli_access_tokens",
+      "target": "auth.users",
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "cli_access_tokens",
+      "target": "cli_device_authorizations",
+      "definition": "FOREIGN KEY (device_authorization_id) REFERENCES cli_device_authorizations(id) ON DELETE SET NULL"
+    },
+    {
+      "table": "cli_idempotency_keys",
+      "target": "auth.users",
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "cli_api_audit_logs",
+      "target": "auth.users",
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "cli_api_audit_logs",
+      "target": "cli_access_tokens",
+      "definition": "FOREIGN KEY (token_id) REFERENCES cli_access_tokens(id) ON DELETE SET NULL"
+    },
+    {
+      "table": "workout_sessions",
+      "target": "auth.users",
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    }
+  ],
+  "functions": [
+    {
+      "args": "p_user_id uuid, p_idempotency_key text, p_request_hash text",
+      "name": "cli_claim_idempotency_key",
+      "security_definer": true,
+      "decision": "retain",
+      "referenced_public_names": [
+        "public.cli_claim_idempotency_key",
+        "public.cli_idempotency_keys"
+      ]
+    },
+    {
+      "args": "p_user_id uuid, p_workout_date date, p_notes text, p_exercises jsonb",
+      "name": "cli_log_fitness_workout",
+      "security_definer": true,
+      "decision": "retain",
+      "referenced_public_names": [
+        "public.cli_log_fitness_workout",
+        "public.workout_sessions",
+        "public.workout_sets"
+      ]
+    },
+    {
+      "args": "",
+      "name": "command_center_set_updated_at",
+      "security_definer": false,
+      "decision": "remove_candidate",
+      "referenced_public_names": [
+        "public.command_center_set_updated_at"
+      ]
+    },
+    {
+      "args": "",
+      "name": "finance_set_updated_at",
+      "security_definer": false,
+      "decision": "retain",
+      "referenced_public_names": [
+        "public.finance_set_updated_at"
+      ]
+    },
+    {
+      "args": "p_date_from date, p_date_to date, p_source_types text[], p_result_limit integer",
+      "name": "get_global_timeline",
+      "security_definer": false,
+      "decision": "remove_candidate",
+      "referenced_public_names": [
+        "public.get_global_timeline",
+        "public.quick_notes",
+        "public.daily_til",
+        "public.daily_frogs",
+        "public.workout_sessions",
+        "public.workout_sets",
+        "public.exercise_types",
+        "public.outputs",
+        "public.growth_projects",
+        "public.project_todos",
+        "public.project_notes",
+        "public.youyou_diary",
+        "public.youyou_milestones",
+        "public.youyou_growth_records",
+        "public.youyou_vaccinations",
+        "public.youyou_medical_records",
+        "public.english_queries",
+        "public.english_cards",
+        "public.family_tasks"
+      ]
+    },
+    {
+      "args": "p_keyword text, p_source_types text[], p_date_from date, p_date_to date, p_result_limit integer",
+      "name": "search_global",
+      "security_definer": false,
+      "decision": "remove_candidate",
+      "referenced_public_names": [
+        "public.search_global",
+        "public.quick_notes",
+        "public.daily_til",
+        "public.daily_frogs",
+        "public.workout_sessions",
+        "public.workout_sets",
+        "public.exercise_types",
+        "public.outputs",
+        "public.growth_projects",
+        "public.project_todos",
+        "public.project_notes",
+        "public.youyou_diary",
+        "public.youyou_milestones",
+        "public.youyou_growth_records",
+        "public.youyou_vaccinations",
+        "public.youyou_medical_records",
+        "public.english_queries",
+        "public.english_cards"
+      ]
+    },
+    {
+      "args": "",
+      "name": "update_analytics_targets_updated_at",
+      "security_definer": false,
+      "decision": "remove_candidate",
+      "referenced_public_names": [
+        "public.update_analytics_targets_updated_at"
+      ]
+    },
+    {
+      "args": "",
+      "name": "youyou_set_updated_at",
+      "security_definer": false,
+      "decision": "remove_candidate",
+      "referenced_public_names": [
+        "public.youyou_set_updated_at"
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "name": "trg_analytics_targets_updated_at",
+      "table": "analytics_targets",
+      "function": "update_analytics_targets_updated_at"
+    },
+    {
+      "name": "trg_youyou_growth_records_updated_at",
+      "table": "youyou_growth_records",
+      "function": "youyou_set_updated_at"
+    },
+    {
+      "name": "trg_youyou_vaccinations_updated_at",
+      "table": "youyou_vaccinations",
+      "function": "youyou_set_updated_at"
+    },
+    {
+      "name": "trg_youyou_medical_records_updated_at",
+      "table": "youyou_medical_records",
+      "function": "youyou_set_updated_at"
+    },
+    {
+      "name": "trg_command_categories_updated_at",
+      "table": "command_categories",
+      "function": "command_center_set_updated_at"
+    },
+    {
+      "name": "trg_command_templates_updated_at",
+      "table": "command_templates",
+      "function": "command_center_set_updated_at"
+    },
+    {
+      "name": "trg_finance_profiles_updated_at",
+      "table": "finance_profiles",
+      "function": "finance_set_updated_at"
+    },
+    {
+      "name": "trg_finance_accounts_updated_at",
+      "table": "finance_accounts",
+      "function": "finance_set_updated_at"
+    },
+    {
+      "name": "trg_finance_liabilities_updated_at",
+      "table": "finance_liabilities",
+      "function": "finance_set_updated_at"
+    },
+    {
+      "name": "trg_finance_credit_card_bills_updated_at",
+      "table": "finance_credit_card_bills",
+      "function": "finance_set_updated_at"
+    },
+    {
+      "name": "trg_finance_payment_schedules_updated_at",
+      "table": "finance_payment_schedules",
+      "function": "finance_set_updated_at"
+    },
+    {
+      "name": "trg_finance_transactions_updated_at",
+      "table": "finance_transactions",
+      "function": "finance_set_updated_at"
+    },
+    {
+      "name": "trg_finance_budgets_updated_at",
+      "table": "finance_budgets",
+      "function": "finance_set_updated_at"
+    },
+    {
+      "name": "trg_finance_monthly_snapshots_updated_at",
+      "table": "finance_monthly_snapshots",
+      "function": "finance_set_updated_at"
+    }
+  ],
+  "policies": [
+    {
+      "cmd": "SELECT",
+      "name": "Anyone can read system_configs",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "table": "system_configs"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "Authenticated users can delete system_configs",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "system_configs"
+    },
+    {
+      "cmd": "INSERT",
+      "name": "Authenticated users can insert system_configs",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "system_configs"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "Authenticated users can update system_configs",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "system_configs"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "Allow delete for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "english_word_bank"
+    },
+    {
+      "cmd": "INSERT",
+      "name": "Allow insert for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "english_word_bank"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "Allow select for all",
+      "roles": [
+        "public"
+      ],
+      "table": "english_word_bank"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "Allow update for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "english_word_bank"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "Allow delete for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "growth_projects"
+    },
+    {
+      "cmd": "INSERT",
+      "name": "Allow insert for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "growth_projects"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "Allow select for all",
+      "roles": [
+        "public"
+      ],
+      "table": "growth_projects"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "Allow update for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "growth_projects"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "Allow delete for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "project_todos"
+    },
+    {
+      "cmd": "INSERT",
+      "name": "Allow insert for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "project_todos"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "Allow select for all",
+      "roles": [
+        "public"
+      ],
+      "table": "project_todos"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "Allow update for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "project_todos"
+    },
+    {
+      "cmd": "ALL",
+      "name": "Allow all for authenticated users",
+      "roles": [
+        "public"
+      ],
+      "table": "quick_notes"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "Allow delete for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "project_notes"
+    },
+    {
+      "cmd": "INSERT",
+      "name": "Allow insert for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "project_notes"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "Allow select for all",
+      "roles": [
+        "public"
+      ],
+      "table": "project_notes"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "Allow update for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "project_notes"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "Authenticated users can delete english_prompt_templates",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "english_prompt_templates"
+    },
+    {
+      "cmd": "INSERT",
+      "name": "Authenticated users can insert english_prompt_templates",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "english_prompt_templates"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "Authenticated users can read english_prompt_templates",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "english_prompt_templates"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "Authenticated users can update english_prompt_templates",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "english_prompt_templates"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "Authenticated users can delete prompt_templates",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "prompt_templates"
+    },
+    {
+      "cmd": "INSERT",
+      "name": "Authenticated users can insert prompt_templates",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "prompt_templates"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "Authenticated users can read prompt_templates",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "prompt_templates"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "Authenticated users can update prompt_templates",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "prompt_templates"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "Allow delete for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "outputs"
+    },
+    {
+      "cmd": "INSERT",
+      "name": "Allow insert for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "outputs"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "Allow select for all",
+      "roles": [
+        "public"
+      ],
+      "table": "outputs"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "Allow update for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "outputs"
+    },
+    {
+      "cmd": "INSERT",
+      "name": "Authenticated users can insert english_prompt_mode_bindings",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "english_prompt_mode_bindings"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "Authenticated users can read english_prompt_mode_bindings",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "english_prompt_mode_bindings"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "Authenticated users can update english_prompt_mode_bindings",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "english_prompt_mode_bindings"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "Allow delete for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "english_queries"
+    },
+    {
+      "cmd": "INSERT",
+      "name": "Allow insert for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "english_queries"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "Allow select for all",
+      "roles": [
+        "public"
+      ],
+      "table": "english_queries"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "Allow update for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "english_queries"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "Allow delete for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "english_cards"
+    },
+    {
+      "cmd": "INSERT",
+      "name": "Allow insert for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "english_cards"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "Allow select for all",
+      "roles": [
+        "public"
+      ],
+      "table": "english_cards"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "Allow update for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "english_cards"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "Allow delete for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "english_daily_assignments"
+    },
+    {
+      "cmd": "INSERT",
+      "name": "Allow insert for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "english_daily_assignments"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "Allow select for all",
+      "roles": [
+        "public"
+      ],
+      "table": "english_daily_assignments"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "Allow update for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "english_daily_assignments"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "Allow delete for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "english_daily_summaries"
+    },
+    {
+      "cmd": "INSERT",
+      "name": "Allow insert for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "english_daily_summaries"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "Allow select for all",
+      "roles": [
+        "public"
+      ],
+      "table": "english_daily_summaries"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "Allow update for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "english_daily_summaries"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "Allow delete for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "english_learning_logs"
+    },
+    {
+      "cmd": "INSERT",
+      "name": "Allow insert for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "english_learning_logs"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "Allow select for all",
+      "roles": [
+        "public"
+      ],
+      "table": "english_learning_logs"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "Allow update for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "english_learning_logs"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "Allow delete for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "family_members"
+    },
+    {
+      "cmd": "INSERT",
+      "name": "Allow insert for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "family_members"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "Allow select for all",
+      "roles": [
+        "public"
+      ],
+      "table": "family_members"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "Allow update for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "family_members"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "Allow delete for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "family_tasks"
+    },
+    {
+      "cmd": "INSERT",
+      "name": "Allow insert for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "family_tasks"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "Allow select for all",
+      "roles": [
+        "public"
+      ],
+      "table": "family_tasks"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "Allow update for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "family_tasks"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "Allow delete for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "family_task_assignees"
+    },
+    {
+      "cmd": "INSERT",
+      "name": "Allow insert for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "family_task_assignees"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "Allow select for all",
+      "roles": [
+        "public"
+      ],
+      "table": "family_task_assignees"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "Anyone can read analytics_targets",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "table": "analytics_targets"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "Authenticated users can delete analytics_targets",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "analytics_targets"
+    },
+    {
+      "cmd": "INSERT",
+      "name": "Authenticated users can insert analytics_targets",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "analytics_targets"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "Authenticated users can update analytics_targets",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "analytics_targets"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "Anyone can read command_categories",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "table": "command_categories"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "Authenticated users can delete command_categories",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "command_categories"
+    },
+    {
+      "cmd": "INSERT",
+      "name": "Authenticated users can insert command_categories",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "command_categories"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "Authenticated users can update command_categories",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "command_categories"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "Anyone can read command_templates",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "table": "command_templates"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "Authenticated users can delete command_templates",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "command_templates"
+    },
+    {
+      "cmd": "INSERT",
+      "name": "Authenticated users can insert command_templates",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "command_templates"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "Authenticated users can update command_templates",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "command_templates"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "finance_profiles_delete_own",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "finance_profiles"
+    },
+    {
+      "cmd": "INSERT",
+      "name": "finance_profiles_insert_own",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "finance_profiles"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "finance_profiles_select_own",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "finance_profiles"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "finance_profiles_update_own",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "finance_profiles"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "Allow delete for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "youyou_diary"
+    },
+    {
+      "cmd": "INSERT",
+      "name": "Allow insert for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "youyou_diary"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "Allow select for all",
+      "roles": [
+        "public"
+      ],
+      "table": "youyou_diary"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "Allow update for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "youyou_diary"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "Allow delete for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "youyou_milestones"
+    },
+    {
+      "cmd": "INSERT",
+      "name": "Allow insert for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "youyou_milestones"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "Allow select for all",
+      "roles": [
+        "public"
+      ],
+      "table": "youyou_milestones"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "Allow update for authenticated",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "youyou_milestones"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "vaccinations_delete",
+      "roles": [
+        "public"
+      ],
+      "table": "youyou_vaccinations"
+    },
+    {
+      "cmd": "INSERT",
+      "name": "vaccinations_insert",
+      "roles": [
+        "public"
+      ],
+      "table": "youyou_vaccinations"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "vaccinations_select",
+      "roles": [
+        "public"
+      ],
+      "table": "youyou_vaccinations"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "vaccinations_update",
+      "roles": [
+        "public"
+      ],
+      "table": "youyou_vaccinations"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "growth_records_delete",
+      "roles": [
+        "public"
+      ],
+      "table": "youyou_growth_records"
+    },
+    {
+      "cmd": "INSERT",
+      "name": "growth_records_insert",
+      "roles": [
+        "public"
+      ],
+      "table": "youyou_growth_records"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "growth_records_select",
+      "roles": [
+        "public"
+      ],
+      "table": "youyou_growth_records"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "growth_records_update",
+      "roles": [
+        "public"
+      ],
+      "table": "youyou_growth_records"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "medical_records_delete",
+      "roles": [
+        "public"
+      ],
+      "table": "youyou_medical_records"
+    },
+    {
+      "cmd": "INSERT",
+      "name": "medical_records_insert",
+      "roles": [
+        "public"
+      ],
+      "table": "youyou_medical_records"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "medical_records_select",
+      "roles": [
+        "public"
+      ],
+      "table": "youyou_medical_records"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "medical_records_update",
+      "roles": [
+        "public"
+      ],
+      "table": "youyou_medical_records"
+    },
+    {
+      "cmd": "ALL",
+      "name": "finance_accounts_all_own",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "finance_accounts"
+    },
+    {
+      "cmd": "ALL",
+      "name": "finance_liabilities_all_own",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "finance_liabilities"
+    },
+    {
+      "cmd": "ALL",
+      "name": "finance_credit_card_bills_all_own",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "finance_credit_card_bills"
+    },
+    {
+      "cmd": "ALL",
+      "name": "finance_payment_schedules_all_own",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "finance_payment_schedules"
+    },
+    {
+      "cmd": "ALL",
+      "name": "finance_transactions_all_own",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "finance_transactions"
+    },
+    {
+      "cmd": "ALL",
+      "name": "finance_budgets_all_own",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "finance_budgets"
+    },
+    {
+      "cmd": "ALL",
+      "name": "finance_monthly_snapshots_all_own",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "finance_monthly_snapshots"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "cli_device_authorizations_select_own",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "cli_device_authorizations"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "cli_access_tokens_select_own",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "cli_access_tokens"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "cli_api_audit_logs_select_own",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "cli_api_audit_logs"
+    }
+  ],
+  "view_dependencies": [
+    {
+      "view": "v_analytics_targets_active",
+      "depends_on": "analytics_targets"
+    },
+    {
+      "view": "v_analytics_targets_by_area",
+      "depends_on": "analytics_targets"
+    }
+  ],
+  "config_scopes": [
+    "til_category",
+    "project_scope",
+    "youyou-photo",
+    "output_type",
+    "family_task_category",
+    "exercise_category"
+  ],
+  "buckets": [
+    {
+      "id": "avatars",
+      "public": true
+    }
+  ],
+  "storage_counts": [
+    {
+      "bucket": "avatars",
+      "objects": 1
+    }
+  ],
+  "storage_policies": [
+    {
+      "name": "avatars_auth_delete",
+      "check": null,
+      "table": "objects",
+      "using": "((bucket_id = 'avatars'::text) AND (auth.role() = 'authenticated'::text))"
+    },
+    {
+      "name": "avatars_auth_insert",
+      "check": "((bucket_id = 'avatars'::text) AND (auth.role() = 'authenticated'::text))",
+      "table": "objects",
+      "using": null
+    },
+    {
+      "name": "avatars_auth_update",
+      "check": null,
+      "table": "objects",
+      "using": "((bucket_id = 'avatars'::text) AND (auth.role() = 'authenticated'::text))"
+    },
+    {
+      "name": "avatars_public_read",
+      "check": null,
+      "table": "objects",
+      "using": "(bucket_id = 'avatars'::text)"
+    }
+  ],
+  "extensions": [
+    "plpgsql",
+    "pg_stat_statements",
+    "uuid-ossp",
+    "pgcrypto",
+    "supabase_vault"
+  ],
+  "cron_job_table_present": false,
+  "public_publication_tables": [],
+  "edge_functions": [
+    {
+      "name": "ai-english",
+      "status": "ACTIVE",
+      "version": 7,
+      "decision": "remove_candidate"
+    },
+    {
+      "name": "ai-english-summary",
+      "status": "ACTIVE",
+      "version": 6,
+      "decision": "remove_candidate"
+    }
+  ]
+}

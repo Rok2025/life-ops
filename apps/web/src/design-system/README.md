@@ -21,11 +21,10 @@ Import from `@/components/ui` (e.g. `import { Button, Card, Input, Dialog } from
 
 ## Baseline pages (visual regression targets)
 
-- Dashboard: `src/app/page.tsx` → `features/dashboard`
-- Fitness: `src/app/fitness/page.tsx` → `features/fitness`
-- English Learning: `src/app/growth/english/page.tsx` → `features/english-learning`
-- Output: `src/app/output/page.tsx` → `features/output`
-- Settings: `src/app/settings/page.tsx` → `features/system-config`
+- Fitness: `src/app/(app)/fitness/page.tsx` → `features/fitness`
+- Finance: `src/app/(app)/finance/page.tsx` → `features/finance`
+- Settings: `src/app/(app)/settings/page.tsx` → `features/system-config`
+- Developer access: `src/app/(app)/developer/page.tsx` → `features/cli-api`
 
 ## Token layers (naming contract)
 

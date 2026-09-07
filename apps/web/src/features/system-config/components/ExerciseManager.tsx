@@ -3,7 +3,6 @@
 import { Dumbbell } from 'lucide-react';
 import { useExerciseManagerState, type ExerciseType } from '../hooks/useExerciseManagerState';
 import { ExerciseListPanel } from './ExerciseListPanel';
-import { CategoryListPanel } from './CategoryListPanel';
 import { AddExerciseDialog } from './AddExerciseDialog';
 import type { ConfigItem } from '../types';
 import { Card } from '@/components/ui';

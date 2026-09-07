@@ -1,36 +1,31 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Life OPS Web
 
-## Getting Started
+Next.js 16 App Router 应用，只保留健身、财务与必要的设置、登录、CLI 授权页面。根地址进入现有健身页；时间节奏、本月剩余、年度剩余继续保留。
 
-First, run the development server:
+## 本地运行
+
+在项目根目录执行：
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install --frozen-lockfile
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+访问 http://localhost:9999 。环境配置和部署要求见[项目 README](../../README.md)。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 验证
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pnpm --filter web test
+pnpm --filter web lint
+pnpm --filter web build
+pnpm --filter @life-ops/cli test
+```
 
-## Learn More
+CLI 测试只访问临时本地模拟服务，不读取 Keychain，也不写入真实账本或训练数据。
 
-To learn more about Next.js, take a look at the following resources:
+## 当前边界
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+应用精简版已上线，线上旧表、旧函数和 avatars 存储已清理；详见[生产结果](../../docs/audits/2026-09-07-production-cleanup-results.md)。审计发现的健身备用录入及数据库权限缺口尚需单独修复验证。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+详见[实施方案](../../docs/fitness-finance-simplification-plan.md)和[验证记录](../../docs/audits/2026-09-07-application-cleanup-results.md)。

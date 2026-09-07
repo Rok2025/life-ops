@@ -1,0 +1,45 @@
+{
+  "public_tables": [
+    "cli_access_tokens",
+    "cli_api_audit_logs",
+    "cli_device_authorizations",
+    "cli_idempotency_keys",
+    "exercise_types",
+    "finance_accounts",
+    "finance_budgets",
+    "finance_credit_card_bills",
+    "finance_liabilities",
+    "finance_monthly_snapshots",
+    "finance_payment_schedules",
+    "finance_profiles",
+    "finance_transactions",
+    "system_configs",
+    "workout_sessions",
+    "workout_sets"
+  ],
+  "views": 0,
+  "functions": [
+    "cli_claim_idempotency_key",
+    "cli_log_fitness_workout",
+    "finance_set_updated_at"
+  ],
+  "config_scopes": [
+    "exercise_category"
+  ],
+  "storage_buckets": 0,
+  "storage_objects": 0,
+  "avatars_policies": 0,
+  "migration_versions": [
+    {
+      "version": "20260907010628",
+      "name": "remove_non_fitness_finance_business"
+    },
+    {
+      "version": "20260907010707",
+      "name": "remove_unused_avatar_storage_policies"
+    }
+  ],
+  "audited_at": "2026-09-07",
+  "project_ref": "owhckhngopdwbqgxtmpy",
+  "scope": "post-cleanup metadata only"
+}

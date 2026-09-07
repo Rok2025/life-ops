@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useMutation } from '@tanstack/react-query';
-import { configApi } from '../api/configApi';
+import { useQueryClient } from '@tanstack/react-query';
 import { exerciseTypesApi } from '../api/exerciseTypesApi';
 import type { ConfigItem } from '../types';
 
@@ -14,18 +13,12 @@ export type ExerciseType = {
     default_unit: string | null;
 };
 
-export type Tab = 'exercises' | 'categories';
-
 export function useExerciseManagerState(
     initialCategories: ConfigItem[],
     initialExercises: ExerciseType[],
 ) {
-    const [expanded, setExpanded] = useState(true);
-    const [tab, setTab] = useState<Tab>('exercises');
-
-    // ========== Category state ==========
-    const [categories, setCategories] = useState<ConfigItem[]>(initialCategories);
-    const [newCatLabel, setNewCatLabel] = useState('');
+    const queryClient = useQueryClient();
+    const categories = initialCategories;
 
     const activeCategories = categories.filter(c => c.is_active);
     const categoryLabels: Record<string, string> = {};
@@ -33,76 +26,6 @@ export function useExerciseManagerState(
         categoryLabels[c.value] = c.label;
     }
     const allCatValues = activeCategories.map(c => c.value);
-
-    const reloadCategories = useCallback(async () => {
-        try {
-            const data = await configApi.getAllByScope('exercise_category');
-            setCategories(data);
-        } catch (err) {
-            console.error('加载训练部位失败:', err);
-        }
-    }, []);
-
-    const addCatMutation = useMutation({
-        mutationFn: async (label: string) => {
-            const maxOrder = categories.reduce((max, i) => Math.max(max, i.sort_order), 0);
-            await configApi.create({
-                scope: 'exercise_category',
-                value: label,
-                label,
-                sort_order: maxOrder + 1,
-            });
-        },
-        onSuccess: () => { setNewCatLabel(''); reloadCategories(); },
-    });
-
-    const toggleCatMutation = useMutation({
-        mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
-            configApi.toggleActive(id, isActive),
-        onSuccess: () => reloadCategories(),
-    });
-
-    const deleteCatMutation = useMutation({
-        mutationFn: (id: string) => configApi.delete(id),
-        onSuccess: () => reloadCategories(),
-    });
-
-    const handleAddCategory = useCallback(() => {
-        const trimmed = newCatLabel.trim();
-        if (!trimmed) return;
-        if (categories.some(i => i.label === trimmed || i.value === trimmed)) {
-            alert('该部位已存在');
-            return;
-        }
-        addCatMutation.mutate(trimmed);
-    }, [newCatLabel, categories, addCatMutation]);
-
-    const handleDeleteCategory = useCallback((id: string) => {
-        if (!confirm('删除后不可恢复，确定删除？')) return;
-        deleteCatMutation.mutate(id);
-    }, [deleteCatMutation]);
-
-    // 编辑部位
-    const [editingCatId, setEditingCatId] = useState<string | null>(null);
-    const [editCatLabel, setEditCatLabel] = useState('');
-
-    const updateCatMutation = useMutation({
-        mutationFn: async ({ id, label }: { id: string; label: string }) => {
-            await configApi.update(id, { value: label, label });
-        },
-        onSuccess: () => { setEditingCatId(null); reloadCategories(); },
-    });
-
-    const handleStartEditCategory = useCallback((cat: ConfigItem) => {
-        setEditingCatId(cat.id);
-        setEditCatLabel(cat.label);
-    }, []);
-
-    const handleSaveEditCategory = useCallback(() => {
-        const trimmed = editCatLabel.trim();
-        if (!trimmed || !editingCatId) return;
-        updateCatMutation.mutate({ id: editingCatId, label: trimmed });
-    }, [editCatLabel, editingCatId, updateCatMutation]);
 
     // ========== Exercise state ==========
     const [exercises, setExercises] = useState<ExerciseType[]>(initialExercises);
@@ -120,10 +43,12 @@ export function useExerciseManagerState(
         try {
             const data = await exerciseTypesApi.getAll();
             setExercises(data);
+            queryClient.setQueryData(['exercise-types-all'], data);
+            await queryClient.invalidateQueries({ queryKey: ['fitness-exercise-types'] });
         } catch (error) {
             console.error('加载训练动作失败:', error);
         }
-    }, []);
+    }, [queryClient]);
 
     const handleAddExercise = async () => {
         if (!newName.trim()) return;
@@ -181,14 +106,7 @@ export function useExerciseManagerState(
         : Object.keys(exercisesByCategory);
 
     return {
-        // UI
-        expanded, setExpanded, tab, setTab,
-        // Categories
-        categories, activeCategories, allCatValues, categoryLabels,
-        newCatLabel, setNewCatLabel, handleAddCategory, isAddCatPending: addCatMutation.isPending,
-        editingCatId, setEditingCatId, editCatLabel, setEditCatLabel,
-        handleStartEditCategory, handleSaveEditCategory,
-        toggleCatMutation, handleDeleteCategory, isDeleteCatPending: deleteCatMutation.isPending,
+        activeCategories, allCatValues, categoryLabels,
         // Exercises
         exercises, exercisesByCategory, displayCategories,
         selectedCategory, setSelectedCategory,

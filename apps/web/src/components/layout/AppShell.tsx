@@ -1,9 +1,10 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { AuthProvider } from '@/contexts/AuthContext';
 import QueryProvider from '@/providers/QueryProvider';
 import Sidebar from './Sidebar';
@@ -14,10 +15,9 @@ import {
     getAppShellMainClassName,
     type AppShellPanelVisibility,
 } from './appShellLayout';
-import { getAppShellRouteMeta, getAppShellWarmupRoutes } from './appShellRoutes';
+import { getAppShellRouteMeta } from './appShellRoutes';
 
 const PANEL_VISIBILITY_STORAGE_KEY = 'life-ops:app-shell-panel-visibility';
-const prefetchedWarmupRoutes = new Set<string>();
 
 type AppShellProps = {
     children: ReactNode;
@@ -57,24 +57,8 @@ function persistPanelVisibilityPreference(panelVisibility: AppShellPanelVisibili
     window.localStorage.setItem(PANEL_VISIBILITY_STORAGE_KEY, JSON.stringify(panelVisibility));
 }
 
-function scheduleIdleTask(callback: () => void): () => void {
-    const idleWindow = window as Window & {
-        requestIdleCallback?: (callback: () => void) => number;
-        cancelIdleCallback?: (handle: number) => void;
-    };
-
-    if (idleWindow.requestIdleCallback && idleWindow.cancelIdleCallback) {
-        const handle = idleWindow.requestIdleCallback(callback);
-        return () => idleWindow.cancelIdleCallback?.(handle);
-    }
-
-    const handle = window.setTimeout(callback, 500);
-    return () => window.clearTimeout(handle);
-}
-
 export default function AppShell({ children, initialUser }: AppShellProps) {
     const pathname = usePathname();
-    const router = useRouter();
     const [panelVisibility, setPanelVisibility] = useState<AppShellPanelVisibility>(defaultPanelVisibility);
     const [preferenceLoaded, setPreferenceLoaded] = useState(false);
 
@@ -86,17 +70,6 @@ export default function AppShell({ children, initialUser }: AppShellProps) {
 
         return () => window.cancelAnimationFrame(frameId);
     }, []);
-
-    useEffect(() => {
-        return scheduleIdleTask(() => {
-            for (const route of getAppShellWarmupRoutes(pathname)) {
-                if (prefetchedWarmupRoutes.has(route)) continue;
-
-                prefetchedWarmupRoutes.add(route);
-                router.prefetch(route);
-            }
-        });
-    }, [pathname, router]);
 
     useEffect(() => {
         if (!preferenceLoaded) return;
@@ -140,6 +113,21 @@ export default function AppShell({ children, initialUser }: AppShellProps) {
                     <Sidebar visible={panelVisibility.sidebarVisible} />
                     <main className={mainClassName}>
                         <div className={contentClassName}>
+                            <nav aria-label="移动端业务导航" className="mb-4 flex gap-2 lg:hidden">
+                                {[
+                                    { href: '/fitness', label: '健身' },
+                                    { href: '/finance', label: '财务' },
+                                ].map(({ href, label }) => (
+                                    <Link
+                                        key={href}
+                                        href={href}
+                                        aria-current={pathname === href || pathname.startsWith(`${href}/`) ? 'page' : undefined}
+                                        className="rounded-control border border-glass-border px-4 py-2 text-body-sm text-text-secondary aria-[current=page]:bg-accent/10 aria-[current=page]:text-accent"
+                                    >
+                                        {label}
+                                    </Link>
+                                ))}
+                            </nav>
                             {children}
                         </div>
                     </main>

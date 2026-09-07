@@ -39,6 +39,7 @@ coverage/
 # Misc
 *.pem
 *.tsbuildinfo
-harness/.runtime/
 backups/
 outputs/
+.vercel
+.env*

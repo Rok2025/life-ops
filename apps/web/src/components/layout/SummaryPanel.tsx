@@ -1,13 +1,10 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
 import { formatHorizons, getMonthProgress } from '@/lib/horizons';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePathname } from 'next/navigation';
-import { BookOpen, Dumbbell, Hourglass, ListTodo, PenLine, Users } from 'lucide-react';
-import Link from 'next/link';
-import { Card, SectionHeader, getButtonClassName } from '@/components/ui';
-import { notesApi } from '@/features/quick-notes';
+import { Hourglass } from 'lucide-react';
+import { Card, SectionHeader } from '@/components/ui';
 import { getAppShellPanelClassName } from './appShellLayout';
 
 type SummaryPanelProps = {
@@ -20,12 +17,6 @@ export default function SummaryPanel({ visible = true }: SummaryPanelProps) {
     const weekDays = ['一', '二', '三', '四', '五', '六', '日'];
     const { user, loading } = useAuth();
     const pathname = usePathname();
-    const { data: incompleteTodoCount = 0 } = useQuery({
-        queryKey: ['incomplete-todo-count'],
-        queryFn: () => notesApi.getIncompleteTodoCount(),
-        enabled: visible,
-    });
-
     if (!visible || (!user && !loading && pathname === '/login')) return null;
 
     return (
@@ -112,7 +103,7 @@ export default function SummaryPanel({ visible = true }: SummaryPanelProps) {
                         <div className="mt-2 flex items-center justify-between">
                             <div className="flex items-center gap-1.5 opacity-60">
                                 <Hourglass size={12} className="text-accent animate-hourglass" />
-                                <span className="text-caption tracking-tight text-text-tertiary">年度进度</span>
+                                <span className="text-caption tracking-tight text-text-tertiary">年度剩余比例</span>
                             </div>
                             <div className="text-caption tracking-tight text-text-tertiary">
                                 {horizons.yearRemaining}
@@ -122,69 +113,6 @@ export default function SummaryPanel({ visible = true }: SummaryPanelProps) {
                 </div>
             </section>
 
-            {/* Quick Actions */}
-            <section>
-                <SectionHeader title="快捷操作" className="mb-3" />
-                <div className="space-y-2">
-                    <Link
-                        href="/todos"
-                        className={getButtonClassName({
-                            variant: 'secondary',
-                            size: 'sm',
-                            className: 'w-full justify-between gap-2 text-left',
-                        })}
-                    >
-                        <span className="flex items-center gap-2">
-                            <ListTodo size={15} />
-                            待办清单
-                        </span>
-                        <span className="glass-mini-chip text-caption">{incompleteTodoCount} 未完成</span>
-                    </Link>
-
-                    <Link
-                        href="/family"
-                        className={getButtonClassName({
-                            variant: 'secondary',
-                            size: 'sm',
-                            className: 'w-full justify-between gap-2 text-left',
-                        })}
-                    >
-                        <span className="flex items-center gap-2">
-                            <Users size={15} />
-                            家庭待办
-                        </span>
-                    </Link>
-
-                    <Link
-                        href="/fitness/workout/new"
-                        className={getButtonClassName({
-                            variant: 'tinted',
-                            size: 'sm',
-                            className: 'w-full gap-2 text-center',
-                        })}
-                    >
-                        <Dumbbell size={15} />
-                        记录一次训练
-                    </Link>
-
-                    <div className="grid grid-cols-2 gap-2">
-                        <Link
-                            href="/growth/english"
-                            className="glass-list-row flex items-center gap-2 px-3 py-2 text-body-sm text-text-primary"
-                        >
-                            <BookOpen size={14} className="text-accent/85" />
-                            <span>今日英语</span>
-                        </Link>
-                        <Link
-                            href="/output"
-                            className="glass-list-row flex items-center gap-2 px-3 py-2 text-body-sm text-text-primary"
-                        >
-                            <PenLine size={14} className="text-accent/85" />
-                            <span>输出面板</span>
-                        </Link>
-                    </div>
-                </div>
-            </section>
         </aside>
     );
 }
