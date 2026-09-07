@@ -297,3 +297,6 @@ export const BILL_STATUS_LABELS: Record<CreditCardBillStatus, string> = {
     paid: '已还清',
     risk: '有风险',
 };
+
+export type FinanceTransactionAccount = Pick<FinanceAccount, 'id' | 'name' | 'is_active'>;
+export const EXPENSE_CATEGORY_OPTIONS = FINANCE_CATEGORY_OPTIONS.filter((option) => option.value !== 'salary' && option.value !== 'debt_payment');

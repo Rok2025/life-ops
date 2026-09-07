@@ -27,6 +27,7 @@ type QueryCall = {
     filters: QueryFilter[];
     orders: QueryOrder[];
     limitCount?: number;
+    range?: [number, number];
     response: unknown;
 };
 
@@ -91,6 +92,7 @@ function createMockSupabase(responses: Record<string, unknown[]>): MockSupabase 
                     call.orders.push({ column, options });
                     return builder;
                 },
+                range(from: number, to: number) { call.range = [from, to]; return builder; },
                 limit(count: number) {
                     call.limitCount = count;
                     return builder;
@@ -382,6 +384,29 @@ describe('createFinanceApi', () => {
         expect(expenseCall?.orders).toEqual([
             { column: 'occurred_date', options: { ascending: true } },
             { column: 'created_at', options: { ascending: true } },
+            { column: 'id', options: { ascending: true } },
         ]);
+    });
+});
+
+describe('expense-only reads', () => {
+    it('loads only the account fields needed for transaction labels and selection', async () => {
+        const { client, calls } = createMockSupabase({ finance_accounts: [[]] });
+        await createFinanceApi(client).getTransactionAccounts('user-1');
+        expect(calls).toHaveLength(1);
+        expect(calls[0].selectColumns).toBe('id,name,is_active');
+        expect(calls[0].filters).toContainEqual({ op: 'eq', column: 'user_id', value: 'user-1' });
+    });
+    it('loads every page of a historical month instead of truncating totals and exports', async () => {
+        const firstPage = Array.from({ length: 500 }, (_, index) => ({ ...currentMonthExpense, id: String(index) }));
+        const { client, calls } = createMockSupabase({ finance_transactions: [firstPage, [earlyMonthExpense]] });
+        const result = await createFinanceApi(client).getExpenseMonth('user-1', '2010-05-01');
+        expect(result.expenses).toHaveLength(501);
+        expect(calls.map((call) => call.range)).toEqual([[0, 499], [500, 999]]);
+        for (const call of calls) {
+            expect(call.filters).toContainEqual({ op: 'eq', column: 'transaction_type', value: 'expense' });
+            expect(call.filters).toContainEqual({ op: 'gte', column: 'occurred_date', value: '2010-05-01' });
+            expect(call.filters).toContainEqual({ op: 'lte', column: 'occurred_date', value: '2010-05-31' });
+        }
     });
 });

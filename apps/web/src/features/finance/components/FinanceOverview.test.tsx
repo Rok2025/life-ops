@@ -1,11 +1,9 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import FinanceOverview, {
-    AllExpensesDialog,
-    BASIC_INFO_DIALOG_BODY_CLASS_NAME,
-    getDefaultTransactionAccountId,
-} from './FinanceOverview';
+import FinanceOverview from './FinanceOverview';
+import { ExpenseLedger } from './ExpenseLedger';
+import { getDefaultTransactionAccountId } from './TransactionDialog';
 import type { FinanceDashboard } from '../types';
 
 type MockProps = Record<string, unknown> & {
@@ -74,6 +72,12 @@ vi.mock('@/contexts/AuthContext', () => ({
 const mutate = vi.fn();
 
 vi.mock('../hooks/useFinanceDashboard', () => ({
+    useFinanceTransactionAccounts: () => ({ data: dashboard.accounts, isLoading: false, isError: false }),
+    useExpenseMutations: () => ({
+        createTransactionMutation: { mutate, isPending: false },
+        updateTransactionMutation: { mutate, isPending: false },
+        deleteTransactionMutation: { mutate, isPending: false },
+    }),
     useFinanceDashboard: () => ({
         data: dashboard,
         isLoading: false,
@@ -201,13 +205,6 @@ const dashboard: FinanceDashboard = {
 };
 
 describe('FinanceOverview', () => {
-    it('keeps the basic info dialog body scrollable for long account and liability lists', () => {
-        expect(BASIC_INFO_DIALOG_BODY_CLASS_NAME).toContain('min-h-0');
-        expect(BASIC_INFO_DIALOG_BODY_CLASS_NAME).toContain('flex-1');
-        expect(BASIC_INFO_DIALOG_BODY_CLASS_NAME).toContain('overflow-y-auto');
-        expect(BASIC_INFO_DIALOG_BODY_CLASS_NAME).toContain('p-5');
-    });
-
     it('defaults new transaction account to active Alipay when available', () => {
         const [baseAccount] = dashboard.accounts;
         const accountId = getDefaultTransactionAccountId([
@@ -236,41 +233,20 @@ describe('FinanceOverview', () => {
         expect(accountId).toBe('account-alipay');
     });
 
-    it('opens all expenses from an in-page button instead of navigating to a password-gated route', () => {
+    it('shows the monthly ledger directly without credit, asset or debt panels', () => {
         const html = renderToStaticMarkup(<FinanceOverview initialUserId="user-1" />);
-
-        expect(html).toContain('全部支出');
-        expect(html).not.toContain('href="/finance/expenses"');
-        expect(html).toContain('<button');
-    });
-
-    it('does not render the embedded all-expense detail list on the spending card', () => {
-        const html = renderToStaticMarkup(<FinanceOverview initialUserId="user-1" />);
-
-        expect(html).toContain('支出记录');
-        expect(html).toContain('全部支出');
-        expect(html).not.toContain('全部明细');
-        expect(html).not.toContain('记一笔支出后会在这里查看全部详情。');
-    });
-
-    it('renders category totals beside a pie chart on the spending card', () => {
-        const html = renderToStaticMarkup(<FinanceOverview initialUserId="user-1" />);
-
-        expect(html).toContain('data-expense-category-layout="split"');
-        expect(html).toContain('data-expense-category-chart="pie"');
-        expect(html).toContain('分类占比');
-        expect(html).toContain('餐饮');
+        expect(html).toContain('支出记账');
+        expect(html).toContain('data-expense-ledger-layout');
+        for (const label of ['信用卡', '负债', '净资产', '基础信息', '快照']) expect(html).not.toContain(label);
     });
 
     it('renders all expense records as compact single-line rows', () => {
         const html = renderToStaticMarkup(
-            <AllExpensesDialog
-                open
+            <ExpenseLedger
                 userId="user-1"
                 accounts={dashboard.accounts}
                 isSavingExpense={false}
                 isDeletingExpense={false}
-                onClose={() => undefined}
                 onUpdateExpense={() => undefined}
                 onDeleteExpense={() => undefined}
             />,
@@ -290,13 +266,11 @@ describe('FinanceOverview', () => {
 
     it('renders an Excel export action for the selected expense month', () => {
         const html = renderToStaticMarkup(
-            <AllExpensesDialog
-                open
+            <ExpenseLedger
                 userId="user-1"
                 accounts={dashboard.accounts}
                 isSavingExpense={false}
                 isDeletingExpense={false}
-                onClose={() => undefined}
                 onUpdateExpense={() => undefined}
                 onDeleteExpense={() => undefined}
             />,
@@ -308,13 +282,11 @@ describe('FinanceOverview', () => {
 
     it('renders an edit action for each all-expense record', () => {
         const html = renderToStaticMarkup(
-            <AllExpensesDialog
-                open
+            <ExpenseLedger
                 userId="user-1"
                 accounts={dashboard.accounts}
                 isSavingExpense={false}
                 isDeletingExpense={false}
-                onClose={() => undefined}
                 onUpdateExpense={() => undefined}
                 onDeleteExpense={() => undefined}
             />,
@@ -327,13 +299,11 @@ describe('FinanceOverview', () => {
 
     it('keeps all-expense details on a drawer-only detail action', () => {
         const html = renderToStaticMarkup(
-            <AllExpensesDialog
-                open
+            <ExpenseLedger
                 userId="user-1"
                 accounts={dashboard.accounts}
                 isSavingExpense={false}
                 isDeletingExpense={false}
-                onClose={() => undefined}
                 onUpdateExpense={() => undefined}
                 onDeleteExpense={() => undefined}
             />,
@@ -345,13 +315,11 @@ describe('FinanceOverview', () => {
 
     it('renders view, edit, and delete as compact icon actions in one operation column', () => {
         const html = renderToStaticMarkup(
-            <AllExpensesDialog
-                open
+            <ExpenseLedger
                 userId="user-1"
                 accounts={dashboard.accounts}
                 isSavingExpense={false}
                 isDeletingExpense={false}
-                onClose={() => undefined}
                 onUpdateExpense={() => undefined}
                 onDeleteExpense={() => undefined}
             />,
@@ -369,15 +337,13 @@ describe('FinanceOverview', () => {
         expect(html).toContain('aria-label="删除支出：午饭"');
     });
 
-    it('renders the all-expense modal as a compact monthly ledger', () => {
+    it('renders the expense page as a compact monthly ledger', () => {
         const html = renderToStaticMarkup(
-            <AllExpensesDialog
-                open
+            <ExpenseLedger
                 userId="user-1"
                 accounts={dashboard.accounts}
                 isSavingExpense={false}
                 isDeletingExpense={false}
-                onClose={() => undefined}
                 onUpdateExpense={() => undefined}
                 onDeleteExpense={() => undefined}
             />,
@@ -418,13 +384,11 @@ describe('FinanceOverview', () => {
 
         try {
             const html = renderToStaticMarkup(
-                <AllExpensesDialog
-                    open
+                <ExpenseLedger
                     userId="user-1"
                     accounts={dashboard.accounts}
                     isSavingExpense={false}
                     isDeletingExpense={false}
-                    onClose={() => undefined}
                     onUpdateExpense={() => undefined}
                     onDeleteExpense={() => undefined}
                 />,

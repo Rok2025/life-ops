@@ -29,3 +29,5 @@ CLI 测试只访问临时本地模拟服务，不读取 Keychain，也不写入�
 应用精简版已上线，线上旧表、旧函数和 avatars 存储已清理；详见[生产结果](../../docs/audits/2026-09-07-production-cleanup-results.md)。健身备用录入、事务和权限缺口已修复上线，见[修复结果](../../docs/audits/2026-09-07-fitness-security-fix-results.md)。
 
 详见[实施方案](../../docs/fitness-finance-simplification-plan.md)和[验证记录](../../docs/audits/2026-09-07-application-cleanup-results.md)。
+
+财务页 `/finance` 专用于支出记账，默认查看本月，可切换历史月份及导出。信用卡、负债、资产、预算和快照面板已移除；支付账户仅查询记账所需的名称和状态，不查询余额或额度。现有财务数据与 CLI 接口保留。

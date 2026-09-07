@@ -3,8 +3,8 @@
 import { useCallback, useState } from 'react';
 import { Button, DatePicker, Drawer, Input, Select, ShortcutHint } from '@/components/ui';
 import { handleCommandEnterFormSubmit } from '@/lib/shortcuts';
-import type { FinanceAccount, UpdateFinanceTransactionInput } from '../types';
-import { FINANCE_CATEGORY_OPTIONS } from '../types';
+import type { FinanceTransactionAccount, UpdateFinanceTransactionInput } from '../types';
+import { EXPENSE_CATEGORY_OPTIONS } from '../types';
 import { formatCurrency } from '../lib/financeFormat';
 import type { FinanceExpenseDetailRow } from '../lib/transactionDisplay';
 
@@ -69,7 +69,7 @@ export function ExpenseDetailDrawer({
 
 type ExpenseEditFormProps = {
     expense: FinanceExpenseDetailRow;
-    accounts: FinanceAccount[];
+    accounts: FinanceTransactionAccount[];
     userId: string;
     isSaving: boolean;
     onClose: () => void;
@@ -96,6 +96,7 @@ function ExpenseEditForm({
     const [note, setNote] = useState(expense.note ?? '');
 
     const handleSubmit = useCallback(() => {
+        if (isSaving) return;
         const parsedAmount = Number(amount);
         if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) return;
 
@@ -110,7 +111,7 @@ function ExpenseEditForm({
             merchant: merchant.trim() || null,
             note: note.trim() || null,
         });
-    }, [accountId, amount, category, expense, merchant, note, occurredDate, onSubmit, userId]);
+    }, [isSaving, accountId, amount, category, expense, merchant, note, occurredDate, onSubmit, userId]);
 
     return (
         <form
@@ -129,7 +130,7 @@ function ExpenseEditForm({
                     <span className="text-caption text-text-secondary">金额</span>
                     <Input
                         type="number"
-                        min="0"
+                        min="0.01"
                         step="0.01"
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
@@ -139,7 +140,8 @@ function ExpenseEditForm({
                 <label className="space-y-1.5">
                     <span className="text-caption text-text-secondary">分类</span>
                     <Select value={category} onChange={(e) => setCategory(e.target.value)}>
-                        {FINANCE_CATEGORY_OPTIONS.map((option) => (
+                        {!EXPENSE_CATEGORY_OPTIONS.some((option) => option.value === category) ? <option value={category}>{expense.categoryLabel}</option> : null}
+                        {EXPENSE_CATEGORY_OPTIONS.map((option) => (
                             <option key={option.value} value={option.value}>{option.label}</option>
                         ))}
                     </Select>
@@ -155,7 +157,7 @@ function ExpenseEditForm({
                 </label>
                 <label className="space-y-1.5 md:col-span-2">
                     <span className="text-caption text-text-secondary">商户/对象</span>
-                    <Input value={merchant} onChange={(e) => setMerchant(e.target.value)} placeholder="例如：晚饭、工资、招行还款" />
+                    <Input value={merchant} onChange={(e) => setMerchant(e.target.value)} placeholder="例如：午饭、超市购物" />
                 </label>
                 <label className="space-y-1.5 md:col-span-2">
                     <span className="text-caption text-text-secondary">备注</span>
@@ -170,7 +172,7 @@ function ExpenseEditForm({
             </div>
             <div className="mt-5 flex justify-end gap-2">
                 <Button variant="secondary" onClick={onClose}>取消</Button>
-                <Button type="submit" disabled={isSaving || Number(amount) <= 0}>
+                <Button type="submit" disabled={isSaving || !Number.isFinite(Number(amount)) || Number(amount) <= 0}>
                     保存修改
                     {!isSaving ? <ShortcutHint /> : null}
                 </Button>

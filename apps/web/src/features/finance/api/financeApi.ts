@@ -6,6 +6,7 @@ import type {
     DeleteFinanceAccountInput,
     DeleteFinanceTransactionInput,
     FinanceAccount,
+    FinanceTransactionAccount,
     FinanceBudget,
     FinanceCreditCardBill,
     FinanceDashboard,
@@ -105,23 +106,28 @@ type FinanceTransactionSubset = {
 
 export function createFinanceApi(supabase: SupabaseClient) {
     return {
+    getTransactionAccounts: async (userId: string): Promise<FinanceTransactionAccount[]> => {
+        const { data, error } = await supabase.from('finance_accounts')
+            .select('id,name,is_active').eq('user_id', userId).order('sort_order');
+        throwIfError(error);
+        return data ?? [];
+    },
     getExpenseMonth: async (userId: string, monthStart: string): Promise<FinanceExpenseMonthData> => {
         const monthEnd = getMonthEndISO(parseDateISO(monthStart));
-        const { data, error } = await supabase
-            .from('finance_transactions')
-            .select('*')
-            .eq('user_id', userId)
-            .eq('transaction_type', 'expense')
-            .gte('occurred_date', monthStart)
-            .lte('occurred_date', monthEnd)
-            .order('occurred_date', { ascending: true })
-            .order('created_at', { ascending: true });
-
-        throwIfError(error);
-
-        return {
-            expenses: (data ?? []) as FinanceTransaction[],
-        };
+        const expenses: FinanceTransaction[] = [];
+        const pageSize = 500;
+        for (let offset = 0; ; offset += pageSize) {
+            const { data, error } = await supabase.from('finance_transactions').select('*')
+                .eq('user_id', userId).eq('transaction_type', 'expense')
+                .gte('occurred_date', monthStart).lte('occurred_date', monthEnd)
+                .order('occurred_date', { ascending: true }).order('created_at', { ascending: true })
+                .order('id', { ascending: true }).range(offset, offset + pageSize - 1);
+            throwIfError(error);
+            const page = (data ?? []) as FinanceTransaction[];
+            expenses.push(...page);
+            if (page.length < pageSize) break;
+        }
+        return { expenses };
     },
 
     getDashboard: async (userId: string): Promise<FinanceDashboard> => {

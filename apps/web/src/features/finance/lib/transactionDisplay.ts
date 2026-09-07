@@ -1,4 +1,4 @@
-import type { FinanceAccount, FinanceTransaction } from '../types';
+import type { FinanceTransactionAccount, FinanceTransaction } from '../types';
 import { getCategoryLabel, toNumber } from './financeFormat';
 
 export type FinanceExpenseDetailRow = {
@@ -42,7 +42,7 @@ export type FinanceExpenseYearGroup = {
 
 export function getExpenseDetailRows(
     transactions: FinanceTransaction[],
-    accounts: FinanceAccount[],
+    accounts: FinanceTransactionAccount[],
     options: { sortDirection?: 'asc' | 'desc' } = {},
 ): FinanceExpenseDetailRow[] {
     const accountsById = new Map(accounts.map((account) => [account.id, account.name]));

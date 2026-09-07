@@ -134,3 +134,18 @@ export function useFinanceMutations(userId: string | undefined) {
         createSnapshotMutation,
     };
 }
+
+export function useFinanceTransactionAccounts(userId: string) {
+    return useQuery({ queryKey: ['finance-transaction-accounts', userId],
+        queryFn: () => financeApi.getTransactionAccounts(userId), enabled: Boolean(userId) });
+}
+
+export function useExpenseMutations(userId: string) {
+    const queryClient = useQueryClient();
+    const invalidate = () => queryClient.invalidateQueries({ queryKey: financeKeys.expenseMonths(userId) });
+    return {
+        createTransactionMutation: useMutation({ mutationFn: createFinanceTransactionAction, onSuccess: invalidate }),
+        updateTransactionMutation: useMutation({ mutationFn: updateFinanceTransactionAction, onSuccess: invalidate }),
+        deleteTransactionMutation: useMutation({ mutationFn: deleteFinanceTransactionAction, onSuccess: invalidate }),
+    };
+}
