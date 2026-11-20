@@ -70,7 +70,6 @@ seed 会写入 20+ 条命令，覆盖：
 
 - `.zshrc` 中已有的 `smart`、`smartui`、`audit`、`cst`、`life`、`openclaw`
 - Life OPS 常用开发命令
-- `rok ctx` / `rok project` / `rok ui` 常用命令
 - Git 发布和 Supabase 常用命令
 
 后续所有命令都可以在系统配置中动态维护。

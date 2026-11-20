@@ -43,3 +43,6 @@ backups/
 outputs/
 .vercel
 .env*
+
+# Local deployment details and generated state
+/supabase/.temp/
